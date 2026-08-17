@@ -82,6 +82,9 @@
 						lng: location.longitude,
 						radiusKm: 20
 					})
+					if (!this.nearby.length) {
+						this.nearby = await api.getVenues({})
+					}
 					if (this.nearby.length) {
 						const venueId = this.nearby[0].id
 						this.venueShares = await api.getVenueShares(venueId)
@@ -100,7 +103,7 @@
 					uni.getLocation({
 						type: 'gcj02',
 						success: (res) => resolve({ latitude: res.latitude, longitude: res.longitude }),
-						fail: () => resolve({ latitude: 31.2304, longitude: 121.4737 })
+						fail: () => resolve({ latitude: 30.5728, longitude: 104.0668 })
 					})
 				})
 			},
