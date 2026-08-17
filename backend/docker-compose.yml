@@ -1,0 +1,85 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: friendlyseat-postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: friendlyseat
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  mysql:
+    image: mysql:8.0
+    container_name: friendlyseat-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: mysqlroot
+      MYSQL_DATABASE: friendlyseat
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysqldata:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-pmysqlroot"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    container_name: friendlyseat-redis
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  api:
+    build:
+      context: .
+      dockerfile: src/FriendlySeat.Api/Dockerfile
+    container_name: friendlyseat-api
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      ASPNETCORE_ENVIRONMENT: "${ASPNETCORE_ENVIRONMENT:-Development}"
+      Database__Provider: "${DB_PROVIDER:-MySql}"
+      ConnectionStrings__Default: "${DB_CONNECTION:-Server=mysql;Port=3306;Database=friendlyseat;User=root;Password=mysqlroot;}"
+      Redis__ConnectionString: "${REDIS_CONNECTION:-redis:6379}"
+      Jwt__Key: "${JWT_KEY:-friendly-seat-dev-secret-key-change-me-in-production-0123456789}"
+      Wechat__AppId: "${WECHAT_APPID:-}"
+      Wechat__AppSecret: "${WECHAT_APPSECRET:-}"
+      ASPNETCORE_URLS: "http://+:8080"
+    ports:
+      - "5000:8080"
+    restart: unless-stopped
+
+  web:
+    build:
+      context: ../web/seatshare-admin
+      dockerfile: Dockerfile
+    container_name: friendlyseat-web
+    depends_on:
+      - api
+    ports:
+      - "5173:80"
+    restart: unless-stopped
+
+volumes:
+  pgdata:
+  mysqldata:

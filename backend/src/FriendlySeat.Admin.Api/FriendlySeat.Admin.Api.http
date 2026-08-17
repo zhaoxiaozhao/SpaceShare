@@ -1,0 +1,6 @@
+@FriendlySeat.Admin.Api_HostAddress = http://localhost:5049
+
+GET {{FriendlySeat.Admin.Api_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

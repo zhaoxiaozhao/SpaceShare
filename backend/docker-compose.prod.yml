@@ -1,0 +1,36 @@
+# 生产部署覆盖配置
+# 用法：docker compose -f docker-compose.yml -f docker-compose.prod.yml --env-file .env.production up -d
+# 生产密钥从 .env.production 注入，appsettings.Production.json 提供默认值
+
+services:
+  api:
+    container_name: friendlyseat-api
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      Database__Provider: ${DB_PROVIDER:-MySql}
+      ConnectionStrings__Default: ${DB_CONNECTION:?必须设置 DB_CONNECTION}
+      Redis__ConnectionString: ${REDIS_CONNECTION:?必须设置 REDIS_CONNECTION}
+      Jwt__Key: ${JWT_KEY:?必须设置 JWT_KEY}
+      Wechat__AppId: ${WECHAT_APPID:-}
+      Wechat__AppSecret: ${WECHAT_APPSECRET:-}
+    ports:
+      - "5000:8080"
+    restart: unless-stopped
+    # 生产建议限制资源
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 512M
+
+  web:
+    container_name: friendlyseat-web
+    ports:
+      - "5173:80"
+    restart: unless-stopped
+
+  # 生产环境：mysql/redis 建议使用托管服务（云数据库/云 Redis）或保持容器但不应暴露公网端口
+  mysql:
+    ports: []
+  redis:
+    ports: []

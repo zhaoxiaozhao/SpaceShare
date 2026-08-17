@@ -1,0 +1,28 @@
+# ===== 敏感信息（绝不提交）=====
+# 生产密钥配置文件（含数据库密码、密钥）
+**/appsettings.Production.json
+**/appsettings.*.Production.json
+**/.env
+**/.env.*
+!.env.example
+!.env.production.example
+
+# ===== 构建产物 =====
+backend/**/bin/
+backend/**/obj/
+backend/logs/
+web/seatshare-admin/dist/
+web/seatshare-admin/node_modules/
+FriendlySeat/unpackage/
+
+# ===== IDE / 系统 =====
+.idea/
+.vscode/
+*.suo
+*.user
+.DS_Store
+Thumbs.db
+
+# ===== 日志 =====
+*.log
+logs/

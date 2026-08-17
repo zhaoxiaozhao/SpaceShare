@@ -1,0 +1,8 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/FriendlySeat.Api/FriendlySeat.Api.csproj" />
+    <Project Path="src/FriendlySeat.Application/FriendlySeat.Application.csproj" />
+    <Project Path="src/FriendlySeat.Domain/FriendlySeat.Domain.csproj" />
+    <Project Path="src/FriendlySeat.Infrastructure/FriendlySeat.Infrastructure.csproj" />
+  </Folder>
+</Solution>
