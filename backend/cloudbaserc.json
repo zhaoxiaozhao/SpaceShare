@@ -10,8 +10,8 @@
         "inputs": {
           "serviceName": "friendlyseat-api",
           "deployType": "dockerfile",
-          "dockerfilePath": "src/FriendlySeat.Api/Dockerfile",
-          "buildDir": ".",
+          "dockerfilePath": "backend/Dockerfile",
+          "buildDir": "backend",
           "servicePath": "/",
           "ports": [
             {
