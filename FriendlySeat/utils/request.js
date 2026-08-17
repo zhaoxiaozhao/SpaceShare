@@ -10,19 +10,39 @@ function request(path, { method = 'GET', data = {}, auth = true, loading = false
 		if (auth && token) {
 			header.Authorization = `Bearer ${token}`
 		}
+		// 云调用需要指定服务名
+		if (USE_CLOUD) {
+			header['X-WX-SERVICE'] = CLOUD_SERVICE
+		}
 
 		const finish = () => { if (loading) uni.hideLoading() }
 
 		if (USE_CLOUD && wx && wx.cloud) {
 			// ===== 云调用方式（微信云托管）=====
+			// 云调用 path 需带后端 api/v1 前缀，且不能带 ? 查询串（拆入 data）
+			let cloudPath = path
+			let cloudData = { ...data }
+			const qIdx = path.indexOf('?')
+			if (qIdx >= 0) {
+				cloudPath = path.slice(0, qIdx)
+				const qsStr = path.slice(qIdx + 1)
+				qsStr.split('&').forEach(pair => {
+					if (!pair) return
+					const [k, v] = pair.split('=')
+					if (k) cloudData[k] = decodeURIComponent(v || '')
+				})
+			}
+			if (!cloudPath.startsWith('/api/v1/')) {
+				cloudPath = '/api/v1' + cloudPath
+			}
 			wx.cloud.callContainer({
 				config: {
 					env: CLOUD_ENV
 				},
-				path,
+				path: cloudPath,
 				method,
 				header,
-				data,
+				data: cloudData,
 				success: (res) => {
 					finish()
 					const status = res.statusCode
