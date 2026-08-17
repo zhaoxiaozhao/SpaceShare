@@ -1,7 +1,23 @@
 <script>
 	import { api } from './utils/request.js'
+	import { CLOUD_ENV, USE_CLOUD } from './utils/config.js'
+
 	export default {
 		onLaunch: function() {
+			// 微信云托管云调用初始化（微信小程序端）
+			// #ifdef MP-WEIXIN
+			if (USE_CLOUD && wx && wx.cloud) {
+				if (!wx.cloud) {
+					console.error('请使用 2.2.3 或以上的基础库以使用云能力')
+				} else {
+					wx.cloud.init({
+						env: CLOUD_ENV,
+						traceUser: true
+					})
+				}
+			}
+			// #endif
+
 			const token = uni.getStorageSync('token')
 			if (token) {
 				api.getUnreadCount().then(count => {

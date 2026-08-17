@@ -1,11 +1,14 @@
-// 友邻座 API 地址配置
-// 开发环境：本地后端
-// 生产环境：改为微信云托管域名（如 https://xxx.tcloudbaseapp.com）
-// 云托管域名需在微信公众平台「开发管理-开发设置-服务器域名」中加入 request 合法域名
+// 友邻座 API 调用配置
+// 生产环境使用微信云托管「云调用」（wx.cloud.callContainer），无需配置 request 合法域名
 
-const BASE_URL = 'https://friendlyseat-api-1gxxxxxxx-1300000000.ap-shanghai.run.tcloudbase.com/api/v1'
+// ===== 云调用配置（微信云托管）=====
+export const CLOUD_ENV = 'prod-d3gm8r5478549fe3b' // 云开发/云托管环境 ID
+export const CLOUD_SERVICE = 'friendlyseat-api' // 云托管服务名
+export const USE_CLOUD = true // true=云调用；false=普通 HTTPS
 
-// 开发调试时可临时改为本地地址
-// const BASE_URL = 'http://localhost:5000/api/v1'
+// ===== 普通 HTTPS 兜底（USE_CLOUD=false 时使用）=====
+export const BASE_URL = 'https://friendlyseat-api-298258-11-1470097997.sh.run.tcloudbase.com/api/v1'
+// 本地开发
+// export const BASE_URL = 'http://localhost:5000/api/v1'
 
 export default BASE_URL

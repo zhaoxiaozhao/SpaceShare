@@ -1,4 +1,4 @@
-import BASE_URL from './config.js'
+import BASE_URL, { CLOUD_ENV, CLOUD_SERVICE, USE_CLOUD } from './config.js'
 
 function request(path, { method = 'GET', data = {}, auth = true, loading = false } = {}) {
 	return new Promise((resolve, reject) => {
@@ -10,30 +10,66 @@ function request(path, { method = 'GET', data = {}, auth = true, loading = false
 		if (auth && token) {
 			header.Authorization = `Bearer ${token}`
 		}
-		uni.request({
-			url: BASE_URL + path,
-			method,
-			data,
-			header,
-			success: (res) => {
-				if (loading) uni.hideLoading()
-				if (res.statusCode >= 200 && res.statusCode < 300) {
-					resolve(res.data)
-				} else {
-					const message = (res.data && res.data.message) || '请求失败'
-					if (res.statusCode === 401) {
-						uni.removeStorageSync('token')
-						uni.removeStorageSync('user')
-						uni.navigateTo({ url: '/pages/login/login' })
+
+		const finish = () => { if (loading) uni.hideLoading() }
+
+		if (USE_CLOUD && wx && wx.cloud) {
+			// ===== 云调用方式（微信云托管）=====
+			wx.cloud.callContainer({
+				config: {
+					env: CLOUD_ENV
+				},
+				path,
+				method,
+				header,
+				data,
+				success: (res) => {
+					finish()
+					const status = res.statusCode
+					if (status >= 200 && status < 300) {
+						resolve(res.data)
+					} else {
+						const message = (res.data && res.data.message) || '请求失败'
+						if (status === 401) {
+							uni.removeStorageSync('token')
+							uni.removeStorageSync('user')
+							uni.navigateTo({ url: '/pages/login/login' })
+						}
+						reject({ code: status, message, data: res.data })
 					}
-					reject({ code: res.statusCode, message, data: res.data })
+				},
+				fail: (err) => {
+					finish()
+					reject({ code: -1, message: '云调用失败', data: err })
 				}
-			},
-			fail: (err) => {
-				if (loading) uni.hideLoading()
-				reject({ code: -1, message: '网络异常，请检查网络连接' })
-			}
-		})
+			})
+		} else {
+			// ===== 普通 HTTPS 方式（兜底/本地开发）=====
+			uni.request({
+				url: BASE_URL + path,
+				method,
+				data,
+				header,
+				success: (res) => {
+					finish()
+					if (res.statusCode >= 200 && res.statusCode < 300) {
+						resolve(res.data)
+					} else {
+						const message = (res.data && res.data.message) || '请求失败'
+						if (res.statusCode === 401) {
+							uni.removeStorageSync('token')
+							uni.removeStorageSync('user')
+							uni.navigateTo({ url: '/pages/login/login' })
+						}
+						reject({ code: res.statusCode, message, data: res.data })
+					}
+				},
+				fail: (err) => {
+					finish()
+					reject({ code: -1, message: '网络异常，请检查网络连接' })
+				}
+			})
+		}
 	})
 }
 
