@@ -30,7 +30,7 @@
             "Database__Provider": "MySql",
             "ConnectionStrings__Default": "Server=10.6.102.132;Port=3306;Database=friendlyseat;User=root;Password=REPLACE_IN_ENV",
             "Redis__Enabled": "false",
-            "Jwt__Key": "REPLACE_IN_ENV",
+            "Jwt__Key": "DkEP9hFbvYUOcxvVyZqriOpmaIRSfTETD5q-CYF2A__vbs8gwv9yLWvvE---RXN-",
             "Wechat__AppId": "",
             "Wechat__AppSecret": ""
           },
