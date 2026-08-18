@@ -40,7 +40,7 @@
 				uni.showLoading({ title: '登录中', mask: true })
 
 				const doLogin = (code) => {
-					api.login(code, '友邻座友邻', '').then((res) => {
+					api.login(code, '', '').then((res) => {
 						uni.setStorageSync('token', res.token)
 						uni.setStorageSync('user', res.user)
 						uni.hideLoading()

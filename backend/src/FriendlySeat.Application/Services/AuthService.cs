@@ -37,8 +37,8 @@ public class AuthService
             {
                 OpenId = session.OpenId,
                 UnionId = session.UnionId,
-                Nickname = request.Nickname,
-                AvatarUrl = request.AvatarUrl,
+                Nickname = string.IsNullOrWhiteSpace(request.Nickname) ? "友邻座友邻" : request.Nickname.Trim(),
+                AvatarUrl = string.IsNullOrWhiteSpace(request.AvatarUrl) ? null : request.AvatarUrl,
                 Status = UserStatus.Active,
                 CreditScore = 100,
                 RiskScore = 0,
@@ -54,8 +54,6 @@ public class AuthService
             {
                 throw AppException.Forbidden("账号已被封禁，如有疑问请联系管理员");
             }
-            user.Nickname = request.Nickname ?? user.Nickname;
-            user.AvatarUrl = request.AvatarUrl ?? user.AvatarUrl;
             user.LastLoginAt = now;
             user.UpdatedAt = now;
         }
