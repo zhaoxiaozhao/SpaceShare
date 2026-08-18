@@ -1,14 +1,20 @@
 <template>
 	<view>
 		<view class="card profile-card">
-			<image class="avatar" :src="user.avatarUrl || '/static/logo.png'" mode="aspectFill" />
+			<button class="avatar-btn" open-type="chooseAvatar" @chooseavatar="onChooseAvatar">
+				<image class="avatar" :src="previewAvatar || user.avatarUrl || '/static/logo.png'" mode="aspectFill" />
+			</button>
 			<view class="profile-info">
-				<text class="nickname">{{user.nickname || '友邻座友邻'}}</text>
+				<view class="nickname-row">
+					<input class="nickname-input" type="nickname" v-model="editNickname" placeholder="请输入昵称" />
+					<text class="random-btn" @click="randomNickname">🎲 随机</text>
+				</view>
 				<view class="credit-row" @click="goCredit">
 					<text class="credit-label">友邻信用</text>
 					<text class="credit-score">{{user.creditScore || 100}}分</text>
 					<text class="credit-level">{{user.creditLevel || '正常'}}</text>
 				</view>
+				<button class="save-btn" @click="saveProfile">保存资料</button>
 			</view>
 		</view>
 
@@ -55,11 +61,16 @@
 
 <script>
 	import { api } from '../../utils/request.js'
+	import { randomNickname, uploadAvatar } from '../../utils/profile.js'
 
 	export default {
 		data() {
 			return {
-				user: {}
+				user: {},
+				editNickname: '',
+				avatarFile: '',
+				previewAvatar: '',
+				saving: false
 			}
 		},
 		onShow() {
@@ -68,6 +79,7 @@
 				return
 			}
 			this.user = uni.getStorageSync('user') || {}
+			this.editNickname = this.user.nickname || ''
 			this.load()
 		},
 		methods: {
@@ -75,7 +87,45 @@
 				try {
 					this.user = await api.getMy()
 					uni.setStorageSync('user', this.user)
+					if (!this.editNickname) this.editNickname = this.user.nickname || ''
 				} catch (e) {}
+			},
+			onChooseAvatar(e) {
+				const filePath = e.detail.avatarUrl
+				if (!filePath) return
+				this.avatarFile = filePath
+				this.previewAvatar = filePath
+			},
+			randomNickname() {
+				this.editNickname = randomNickname()
+			},
+			async saveProfile() {
+				if (this.saving) return
+				const nickname = (this.editNickname || '').trim()
+				if (!nickname) {
+					uni.showToast({ title: '请输入昵称', icon: 'none' })
+					return
+				}
+				this.saving = true
+				uni.showLoading({ title: '保存中', mask: true })
+				try {
+					const data = { nickname }
+					if (this.avatarFile) {
+						data.avatarUrl = await uploadAvatar(this.avatarFile)
+					}
+					this.user = await api.updateProfile(data)
+					uni.setStorageSync('user', this.user)
+					this.editNickname = this.user.nickname || ''
+					this.avatarFile = ''
+					this.previewAvatar = ''
+					uni.hideLoading()
+					uni.showToast({ title: '保存成功', icon: 'success' })
+				} catch (err) {
+					uni.hideLoading()
+					uni.showToast({ title: err.message || '保存失败', icon: 'none' })
+				} finally {
+					this.saving = false
+				}
 			},
 			goReservations() {
 				uni.switchTab({ url: '/pages/reservations/reservations' })
@@ -114,6 +164,16 @@
 		align-items: center;
 		gap: 24rpx;
 	}
+	.avatar-btn {
+		padding: 0;
+		margin: 0;
+		background: transparent;
+		border: none;
+		line-height: 1;
+	}
+	.avatar-btn::after {
+		border: none;
+	}
 	.avatar {
 		width: 120rpx;
 		height: 120rpx;
@@ -123,11 +183,36 @@
 	.profile-info {
 		flex: 1;
 	}
-	.nickname {
+	.nickname-row {
+		display: flex;
+		align-items: center;
+		gap: 16rpx;
+		margin-bottom: 12rpx;
+	}
+	.nickname-input {
+		flex: 1;
 		font-size: 34rpx;
 		font-weight: 600;
-		display: block;
-		margin-bottom: 12rpx;
+	}
+	.random-btn {
+		font-size: 26rpx;
+		color: #3A8A7E;
+		padding: 6rpx 16rpx;
+		background: #EAF3F0;
+		border-radius: 24rpx;
+	}
+	.save-btn {
+		margin-top: 12rpx;
+		font-size: 24rpx;
+		line-height: 2;
+		background: #3A8A7E;
+		color: #FFFFFF;
+		border-radius: 32rpx;
+		padding: 0 40rpx;
+		display: inline-block;
+	}
+	.save-btn::after {
+		border: none;
 	}
 	.credit-row {
 		display: flex;
