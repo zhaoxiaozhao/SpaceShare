@@ -26,7 +26,7 @@ public class MeController : ControllerBase
         return Ok(await _users.GetProfileAsync(_currentUser.UserId!.Value, ct));
     }
 
-    [HttpPatch]
+    [HttpPost("update-profile")]
     public async Task<ActionResult<UserDto>> UpdateProfile([FromBody] UserProfileUpdateRequest request, CancellationToken ct)
     {
         return Ok(await _users.UpdateProfileAsync(_currentUser.UserId!.Value, request, ct));
