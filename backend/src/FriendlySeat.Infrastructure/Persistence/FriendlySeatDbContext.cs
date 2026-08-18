@@ -37,6 +37,9 @@ public class FriendlySeatDbContext : DbContext, IAppDbContext
     public DbSet<SystemConfig> SystemConfigs => Set<SystemConfig>();
     public DbSet<Notification> Notifications => Set<Notification>();
     public DbSet<PublicContribution> PublicContributions => Set<PublicContribution>();
+    public DbSet<StudySession> StudySessions => Set<StudySession>();
+    public DbSet<StudyGoal> StudyGoals => Set<StudyGoal>();
+    public DbSet<StudyAchievement> StudyAchievements => Set<StudyAchievement>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -134,5 +137,17 @@ public class FriendlySeatDbContext : DbContext, IAppDbContext
 
         modelBuilder.Entity<Advertisement>()
             .HasIndex(a => new { a.Placement, a.Status });
+
+        modelBuilder.Entity<StudySession>()
+            .HasIndex(s => new { s.UserId, s.StartedAt });
+
+        modelBuilder.Entity<StudySession>()
+            .HasIndex(s => new { s.UserId, s.Status });
+
+        modelBuilder.Entity<StudyGoal>()
+            .HasIndex(g => new { g.UserId, g.Period, g.PeriodStart });
+
+        modelBuilder.Entity<StudyAchievement>()
+            .HasIndex(a => new { a.UserId, a.Code });
     }
 }

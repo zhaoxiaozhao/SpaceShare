@@ -137,7 +137,16 @@ export const api = {
 	getUnreadCount: () => request('/me/notifications/unread-count'),
 	getAds: (placement) => request(`/ads?placement=${placement || 'home_feed'}`, { auth: false }),
 	createReport: (data) => request('/reports', { method: 'POST', data }),
-	getMyReports: () => request('/reports/my')
+	getMyReports: () => request('/reports/my'),
+	startStudy: (data) => request('/study/sessions', { method: 'POST', data }),
+	endStudy: (id) => request(`/study/sessions/${id}/end`, { method: 'POST' }),
+	endActiveStudy: () => request('/study/sessions/end', { method: 'POST' }),
+	getStudySessions: (take) => request(`/study/sessions?take=${take || 50}`),
+	getStudyToday: () => request('/study/today'),
+	setStudyGoal: (data) => request('/study/goals', { method: 'POST', data }),
+	getStudyGoals: () => request('/study/goals'),
+	getStudyReport: (period) => request(`/study/report?period=${period || 'weekly'}`),
+	getStudyAchievements: () => request('/study/achievements')
 }
 
 function qs(params) {

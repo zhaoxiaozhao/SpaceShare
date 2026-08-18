@@ -11,9 +11,9 @@
 				<text class="action-icon">🔍</text>
 				<text>找座位</text>
 			</view>
-			<view class="action-btn" @click="goShare">
-				<text class="action-icon">🤝</text>
-				<text>分享这一席</text>
+			<view class="action-btn" @click="goStudy">
+				<text class="action-icon">📖</text>
+				<text>开始学习</text>
 			</view>
 			<view class="action-btn" @click="goReservations">
 				<text class="action-icon">📅</text>
@@ -121,6 +121,13 @@
 				// 去场馆选一个座位，在座位详情发起分享
 				uni.navigateTo({ url: '/pages/venues/venues' })
 				setTimeout(() => uni.showToast({ title: '请选择一个座位来分享', icon: 'none' }), 400)
+			},
+			goStudy() {
+				if (!uni.getStorageSync('token')) {
+					uni.navigateTo({ url: '/pages/login/login' })
+					return
+				}
+				uni.navigateTo({ url: '/pages/study/study' })
 			},
 			goReservations() {
 				uni.switchTab({ url: '/pages/reservations/reservations' })

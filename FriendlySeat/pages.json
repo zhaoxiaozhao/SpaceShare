@@ -69,6 +69,31 @@
 			}
 		},
 		{
+			"path": "pages/study/study",
+			"style": {
+				"navigationBarTitleText": "学习",
+				"enablePullDownRefresh": true
+			}
+		},
+		{
+			"path": "pages/study/report",
+			"style": {
+				"navigationBarTitleText": "学习报告"
+			}
+		},
+		{
+			"path": "pages/study/achievements",
+			"style": {
+				"navigationBarTitleText": "学习成就"
+			}
+		},
+		{
+			"path": "pages/study/history",
+			"style": {
+				"navigationBarTitleText": "学习记录"
+			}
+		},
+		{
 			"path": "pages/report/report",
 			"style": {
 				"navigationBarTitleText": "举报"

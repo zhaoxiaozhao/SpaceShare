@@ -108,6 +108,7 @@ public static class DependencyInjection
         services.AddScoped<AdService>();
         services.AddScoped<RiskService>();
         services.AddScoped<SeatSessionService>();
+        services.AddScoped<StudyService>();
 
         // 管理端服务（整合进单体 API）
         services.AddScoped<AdminManageService>();

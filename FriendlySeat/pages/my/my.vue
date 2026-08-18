@@ -19,6 +19,10 @@
 		</view>
 
 		<view class="card menu">
+			<view class="menu-item" @click="goStudy">
+				<text>📖 我的学习</text>
+				<text class="arrow">›</text>
+			</view>
 			<view class="menu-item" @click="goReservations">
 				<text>📅 我的预约</text>
 				<text class="arrow">›</text>
@@ -126,6 +130,9 @@
 				} finally {
 					this.saving = false
 				}
+			},
+			goStudy() {
+				uni.navigateTo({ url: '/pages/study/study' })
 			},
 			goReservations() {
 				uni.switchTab({ url: '/pages/reservations/reservations' })

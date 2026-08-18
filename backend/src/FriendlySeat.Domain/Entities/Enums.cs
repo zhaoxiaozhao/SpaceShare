@@ -153,3 +153,28 @@ public enum ConfigCategory
     SensitiveWords,
     NotificationTemplates
 }
+
+public enum StudyType
+{
+    Reading,
+    Programming,
+    English,
+    Exam,
+    Postgraduate,
+    Papers,
+    Other
+}
+
+public enum StudySessionStatus
+{
+    Active,
+    Completed,
+    Cancelled
+}
+
+public enum GoalPeriod
+{
+    Daily,
+    Weekly,
+    Monthly
+}
