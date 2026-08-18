@@ -57,6 +57,7 @@
             "minified" : false
         },
         "usingComponents" : true,
+        "lazyCodeLoading" : "requiredComponents",
         "permission" : {}
     },
     "mp-alipay" : {
