@@ -69,12 +69,6 @@
 			}
 		},
 		{
-			"path": "pages/support/support",
-			"style": {
-				"navigationBarTitleText": "支持项目"
-			}
-		},
-		{
 			"path": "pages/report/report",
 			"style": {
 				"navigationBarTitleText": "举报"

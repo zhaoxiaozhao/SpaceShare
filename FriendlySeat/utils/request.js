@@ -137,9 +137,7 @@ export const api = {
 	getUnreadCount: () => request('/me/notifications/unread-count'),
 	getAds: (placement) => request(`/ads?placement=${placement || 'home_feed'}`, { auth: false }),
 	createReport: (data) => request('/reports', { method: 'POST', data }),
-	getMyReports: () => request('/reports/my'),
-	getDonations: () => request('/donations'),
-	createDonation: (data) => request('/donations', { method: 'POST', data })
+	getMyReports: () => request('/reports/my')
 }
 
 function qs(params) {

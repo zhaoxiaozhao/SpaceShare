@@ -33,7 +33,6 @@ export function statusText(status) {
 		Waiting: '候补中',
 		Notified: '可预约',
 		Pending: '待处理',
-		Paid: '已支持',
 		Failed: '失败'
 	}
 	return map[status] || status

@@ -24,7 +24,6 @@
 			<text class="doc-p">3. 座位预约：预约其他用户分享的座位，并按时到座。</text>
 			<text class="doc-p">4. 信用体系：平台记录守约与违约行为，形成友邻信用。</text>
 			<text class="doc-p">5. 举报与反馈：对虚假信息、违规行为进行举报。</text>
-			<text class="doc-p">6. 支持项目：您可自愿支持平台运行，但支持行为不产生任何预约特权。</text>
 		</view>
 
 		<view class="doc-section">
@@ -79,20 +78,13 @@
 		</view>
 
 		<view class="doc-section">
-			<text class="doc-h2">九、支持项目</text>
-			<text class="doc-p">1. 您可自愿"支持项目"，支持资金仅用于服务器、存储、CDN、审核、运维和开发等成本。</text>
-			<text class="doc-p">2. 支持项目与预约完全解耦：支持不会增加信用分、不会提高预约优先级、不会解锁热门座位。</text>
-			<text class="doc-p">3. 所有座位功能始终免费。</text>
-		</view>
-
-		<view class="doc-section">
-			<text class="doc-h2">十、通知与变更</text>
+			<text class="doc-h2">九、通知与变更</text>
 			<text class="doc-p">1. 平台可能通过站内通知向您发送预约成功、到座提醒、取消、信用变化等信息。</text>
 			<text class="doc-p">2. 平台可能不时更新本协议，更新后将在小程序内提示。您继续使用即视为接受更新后的协议。</text>
 		</view>
 
 		<view class="doc-section">
-			<text class="doc-h2">十一、联系我们</text>
+			<text class="doc-h2">十、联系我们</text>
 			<text class="doc-p">如您对本协议有任何疑问，或需要申诉、反馈，请通过小程序内的"问题反馈"或举报入口联系我们。</text>
 		</view>
 
