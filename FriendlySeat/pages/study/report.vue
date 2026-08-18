@@ -10,7 +10,7 @@
 		<view class="card hero-card" v-if="report">
 			<text class="hero-num">{{formatHours(report.totalMinutes)}}</text>
 			<text class="hero-label">共学习</text>
-			<text class="hero-period">{{report.start.slice(5)}. ~ {{report.end.slice(5)}}.</text>
+			<text class="hero-period">{{periodText}}</text>
 		</view>
 
 		<view class="stats-grid" v-if="report">
@@ -72,6 +72,12 @@
 		onLoad(options) {
 			if (options.period === 'monthly') this.period = 'monthly'
 			this.load()
+		},
+		computed: {
+			periodText() {
+				if (!this.report) return ''
+				return `${this.report.start.slice(5)}. ~ ${this.report.end.slice(5)}.`
+			}
 		},
 		methods: {
 			async load() {
