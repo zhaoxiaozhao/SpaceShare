@@ -7,6 +7,11 @@ namespace FriendlySeat.Application.Services;
 
 public class StudyService
 {
+    private static readonly TimeZoneInfo ChinaTz = TimeZoneInfo.CreateCustomTimeZone(
+        "China Standard Time", TimeSpan.FromHours(8), "China Standard Time", "China Standard Time");
+
+    private static DateTime ToCn(DateTime utc) => TimeZoneInfo.ConvertTimeFromUtc(utc, ChinaTz);
+
     private readonly IAppDbContext _db;
 
     public StudyService(IAppDbContext db)
@@ -84,18 +89,20 @@ public class StudyService
 
     public async Task<StudyTodayDto> GetTodayAsync(long userId, CancellationToken ct = default)
     {
-        var now = DateTime.UtcNow;
-        var dayStart = now.Date;
+        var nowUtc = DateTime.UtcNow;
+        var nowCn = ToCn(nowUtc);
+        var cnDayStart = nowCn.Date;
+        var dayStartUtc = TimeZoneInfo.ConvertTimeToUtc(cnDayStart, ChinaTz);
 
         var sessions = await _db.StudySessions
-            .Where(s => s.UserId == userId && s.StartedAt >= dayStart && s.Status == StudySessionStatus.Completed)
+            .Where(s => s.UserId == userId && s.StartedAt >= dayStartUtc && s.Status == StudySessionStatus.Completed)
             .ToListAsync(ct);
 
         var todayMinutes = sessions.Sum(s => s.DurationMinutes);
 
         var goal = await _db.StudyGoals
             .FirstOrDefaultAsync(g => g.UserId == userId && g.Period == GoalPeriod.Daily
-                && g.PeriodStart == dayStart, ct);
+                && g.PeriodStart == cnDayStart, ct);
 
         var active = await _db.StudySessions
             .FirstOrDefaultAsync(s => s.UserId == userId && s.Status == StudySessionStatus.Active, ct);
@@ -104,7 +111,7 @@ public class StudyService
         {
             TodayMinutes = todayMinutes,
             SessionCount = sessions.Count,
-            ConsecutiveDays = await CalcConsecutiveDaysAsync(userId, now, ct),
+            ConsecutiveDays = await CalcConsecutiveDaysAsync(userId, nowCn, ct),
             TargetMinutes = goal?.TargetMinutes,
             TargetProgress = goal is { TargetMinutes: > 0 } ? Math.Round(todayMinutes * 100.0 / goal.TargetMinutes, 1) : 0,
             ActiveSession = active is null ? null : ToSessionDto(active)
@@ -137,7 +144,7 @@ public class StudyService
         if (request.TargetMinutes is < 30 or > 1440)
             throw AppException.BadRequest("target_invalid", "目标时长需在 30 到 1440 分钟之间");
 
-        var now = DateTime.UtcNow;
+        var now = ToCn(DateTime.UtcNow);
         var (start, end) = GetPeriodRange(period, now);
 
         var goal = await _db.StudyGoals
@@ -169,7 +176,7 @@ public class StudyService
 
     public async Task<List<StudyGoalDto>> GetGoalsAsync(long userId, CancellationToken ct = default)
     {
-        var now = DateTime.UtcNow;
+        var now = ToCn(DateTime.UtcNow);
         var result = new List<StudyGoalDto>();
         foreach (GoalPeriod period in Enum.GetValues<GoalPeriod>())
         {
@@ -184,24 +191,29 @@ public class StudyService
 
     public async Task<StudyReportDto> GetReportAsync(long userId, string period, CancellationToken ct = default)
     {
-        var now = DateTime.UtcNow;
+        var nowUtc = DateTime.UtcNow;
+        var nowCn = TimeZoneInfo.ConvertTimeFromUtc(nowUtc, ChinaTz);
         var p = period?.ToLowerInvariant() == "monthly" ? "monthly" : "weekly";
-        var (start, end) = p == "weekly" ? GetPeriodRange(GoalPeriod.Weekly, now) : GetPeriodRange(GoalPeriod.Monthly, now);
+        var (cnStart, cnEndExclusive) = p == "weekly" ? GetPeriodRange(GoalPeriod.Weekly, nowCn) : GetPeriodRange(GoalPeriod.Monthly, nowCn);
+        // 显示用包含式 end（最后一天），查询用排他式 end（下周期起点）
+        var cnEndInclusive = cnEndExclusive.AddDays(-1).Date.AddDays(1).AddTicks(-1);
+        var startUtc = TimeZoneInfo.ConvertTimeToUtc(cnStart, ChinaTz);
+        var endUtc = TimeZoneInfo.ConvertTimeToUtc(cnEndExclusive, ChinaTz);
 
         var sessions = await _db.StudySessions
             .Where(s => s.UserId == userId && s.Status == StudySessionStatus.Completed
-                && s.StartedAt >= start && s.StartedAt < end)
+                && s.StartedAt >= startUtc && s.StartedAt < endUtc)
             .ToListAsync(ct);
 
         var report = new StudyReportDto
         {
             Period = p == "weekly" ? "weekly" : "monthly",
-            Start = start,
-            End = end,
+            Start = cnStart,
+            End = cnEndInclusive,
             TotalMinutes = sessions.Sum(s => s.DurationMinutes),
             SessionCount = sessions.Count,
-            StudyDays = sessions.Select(s => s.StartedAt.Date).Distinct().Count(),
-            MaxDailyMinutes = sessions.GroupBy(s => s.StartedAt.Date)
+            StudyDays = sessions.Select(s => ToCn(s.StartedAt).Date).Distinct().Count(),
+            MaxDailyMinutes = sessions.GroupBy(s => ToCn(s.StartedAt).Date)
                 .Select(g => g.Sum(s => s.DurationMinutes))
                 .DefaultIfEmpty(0).Max(),
             TypeDistribution = sessions
@@ -209,9 +221,9 @@ public class StudyService
                 .OrderByDescending(g => g.Sum(s => s.DurationMinutes))
                 .Select(g => new KeyValuePair<string, int>(g.Key.ToString(), g.Sum(s => s.DurationMinutes)))
                 .ToList(),
-            DailyMinutes = Enumerable.Range(0, (end - start).Days)
-                .Select(i => new KeyValuePair<string, int>(start.AddDays(i).ToString("MM-dd"),
-                    sessions.Where(s => s.StartedAt.Date == start.AddDays(i).Date).Sum(s => s.DurationMinutes)))
+            DailyMinutes = Enumerable.Range(0, (cnEndExclusive - cnStart).Days)
+                .Select(i => new KeyValuePair<string, int>(cnStart.AddDays(i).ToString("MM-dd"),
+                    sessions.Where(s => ToCn(s.StartedAt).Date == cnStart.AddDays(i).Date).Sum(s => s.DurationMinutes)))
                 .ToList()
         };
 
@@ -272,9 +284,11 @@ public class StudyService
 
     private async Task<StudyGoalDto> GetGoalDtoAsync(StudyGoal goal, CancellationToken ct)
     {
+        var startUtc = TimeZoneInfo.ConvertTimeToUtc(goal.PeriodStart, ChinaTz);
+        var endUtc = TimeZoneInfo.ConvertTimeToUtc(goal.PeriodEnd, ChinaTz);
         var achieved = await _db.StudySessions
             .Where(s => s.UserId == goal.UserId && s.Status == StudySessionStatus.Completed
-                && s.StartedAt >= goal.PeriodStart && s.StartedAt < goal.PeriodEnd)
+                && s.StartedAt >= startUtc && s.StartedAt < endUtc)
             .SumAsync(s => (int?)s.DurationMinutes, ct) ?? 0;
 
         return new StudyGoalDto
@@ -300,13 +314,18 @@ public class StudyService
 
     private async Task<int> CalcConsecutiveDaysAsync(long userId, DateTime now, CancellationToken ct)
     {
-        var days = await _db.StudySessions
+        // now 为北京时间；把学习记录的 UTC 日期统一转北京时间后计算连续天数
+        var sessions = await _db.StudySessions
             .Where(s => s.UserId == userId && s.Status == StudySessionStatus.Completed)
-            .Select(s => s.StartedAt.Date)
+            .Select(s => s.StartedAt)
+            .ToListAsync(ct);
+
+        var days = sessions
+            .Select(s => ToCn(s).Date)
             .Distinct()
             .OrderByDescending(d => d)
             .Take(400)
-            .ToListAsync(ct);
+            .ToList();
 
         if (days.Count == 0) return 0;
 
@@ -360,13 +379,14 @@ public class StudyService
             .ToListAsync(ct);
 
         var total = sessions.Sum(s => s.DurationMinutes);
-        var morning = sessions.Where(s => s.StartedAt.Hour < 9).Sum(s => s.DurationMinutes);
-        var night = sessions.Where(s => s.StartedAt.Hour >= 21).Sum(s => s.DurationMinutes);
+        var morning = sessions.Where(s => ToCn(s.StartedAt).Hour < 9).Sum(s => s.DurationMinutes);
+        var night = sessions.Where(s => ToCn(s.StartedAt).Hour >= 21).Sum(s => s.DurationMinutes);
 
-        var (wStart, _) = GetPeriodRange(GoalPeriod.Weekly, DateTime.UtcNow);
-        var weekDays = sessions.Where(s => s.StartedAt >= wStart).Select(s => s.StartedAt.Date).Distinct().Count();
+        var (wStart, _) = GetPeriodRange(GoalPeriod.Weekly, ToCn(DateTime.UtcNow));
+        var wStartUtc = TimeZoneInfo.ConvertTimeToUtc(wStart, ChinaTz);
+        var weekDays = sessions.Where(s => s.StartedAt >= wStartUtc).Select(s => ToCn(s.StartedAt).Date).Distinct().Count();
 
-        var days = sessions.Select(s => s.StartedAt.Date).Distinct().OrderBy(d => d).ToList();
+        var days = sessions.Select(s => ToCn(s.StartedAt).Date).Distinct().OrderBy(d => d).ToList();
         var streak = 0;
         var longest = 0;
         for (var i = 0; i < days.Count; i++)
