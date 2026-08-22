@@ -22,6 +22,8 @@ FriendlySeat/unpackage/
 *.user
 .DS_Store
 Thumbs.db
+# Salesforce CLI 本地目录
+.sf/
 
 # ===== 日志 =====
 *.log

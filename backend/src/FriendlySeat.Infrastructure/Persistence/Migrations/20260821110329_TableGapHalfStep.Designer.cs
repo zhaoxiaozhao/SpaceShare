@@ -3,6 +3,7 @@ using System;
 using FriendlySeat.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace FriendlySeat.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(FriendlySeatDbContext))]
-    partial class FriendlySeatDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260821110329_TableGapHalfStep")]
+    partial class TableGapHalfStep
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1144,9 +1147,6 @@ namespace FriendlySeat.Infrastructure.Persistence.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
 
-                    b.Property<double>("ArcAxisB")
-                        .HasColumnType("double precision");
-
                     b.Property<double>("ArcEndAngle")
                         .HasColumnType("double precision");
 
@@ -1167,24 +1167,6 @@ namespace FriendlySeat.Infrastructure.Persistence.Migrations
 
                     b.Property<long?>("AreaId")
                         .HasColumnType("bigint");
-
-                    b.Property<double>("CurveAmplitude")
-                        .HasColumnType("double precision");
-
-                    b.Property<double>("CurveAngle")
-                        .HasColumnType("double precision");
-
-                    b.Property<double>("CurvePhase")
-                        .HasColumnType("double precision");
-
-                    b.Property<double>("CurveRowGap")
-                        .HasColumnType("double precision");
-
-                    b.Property<double>("CurveSlantGap")
-                        .HasColumnType("double precision");
-
-                    b.Property<double>("CurveWavelength")
-                        .HasColumnType("double precision");
 
                     b.Property<long>("FloorId")
                         .HasColumnType("bigint");
@@ -1211,9 +1193,6 @@ namespace FriendlySeat.Infrastructure.Persistence.Migrations
 
                     b.Property<int>("OffsetY")
                         .HasColumnType("integer");
-
-                    b.Property<string>("PathPoints")
-                        .HasColumnType("text");
 
                     b.Property<int>("SortOrder")
                         .HasColumnType("integer");

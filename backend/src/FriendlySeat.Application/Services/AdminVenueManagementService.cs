@@ -43,6 +43,27 @@ public class AdminZoneRequest
     public int GridCols { get; set; }
     public int OffsetX { get; set; }
     public int OffsetY { get; set; }
+    public string LayoutMode { get; set; } = "grid";
+    public int TableSeatCols { get; set; } = 2;
+    public int TableSeatRows { get; set; } = 2;
+    public double TableGapX { get; set; } = 1;
+    public double TableGapY { get; set; } = 1;
+    public int TablesX { get; set; } = 1;
+    public int TablesY { get; set; } = 1;
+    public double ArcRadius { get; set; } = 8;
+    public double ArcRadiusStep { get; set; } = 1.5;
+    public double ArcStartAngle { get; set; } = 180;
+    public double ArcEndAngle { get; set; } = 360;
+    public int ArcRows { get; set; } = 3;
+    public int ArcSeatsPerRow { get; set; } = 8;
+    public double ArcAxisB { get; set; } = 8;
+    public double CurveAmplitude { get; set; } = 2;
+    public double CurveWavelength { get; set; } = 6;
+    public double CurvePhase { get; set; } = 0;
+    public double CurveRowGap { get; set; } = 2;
+    public double CurveAngle { get; set; } = 30;
+    public double CurveSlantGap { get; set; } = 2;
+    public string? PathPoints { get; set; }
 }
 
 public class AdminAreaRequest
@@ -81,11 +102,29 @@ public class AdminVenueManagementService
 {
     private readonly IAppDbContext _db;
     private readonly IAuditService _audit;
+    private readonly IRedisCache _cache;
 
-    public AdminVenueManagementService(IAppDbContext db, IAuditService audit)
+    public AdminVenueManagementService(IAppDbContext db, IAuditService audit, IRedisCache cache)
     {
         _db = db;
         _audit = audit;
+        _cache = cache;
+    }
+
+    // 管理端修改场馆结构（区域/区块/座位/标志物/楼层）后，清除用户端场馆详情缓存
+    private Task InvalidateVenueAsync(long venueId, CancellationToken ct = default)
+        => _cache.RemoveAsync(CacheKeys.Venue(venueId), ct);
+
+    private async Task InvalidateVenueByFloorAsync(long floorId, CancellationToken ct = default)
+    {
+        var venueId = await _db.Floors.Where(f => f.Id == floorId).Select(f => f.VenueId).FirstOrDefaultAsync(ct);
+        if (venueId > 0) await InvalidateVenueAsync(venueId, ct);
+    }
+
+    private async Task InvalidateVenueByZoneAsync(long zoneId, CancellationToken ct = default)
+    {
+        var floorId = await _db.Zones.Where(z => z.Id == zoneId).Select(z => z.FloorId).FirstOrDefaultAsync(ct);
+        if (floorId > 0) await InvalidateVenueByFloorAsync(floorId, ct);
     }
 
     public async Task<List<CityDto>> GetCitiesAsync(CancellationToken ct = default)
@@ -178,6 +217,7 @@ public class AdminVenueManagementService
         _db.Floors.Add(floor);
         await _db.SaveChangesAsync(ct);
         await _audit.LogAsync(operatorId, "floor.create", "Floor", floor.Id.ToString(), $"创建楼层 {floor.Name}", null, ct);
+        await InvalidateVenueAsync(request.VenueId, ct);
     }
 
     public async Task<long> AddAreaAsync(AdminAreaRequest request, long operatorId, CancellationToken ct = default)
@@ -196,6 +236,7 @@ public class AdminVenueManagementService
         _db.Areas.Add(area);
         await _db.SaveChangesAsync(ct);
         await _audit.LogAsync(operatorId, "area.create", "Area", area.Id.ToString(), $"创建空间区域 {area.Name}", null, ct);
+        await InvalidateVenueByFloorAsync(request.FloorId, ct);
         return area.Id;
     }
 
@@ -207,6 +248,7 @@ public class AdminVenueManagementService
         area.SortOrder = request.SortOrder;
         await _db.SaveChangesAsync(ct);
         await _audit.LogAsync(operatorId, "area.update", "Area", areaId.ToString(), $"更新空间区域 {area.Name}", null, ct);
+        await InvalidateVenueByFloorAsync(area.FloorId, ct);
     }
 
     public async Task DeleteAreaAsync(long areaId, long operatorId, CancellationToken ct = default)
@@ -221,6 +263,7 @@ public class AdminVenueManagementService
         _db.Areas.Remove(area);
         await _db.SaveChangesAsync(ct);
         await _audit.LogAsync(operatorId, "area.delete", "Area", areaId.ToString(), $"删除空间区域 {area.Name}", null, ct);
+        await InvalidateVenueByFloorAsync(area.FloorId, ct);
     }
 
     public async Task<long> AddZoneAsync(AdminZoneRequest request, long operatorId, CancellationToken ct = default)
@@ -243,11 +286,33 @@ public class AdminVenueManagementService
             GridRows = request.GridRows,
             GridCols = request.GridCols,
             OffsetX = request.OffsetX,
-            OffsetY = request.OffsetY
+            OffsetY = request.OffsetY,
+            LayoutMode = NormalizeLayoutMode(request.LayoutMode),
+            TableSeatCols = Math.Max(1, request.TableSeatCols),
+            TableSeatRows = Math.Max(1, request.TableSeatRows),
+            TableGapX = Math.Max(0, request.TableGapX),
+            TableGapY = Math.Max(0, request.TableGapY),
+            TablesX = Math.Max(1, request.TablesX),
+            TablesY = Math.Max(1, request.TablesY),
+            ArcRadius = Math.Max(2, request.ArcRadius),
+            ArcRadiusStep = Math.Max(0.5, request.ArcRadiusStep),
+            ArcStartAngle = request.ArcStartAngle,
+            ArcEndAngle = request.ArcEndAngle,
+            ArcRows = Math.Max(1, request.ArcRows),
+            ArcSeatsPerRow = Math.Max(1, request.ArcSeatsPerRow),
+            ArcAxisB = Math.Max(2, request.ArcAxisB),
+            CurveAmplitude = Math.Max(0.5, request.CurveAmplitude),
+            CurveWavelength = Math.Max(2, request.CurveWavelength),
+            CurvePhase = request.CurvePhase,
+            CurveRowGap = Math.Max(0.5, request.CurveRowGap),
+            CurveAngle = Math.Clamp(request.CurveAngle, -90, 90),
+            CurveSlantGap = Math.Max(0.5, request.CurveSlantGap),
+            PathPoints = string.IsNullOrWhiteSpace(request.PathPoints) ? null : request.PathPoints
         };
         _db.Zones.Add(zone);
         await _db.SaveChangesAsync(ct);
         await _audit.LogAsync(operatorId, "zone.create", "Zone", zone.Id.ToString(), $"创建座位区块 {zone.Name}", null, ct);
+        await InvalidateVenueByFloorAsync(request.FloorId, ct);
         return zone.Id;
     }
 
@@ -281,6 +346,7 @@ public class AdminVenueManagementService
         _db.Seats.Add(seat);
         await _db.SaveChangesAsync(ct);
         await _audit.LogAsync(operatorId, "seat.create", "Seat", seat.Id.ToString(), $"创建座位 {seat.Code}", null, ct);
+        await InvalidateVenueByZoneAsync(request.ZoneId, ct);
         return seat.Id;
     }
 
@@ -309,6 +375,7 @@ public class AdminVenueManagementService
         seat.Status = status;
         await _db.SaveChangesAsync(ct);
         await _audit.LogAsync(operatorId, "seat.status", "Seat", seatId.ToString(), $"设置座位 {seat.Code} 状态为 {status}", null, ct);
+        await InvalidateVenueByZoneAsync(seat.ZoneId, ct);
     }
 
     public async Task UpdateZoneAsync(long zoneId, AdminZoneRequest request, long operatorId, CancellationToken ct = default)
@@ -322,6 +389,27 @@ public class AdminVenueManagementService
         zone.GridCols = request.GridCols;
         zone.OffsetX = request.OffsetX;
         zone.OffsetY = request.OffsetY;
+        zone.LayoutMode = NormalizeLayoutMode(request.LayoutMode);
+        zone.TableSeatCols = Math.Max(1, request.TableSeatCols);
+        zone.TableSeatRows = Math.Max(1, request.TableSeatRows);
+        zone.TableGapX = Math.Max(0, request.TableGapX);
+        zone.TableGapY = Math.Max(0, request.TableGapY);
+        zone.TablesX = Math.Max(1, request.TablesX);
+        zone.TablesY = Math.Max(1, request.TablesY);
+        zone.ArcRadius = Math.Max(2, request.ArcRadius);
+        zone.ArcRadiusStep = Math.Max(0.5, request.ArcRadiusStep);
+        zone.ArcStartAngle = request.ArcStartAngle;
+        zone.ArcEndAngle = request.ArcEndAngle;
+        zone.ArcRows = Math.Max(1, request.ArcRows);
+        zone.ArcSeatsPerRow = Math.Max(1, request.ArcSeatsPerRow);
+        zone.ArcAxisB = Math.Max(2, request.ArcAxisB);
+        zone.CurveAmplitude = Math.Max(0.5, request.CurveAmplitude);
+        zone.CurveWavelength = Math.Max(2, request.CurveWavelength);
+        zone.CurvePhase = request.CurvePhase;
+        zone.CurveRowGap = Math.Max(0.5, request.CurveRowGap);
+        zone.CurveAngle = Math.Clamp(request.CurveAngle, -90, 90);
+        zone.CurveSlantGap = Math.Max(0.5, request.CurveSlantGap);
+        zone.PathPoints = string.IsNullOrWhiteSpace(request.PathPoints) ? null : request.PathPoints;
         if (request.AreaId.HasValue)
         {
             var areaOk = await _db.Areas.AnyAsync(a => a.Id == request.AreaId.Value && a.FloorId == zone.FloorId, ct);
@@ -329,7 +417,20 @@ public class AdminVenueManagementService
         }
         await _db.SaveChangesAsync(ct);
         await _audit.LogAsync(operatorId, "zone.update", "Zone", zoneId.ToString(), $"更新座位区块 {zone.Name} 网格 {zone.GridRows}x{zone.GridCols} 偏移({zone.OffsetX},{zone.OffsetY})", null, ct);
+        await InvalidateVenueByFloorAsync(zone.FloorId, ct);
     }
+
+    private static string NormalizeLayoutMode(string? mode) => mode switch
+    {
+        "table" => "table",
+        "arc" => "arc",
+        "ellipse" => "ellipse",
+        "spiral" => "spiral",
+        "sine" => "sine",
+        "slant" => "slant",
+        "curve" => "curve",
+        _ => "grid"
+    };
 
     public async Task DeleteZoneAsync(long zoneId, long operatorId, CancellationToken ct = default)
     {
@@ -342,6 +443,7 @@ public class AdminVenueManagementService
         _db.Zones.Remove(zone);
         await _db.SaveChangesAsync(ct);
         await _audit.LogAsync(operatorId, "zone.delete", "Zone", zoneId.ToString(), $"删除区域 {zone.Name} 及全部座位", null, ct);
+        await InvalidateVenueByFloorAsync(zone.FloorId, ct);
     }
 
     public async Task DeleteSeatAsync(long seatId, long operatorId, CancellationToken ct = default)
@@ -351,6 +453,7 @@ public class AdminVenueManagementService
         _db.Seats.Remove(seat);
         await _db.SaveChangesAsync(ct);
         await _audit.LogAsync(operatorId, "seat.delete", "Seat", seatId.ToString(), $"删除座位 {seat.Code}", null, ct);
+        await InvalidateVenueByZoneAsync(seat.ZoneId, ct);
     }
 
     public async Task<PoiDto> AddPoiAsync(AdminPoiRequest request, long operatorId, CancellationToken ct = default)
@@ -377,6 +480,7 @@ public class AdminVenueManagementService
         _db.FloorPois.Add(poi);
         await _db.SaveChangesAsync(ct);
         await _audit.LogAsync(operatorId, "poi.create", "FloorPoi", poi.Id.ToString(), $"新增标志物 {poi.Name} @({poi.PositionX},{poi.PositionY})", null, ct);
+        await InvalidateVenueByFloorAsync(request.FloorId, ct);
 
         return ToPoiDto(poi);
     }
@@ -396,6 +500,7 @@ public class AdminVenueManagementService
         poi.Text = request.Text;
         await _db.SaveChangesAsync(ct);
         await _audit.LogAsync(operatorId, "poi.update", "FloorPoi", poiId.ToString(), $"更新标志物 {poi.Name} @({poi.PositionX},{poi.PositionY})", null, ct);
+        await InvalidateVenueByFloorAsync(poi.FloorId, ct);
 
         return ToPoiDto(poi);
     }
@@ -407,6 +512,7 @@ public class AdminVenueManagementService
         _db.FloorPois.Remove(poi);
         await _db.SaveChangesAsync(ct);
         await _audit.LogAsync(operatorId, "poi.delete", "FloorPoi", poiId.ToString(), $"删除标志物 {poi.Name}", null, ct);
+        await InvalidateVenueByFloorAsync(poi.FloorId, ct);
     }
 
     private static PoiDto ToPoiDto(FloorPoi p) => new()
@@ -438,6 +544,7 @@ public class AdminVenueManagementService
         seat.PositionY = request.PositionY;
         await _db.SaveChangesAsync(ct);
         await _audit.LogAsync(operatorId, "seat.update", "Seat", seatId.ToString(), $"更新座位 {seat.Code} 坐标({seat.PositionX},{seat.PositionY})", null, ct);
+        await InvalidateVenueByZoneAsync(seat.ZoneId, ct);
     }
 
     public async Task<AdminVenueDetailDto> GetVenueDetailAsync(long venueId, CancellationToken ct = default)
@@ -482,6 +589,27 @@ public class AdminVenueManagementService
                     GridCols = z.GridCols,
                     OffsetX = z.OffsetX,
                     OffsetY = z.OffsetY,
+                    LayoutMode = z.LayoutMode,
+                    TableSeatCols = z.TableSeatCols,
+                    TableSeatRows = z.TableSeatRows,
+                    TableGapX = z.TableGapX,
+                    TableGapY = z.TableGapY,
+                    TablesX = z.TablesX,
+                    TablesY = z.TablesY,
+                    ArcRadius = z.ArcRadius,
+                    ArcRadiusStep = z.ArcRadiusStep,
+                    ArcStartAngle = z.ArcStartAngle,
+                    ArcEndAngle = z.ArcEndAngle,
+                    ArcRows = z.ArcRows,
+                    ArcSeatsPerRow = z.ArcSeatsPerRow,
+                    ArcAxisB = z.ArcAxisB,
+                    CurveAmplitude = z.CurveAmplitude,
+                    CurveWavelength = z.CurveWavelength,
+                    CurvePhase = z.CurvePhase,
+                    CurveRowGap = z.CurveRowGap,
+                    CurveAngle = z.CurveAngle,
+                    CurveSlantGap = z.CurveSlantGap,
+                    PathPoints = z.PathPoints,
                     Seats = z.Seats.OrderBy(s => s.Code).Select(s => new AdminSeatDto
                     {
                         Id = s.Id,
@@ -558,6 +686,27 @@ public class AdminZoneDto
     public int GridCols { get; set; }
     public int OffsetX { get; set; }
     public int OffsetY { get; set; }
+    public string LayoutMode { get; set; } = "grid";
+    public int TableSeatCols { get; set; } = 2;
+    public int TableSeatRows { get; set; } = 2;
+    public double TableGapX { get; set; } = 1;
+    public double TableGapY { get; set; } = 1;
+    public int TablesX { get; set; } = 1;
+    public int TablesY { get; set; } = 1;
+    public double ArcRadius { get; set; } = 8;
+    public double ArcRadiusStep { get; set; } = 1.5;
+    public double ArcStartAngle { get; set; } = 180;
+    public double ArcEndAngle { get; set; } = 360;
+    public int ArcRows { get; set; } = 3;
+    public int ArcSeatsPerRow { get; set; } = 8;
+    public double ArcAxisB { get; set; } = 8;
+    public double CurveAmplitude { get; set; } = 2;
+    public double CurveWavelength { get; set; } = 6;
+    public double CurvePhase { get; set; } = 0;
+    public double CurveRowGap { get; set; } = 2;
+    public double CurveAngle { get; set; } = 30;
+    public double CurveSlantGap { get; set; } = 2;
+    public string? PathPoints { get; set; }
     public List<AdminSeatDto> Seats { get; set; } = new();
 }
 

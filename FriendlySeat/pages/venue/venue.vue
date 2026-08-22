@@ -80,15 +80,34 @@
 								:style="zoneRectStyle(f, z)"
 								@click="tapZone(z)"
 							>
-								<view class="zone-grid" :style="zoneGridStyle(z)">
+								<view class="zone-body" :style="zoneBodyStyle(f, z)">
+									<block v-if="(z.layoutMode || 'grid') === 'table'">
+										<view v-for="(t, ti) in zoneTables(z)" :key="'t' + ti" class="table-rect" :style="tableRectStyle(f, z, t)"></view>
+									</block>
+									<block v-else-if="(z.layoutMode || 'grid') === 'arc' || (z.layoutMode || 'grid') === 'ellipse'">
+										<view v-for="(ring, ri) in zoneArcRings(z)" :key="'r' + ri" class="arc-ring" :style="arcRingStyle(f, z, ring)"></view>
+									</block>
+									<block v-else-if="(z.layoutMode || 'grid') === 'spiral'">
+										<view v-for="(ring, ri) in zoneSpiralRings(z)" :key="'r' + ri" class="arc-ring" :style="arcRingStyle(f, z, ring)"></view>
+									</block>
+									<block v-else-if="(z.layoutMode || 'grid') === 'sine'">
+										<view v-for="(w, wi) in zoneSineGuide(z)" :key="'w' + wi" class="sine-guide" :style="sineGuideStyle(f, z, w)"></view>
+									</block>
+									<block v-else-if="(z.layoutMode || 'grid') === 'slant'">
+										<view v-for="(s, si) in zoneSlantGuide(z)" :key="'s' + si" class="slant-guide" :style="slantGuideStyle(f, z, s)"></view>
+									</block>
+									<block v-else-if="(z.layoutMode || 'grid') === 'curve'">
+										<view v-for="(s, si) in zoneCurveSegments(z)" :key="'c' + si" class="slant-guide" :style="curveSegmentStyle(f, z, s)"></view>
+									</block>
 									<view
-										class="map-cell"
-										:class="cell ? seatClass(cell) : 'vacant'"
-										v-for="(cell, idx) in zoneGrid(z)"
-										:key="idx"
-										@click.stop="cell && goSeat(cell.id)"
+										v-for="item in zoneAbsSeats(z)"
+										:key="'s' + item.s.id"
+										class="map-cell abs"
+										:class="seatClass(item.s)"
+										:style="absSeatStyle(f, z, item)"
+										@click.stop="goSeat(item.s.id)"
 									>
-										<text v-if="cell" class="seat-code" :style="seatCodeStyle()">{{seatShortCode(cell.code)}}</text>
+										<text v-if="item.s" class="seat-code" :style="seatCodeStyle()">{{seatShortCode(item.s.code)}}</text>
 									</view>
 								</view>
 								<text class="zone-label" :style="zoneLabelStyle()"><text class="zone-letter">{{zoneLetter(z, f)}}区</text></text>
@@ -139,15 +158,34 @@
 						:style="zoneRectStyle(f, z)"
 						@click="tapZone(z)"
 					>
-						<view class="zone-grid" :style="zoneGridStyle(z)">
+						<view class="zone-body" :style="zoneBodyStyle(f, z)">
+							<block v-if="(z.layoutMode || 'grid') === 'table'">
+								<view v-for="(t, ti) in zoneTables(z)" :key="'t' + ti" class="table-rect" :style="tableRectStyle(f, z, t)"></view>
+							</block>
+							<block v-else-if="(z.layoutMode || 'grid') === 'arc' || (z.layoutMode || 'grid') === 'ellipse'">
+								<view v-for="(ring, ri) in zoneArcRings(z)" :key="'r' + ri" class="arc-ring" :style="arcRingStyle(f, z, ring)"></view>
+							</block>
+							<block v-else-if="(z.layoutMode || 'grid') === 'spiral'">
+								<view v-for="(ring, ri) in zoneSpiralRings(z)" :key="'r' + ri" class="arc-ring" :style="arcRingStyle(f, z, ring)"></view>
+							</block>
+							<block v-else-if="(z.layoutMode || 'grid') === 'sine'">
+								<view v-for="(w, wi) in zoneSineGuide(z)" :key="'w' + wi" class="sine-guide" :style="sineGuideStyle(f, z, w)"></view>
+							</block>
+							<block v-else-if="(z.layoutMode || 'grid') === 'slant'">
+								<view v-for="(s, si) in zoneSlantGuide(z)" :key="'s' + si" class="slant-guide" :style="slantGuideStyle(f, z, s)"></view>
+							</block>
+							<block v-else-if="(z.layoutMode || 'grid') === 'curve'">
+								<view v-for="(s, si) in zoneCurveSegments(z)" :key="'c' + si" class="slant-guide" :style="curveSegmentStyle(f, z, s)"></view>
+							</block>
 							<view
-								class="map-cell"
-								:class="cell ? seatClass(cell) : 'vacant'"
-								v-for="(cell, idx) in zoneGrid(z)"
-								:key="idx"
-								@click.stop="cell && goSeat(cell.id)"
+								v-for="item in zoneAbsSeats(z)"
+								:key="'s' + item.s.id"
+								class="map-cell abs"
+								:class="seatClass(item.s)"
+								:style="absSeatStyle(f, z, item)"
+								@click.stop="goSeat(item.s.id)"
 							>
-								<text v-if="cell" class="seat-code" :style="seatCodeStyle()">{{seatShortCode(cell.code)}}</text>
+								<text v-if="item.s" class="seat-code" :style="seatCodeStyle()">{{seatShortCode(item.s.code)}}</text>
 							</view>
 						</view>
 						<text class="zone-label" :style="zoneLabelStyle()"><text class="zone-letter">{{zoneLetter(z, f)}}区</text></text>
@@ -315,9 +353,10 @@
 			floorMapStyle(f) {
 				const { rows, cols } = this.floorBounds(f)
 				const cell = this.cellPx(f)
+				// +18px：区块顶部标签条高度（区块为绝对定位不撑开父容器，需在此补偿，否则最后一排被外层裁切）
 				return {
 					width: `${cols * cell}px`,
-					height: `${rows * cell}px`
+					height: `${rows * cell + 18}px`
 				}
 			},
 			floorGridRows(f) {
@@ -341,21 +380,268 @@
 			// 区块绝对定位（像素级，与设计器一致）
 			zoneRectStyle(f, z) {
 				const cell = this.cellPx(f)
-				const cols = z.gridCols || z.seats.length
+				const cols = z.gridCols || 1
+				const rows = z.gridRows || 1
 				return {
 					position: 'absolute',
 					left: `${(z.offsetX || 0) * cell}px`,
 					top: `${(z.offsetY || 0) * cell}px`,
-					width: `${cols * cell}px`
-					// 高度由座位格子（aspect-ratio）自动撑开
+					width: `${cols * cell}px`,
+					height: `${rows * cell + 18}px`
 				}
 			},
-			zoneGridStyle(z) {
-				const cols = Math.max(z.gridCols, 1)
-				const cell = this.cellPx(this.currentFloorObj)
+			// ===== 布局几何（桌椅格局 / 弧形排布）与设计器一致 =====
+			tableGeometry(z) {
+				const tc = Math.max(1, z.tableSeatCols || 2)
+				const tr = Math.max(1, z.tableSeatRows || 2)
+				const gx = Math.max(0, z.tableGapX == null ? 1 : z.tableGapX)
+				const gy = Math.max(0, z.tableGapY == null ? 1 : z.tableGapY)
+				const tx = Math.max(1, z.tablesX || 1)
+				const ty = Math.max(1, z.tablesY || 1)
+				const tables = []
+				for (let j = 0; j < ty; j++) {
+					for (let i = 0; i < tx; i++) {
+						const ox = i * (tc + gx)
+						const oy = j * (tr + gy)
+						tables.push({ x: ox + 0.5, y: oy + 0.5, w: tc, h: tr })
+					}
+				}
+				return { tables }
+			},
+			arcGeometry(z) {
+				const rows = Math.max(1, z.arcRows || 3)
+				const isEllipse = (z.layoutMode || 'grid') === 'ellipse'
+				const a0 = (z.arcStartAngle == null ? 180 : z.arcStartAngle) * Math.PI / 180
+				const a1 = (z.arcEndAngle == null ? 360 : z.arcEndAngle) * Math.PI / 180
+				const axisA = Math.max(2, z.arcRadius || 8)
+				const axisB = isEllipse ? Math.max(2, z.arcAxisB || axisA) : axisA
+				const step = Math.max(0.5, z.arcRadiusStep || 1.5)
+				const raw = []
+				for (let r = 0; r < rows; r++) {
+					const ar = axisA + r * step
+					const br = isEllipse ? axisB + r * step : ar
+					const cols = Math.max(1, z.arcSeatsPerRow || 8)
+					for (let c = 0; c < cols; c++) {
+						const ang = cols === 1 ? (a0 + a1) / 2 : a0 + (a1 - a0) * (c / (cols - 1))
+						raw.push({ x: ar * Math.cos(ang), y: br * Math.sin(ang) })
+					}
+				}
+				const minX = Math.min(...raw.map(p => p.x))
+				const minY = Math.min(...raw.map(p => p.y))
 				return {
-					gridTemplateColumns: `repeat(${cols}, 1fr)`,
-					gridAutoRows: `${cell}px` // 每行固定高度，保证格子可见
+					center: { x: -minX, y: -minY },
+					rings: Array.from({ length: rows }, (_, r) => {
+						const ar = axisA + r * step
+						const br = isEllipse ? axisB + r * step : ar
+						return { a: ar, b: br }
+					})
+				}
+			},
+			spiralGeometry(z) {
+				const rows = Math.max(1, z.arcRows || 3)
+				const cols = Math.max(1, z.arcSeatsPerRow || 8)
+				const r0 = Math.max(1, z.arcRadius || 8)
+				const pitch = Math.max(0.5, z.arcRadiusStep || 1.5)
+				const a0 = (z.arcStartAngle == null ? 0 : z.arcStartAngle) * Math.PI / 180
+				const totalDeg = (z.arcEndAngle == null ? 720 : z.arcEndAngle) === 0 ? 1 : (z.arcEndAngle == null ? 720 : z.arcEndAngle)
+				const a1 = a0 + totalDeg * Math.PI / 180
+				const total = rows * cols
+				const raw = []
+				for (let i = 0; i < total; i++) {
+					const t = total === 1 ? 0.5 : i / (total - 1)
+					const ang = a0 + (a1 - a0) * t
+					const rad = r0 + Math.abs(ang - a0) / (2 * Math.PI) * pitch
+					raw.push({ x: rad * Math.cos(ang), y: rad * Math.sin(ang) })
+				}
+				const minX = Math.min(...raw.map(p => p.x))
+				const minY = Math.min(...raw.map(p => p.y))
+				return {
+					center: { x: -minX, y: -minY },
+					rings: [
+						{ a: r0, b: r0 },
+						{ a: r0 + pitch * rows, b: r0 + pitch * rows }
+					]
+				}
+			},
+			sineGeometry(z) {
+				const rows = Math.max(1, z.arcRows || 3)
+				const cols = Math.max(1, z.arcSeatsPerRow || 8)
+				const amp = Math.max(0.5, z.curveAmplitude || 2)
+				const wl = Math.max(2, z.curveWavelength || 6)
+				const phase = (z.curvePhase || 0) * Math.PI / 180
+				const rowGap = Math.max(0.5, z.curveRowGap || 2)
+				const raw = []
+				for (let r = 0; r < rows; r++) {
+					for (let c = 0; c < cols; c++) {
+						const x = c
+						const y = r * rowGap + amp * Math.sin((x / wl) * 2 * Math.PI + phase)
+						raw.push({ x, y })
+					}
+				}
+				const minX = Math.min(...raw.map(p => p.x))
+				const minY = Math.min(...raw.map(p => p.y))
+				const maxX = Math.max(...raw.map(p => p.x))
+				return {
+					guides: Array.from({ length: rows }, (_, r) => {
+						const y = r * rowGap + amp
+						return { y: y - minY + 0.5, x0: -minX + 0.5, x1: maxX - minX + 0.5 }
+					})
+				}
+			},
+			slantGeometry(z) {
+				const rows = Math.max(1, z.arcRows || 3)
+				const cols = Math.max(1, z.arcSeatsPerRow || 8)
+				const ang = (z.curveAngle == null ? 30 : z.curveAngle) * Math.PI / 180
+				const gap = Math.max(0.5, z.curveSlantGap || 2)
+				const raw = []
+				for (let r = 0; r < rows; r++) {
+					for (let c = 0; c < cols; c++) {
+						raw.push({
+							x: c * Math.cos(ang) + r * Math.sin(ang),
+							y: c * Math.sin(ang) - r * Math.cos(ang) + r * gap,
+							row: r
+						})
+					}
+				}
+				const minX = Math.min(...raw.map(p => p.x))
+				const minY = Math.min(...raw.map(p => p.y))
+				const guides = []
+				for (let r = 0; r < rows; r++) {
+					const row = raw.filter(p => p.row === r)
+					if (row.length) {
+						guides.push({
+							x0: row[0].x - minX + 0.5, y0: row[0].y - minY + 0.5,
+							x1: row[row.length - 1].x - minX + 0.5, y1: row[row.length - 1].y - minY + 0.5
+						})
+					}
+				}
+				return { guides }
+			},
+			zoneTables(z) {
+				return this.tableGeometry(z).tables
+			},
+			zoneArcRings(z) {
+				const g = this.arcGeometry(z)
+				return g.rings.map(ring => ({ cx: g.center.x, cy: g.center.y, a: ring.a, b: ring.b }))
+			},
+			zoneSpiralRings(z) {
+				const g = this.spiralGeometry(z)
+				return g.rings.map(ring => ({ cx: g.center.x, cy: g.center.y, a: ring.a, b: ring.b }))
+			},
+			zoneSineGuide(z) {
+				return this.sineGeometry(z).guides || []
+			},
+			zoneSlantGuide(z) {
+				return this.slantGeometry(z).guides || []
+			},
+			// ===== 自定义曲线（curve）：锚点即座位，仅渲染行向引导线 =====
+			curvePoints(z) {
+				if (!z.pathPoints) return []
+				try {
+					const arr = typeof z.pathPoints === 'string' ? JSON.parse(z.pathPoints) : z.pathPoints
+					return (Array.isArray(arr) ? arr : []).filter(p => p && p.x != null && p.y != null)
+				} catch (e) { return [] }
+			},
+			// 逐行连线引导：同一行的锚点（座位）相连，便于看清行方向
+			zoneCurveSegments(z) {
+				const pts = this.curvePoints(z)
+				const cols = Math.max(1, z.arcSeatsPerRow || pts.length || 1)
+				const segs = []
+				for (let r = 0; r * cols < pts.length; r++) {
+					const rowPts = pts.slice(r * cols, r * cols + cols)
+					for (let i = 0; i < rowPts.length - 1; i++) {
+						segs.push({ x0: rowPts[i].x, y0: rowPts[i].y, x1: rowPts[i + 1].x, y1: rowPts[i + 1].y })
+					}
+				}
+				return segs
+			},
+			curveSegmentStyle(f, z, s) {
+				const cell = this.cellPx(f)
+				const dx = (s.x1 - s.x0) * cell
+				const dy = (s.y1 - s.y0) * cell
+				const len = Math.sqrt(dx * dx + dy * dy)
+				const rot = Math.atan2(dy, dx) * 180 / Math.PI
+				return {
+					position: 'absolute',
+					left: `${(s.x0 - 0.5) * cell}px`,
+					top: `${(s.y0 - 0.5) * cell}px`,
+					width: `${len}px`,
+					height: '2px',
+					transform: `rotate(${rot}deg)`,
+					transformOrigin: 'left center'
+				}
+			},
+			// 区块座位区显式高度（不依赖 bottom 撑开，避免小程序渲染差异）
+			zoneBodyStyle(f, z) {
+				const cell = this.cellPx(f)
+				return {
+					height: `${(z.gridRows || 1) * cell}px`
+				}
+			},
+			// 座位绝对定位（支持小数坐标；统一为「格子中心」坐标，网格模式整数坐标 +0.5 对齐）
+			zoneAbsSeats(z) {
+				const isGrid = (z.layoutMode || 'grid') === 'grid'
+				return (z.seats || []).map(s => ({
+					s,
+					x: (Number(s.positionX) || 0) + (isGrid ? 0.5 : 0),
+					y: (Number(s.positionY) || 0) + (isGrid ? 0.5 : 0)
+				}))
+			},
+			tableRectStyle(f, z, t) {
+				const cell = this.cellPx(f)
+				return {
+					position: 'absolute',
+					left: `${(t.x - 0.5) * cell}px`,
+					top: `${(t.y - 0.5) * cell}px`,
+					width: `${t.w * cell}px`,
+					height: `${t.h * cell}px`
+				}
+			},
+			arcRingStyle(f, z, ring) {
+				const cell = this.cellPx(f)
+				return {
+					position: 'absolute',
+					left: `${(ring.cx + 0.5 - ring.a) * cell}px`,
+					top: `${(ring.cy + 0.5 - ring.b) * cell}px`,
+					width: `${ring.a * 2 * cell}px`,
+					height: `${ring.b * 2 * cell}px`
+				}
+			},
+			sineGuideStyle(f, z, w) {
+				const cell = this.cellPx(f)
+				return {
+					position: 'absolute',
+					left: `${(w.x0 - 0.5) * cell}px`,
+					top: `${(w.y - 0.5) * cell}px`,
+					width: `${(w.x1 - w.x0) * cell}px`,
+					height: '2px'
+				}
+			},
+			slantGuideStyle(f, z, s) {
+				const cell = this.cellPx(f)
+				const ang = (z.curveAngle == null ? 30 : z.curveAngle) * Math.PI / 180
+				const dx = (s.x1 - s.x0) * cell
+				const dy = (s.y1 - s.y0) * cell
+				const len = Math.sqrt(dx * dx + dy * dy)
+				const rot = Math.atan2(dy, dx) * 180 / Math.PI
+				return {
+					position: 'absolute',
+					left: `${(s.x0 - 0.5) * cell}px`,
+					top: `${(s.y0 - 0.5) * cell}px`,
+					width: `${len}px`,
+					height: '2px',
+					transform: `rotate(${rot}deg)`,
+					transformOrigin: 'left center'
+				}
+			},
+			absSeatStyle(f, z, item) {
+				const cell = this.cellPx(f)
+				return {
+					position: 'absolute',
+					left: `${(item.x - 0.5) * cell + 1}px`,
+					top: `${(item.y - 0.5) * cell + 1}px`,
+					width: `${cell - 2}px`,
+					height: `${cell - 2}px`
 				}
 			},
 			// 座位编号字号随格子缩放
@@ -378,19 +664,6 @@
 				const f = this.currentFloorObj
 				const cell = f ? this.cellPx(f) : 24
 				return { fontSize: `${Math.max(6, Math.round(cell * 0.26))}px` }
-			},
-			zoneGrid(zone) {
-				const rows = Math.max(zone.gridRows, 1)
-				const cols = Math.max(zone.gridCols, 1)
-				const grid = new Array(rows * cols).fill(null)
-				for (const s of zone.seats) {
-					const x = Math.floor(s.positionX || 0)
-					const y = Math.floor(s.positionY || 0)
-					if (y >= 0 && y < rows && x >= 0 && x < cols) {
-						grid[y * cols + x] = s
-					}
-				}
-				return grid
 			},
 			seatClass(s) {
 				if (s.status === 'Unavailable') return 'off'
@@ -670,16 +943,53 @@
 		background: #FFFFFF;
 		border-radius: 6px;
 		border: 1px solid #D8D4C8;
-		padding: 18px 2px 2px;
 		position: relative;
 		min-width: 0;
 		min-height: 0;
 		overflow: hidden;
-		box-sizing: border-box;
+		box-sizing: content-box;
 	}
-	.zone-grid {
-		display: grid;
+	.zone-body {
+		position: absolute;
+		left: 0;
+		top: 18px;
 		width: 100%;
+		box-sizing: border-box;
+		overflow: hidden;
+	}
+	/* 桌椅格局桌面 */
+	.table-rect {
+		position: absolute;
+		background: #F0E6CC;
+		border: 1px solid #D9C48F;
+		border-radius: 4px;
+		box-sizing: border-box;
+		pointer-events: none;
+	}
+	/* 弧形排布引导圈 */
+	.arc-ring {
+		position: absolute;
+		border: 1px dashed #C6D8D2;
+		border-radius: 50%;
+		box-sizing: border-box;
+		pointer-events: none;
+	}
+	/* S形正弦波引导线 */
+	.sine-guide {
+		position: absolute;
+		background: repeating-linear-gradient(90deg, #C6D8D2 0 4px, transparent 4px 8px);
+		opacity: 0.6;
+		pointer-events: none;
+	}
+	/* 斜线排布引导线 */
+	.slant-guide {
+		position: absolute;
+		background: repeating-linear-gradient(90deg, #C6D8D2 0 4px, transparent 4px 8px);
+		opacity: 0.6;
+		pointer-events: none;
+	}
+	.map-cell.abs {
+		position: absolute;
 		box-sizing: border-box;
 	}
 	.map-cell {
@@ -691,9 +1001,6 @@
 		height: 100%;
 		min-width: 0;
 		min-height: 0;
-	}
-	.map-cell.vacant {
-		background: transparent;
 	}
 	.map-cell.avail {
 		background: #3A8A7E;
@@ -719,17 +1026,20 @@
 		color: #33332E;
 	}
 	.zone-label {
-		font-size: 9px;
-		color: #8A8A86;
-		text-align: center;
+		font-size: 10px;
+		color: #3A8A7E;
+		font-weight: 600;
 		position: absolute;
 		left: 0;
 		right: 0;
-		top: 2px;
-		line-height: 14px;
+		top: 0;
+		height: 18px;
+		line-height: 18px;
+		text-align: center;
 		white-space: nowrap;
 		overflow: hidden;
 		text-overflow: ellipsis;
+		z-index: 3;
 	}
 	.zone-letter {
 		font-weight: 700;

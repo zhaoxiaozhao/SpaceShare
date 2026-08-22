@@ -3,6 +3,7 @@ using System;
 using FriendlySeat.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace FriendlySeat.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(FriendlySeatDbContext))]
-    partial class FriendlySeatDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260821111351_MoreCurveLayouts")]
+    partial class MoreCurveLayouts
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1211,9 +1214,6 @@ namespace FriendlySeat.Infrastructure.Persistence.Migrations
 
                     b.Property<int>("OffsetY")
                         .HasColumnType("integer");
-
-                    b.Property<string>("PathPoints")
-                        .HasColumnType("text");
 
                     b.Property<int>("SortOrder")
                         .HasColumnType("integer");
