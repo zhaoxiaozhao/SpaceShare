@@ -115,13 +115,22 @@ public class AutoReleaseJob : IAutoReleaseJob
             share.Status = SeatShareStatus.Expired;
         }
 
-        // 4. 过期候补
+        // 4. 过期候补：标记过期后，通知同分享下一位候补（候补链条）
         var expiredWaitlists = await _db.ReservationWaitlists
             .Where(w => (w.Status == WaitlistStatus.Waiting || w.Status == WaitlistStatus.Notified) && w.ExpiredAt.HasValue && w.ExpiredAt < now)
             .ToListAsync(ct);
+        var shareIdsToRecheck = new List<long>();
         foreach (var w in expiredWaitlists)
         {
             w.Status = WaitlistStatus.Expired;
+            shareIdsToRecheck.Add(w.ShareId);
+        }
+        if (expiredWaitlists.Count > 0) await _db.SaveChangesAsync(ct);
+
+        // 对每条过期候补对应的分享，通知当前队首候补
+        foreach (var shareId in shareIdsToRecheck.Distinct())
+        {
+            await NotifyNextWaitlistAsync(shareId, ct);
         }
 
         // 5. 清理过期使用会话
@@ -135,5 +144,27 @@ public class AutoReleaseJob : IAutoReleaseJob
         }
 
         await _db.SaveChangesAsync(ct);
+    }
+
+    // 候补链条：通知分享当前队首候补（若有空位）
+    private async Task NotifyNextWaitlistAsync(long shareId, CancellationToken ct)
+    {
+        var rules = await _config.GetReservationRulesAsync(ct);
+        var next = await _db.ReservationWaitlists
+            .Where(w => w.ShareId == shareId && w.Status == WaitlistStatus.Waiting)
+            .OrderBy(w => w.Position)
+            .FirstOrDefaultAsync(ct);
+        if (next is null) return;
+
+        var share = await _db.SeatShares.Include(s => s.Seat).FirstOrDefaultAsync(s => s.Id == shareId, ct);
+        if (share is null || share.Status != SeatShareStatus.Available) return;
+
+        next.Status = WaitlistStatus.Notified;
+        next.NotifiedAt = DateTime.UtcNow;
+        next.ExpiredAt = DateTime.UtcNow.AddMinutes(rules.WaitlistWindowMinutes);
+        await _db.SaveChangesAsync(ct);
+
+        await _notifications.SendAsync(next.UserId, NotificationType.WaitlistAvailable,
+            "候补成功", $"「{share.Seat?.Code}」有空位了，请在{rules.WaitlistWindowMinutes}分钟内预约", null, ct);
     }
 }

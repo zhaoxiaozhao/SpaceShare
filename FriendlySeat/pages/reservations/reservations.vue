@@ -3,6 +3,7 @@
 		<view class="tabs">
 			<view class="tab" :class="{ active: tab === 'upcoming' }" @click="tab = 'upcoming'">待使用</view>
 			<view class="tab" :class="{ active: tab === 'shares' }" @click="tab = 'shares'">我的分享</view>
+			<view class="tab" :class="{ active: tab === 'waitlist' }" @click="tab = 'waitlist'">我的候补</view>
 			<view class="tab" :class="{ active: tab === 'history' }" @click="tab = 'history'">历史</view>
 		</view>
 
@@ -10,10 +11,10 @@
 			<view v-if="summary.upcoming.length">
 				<view class="card res-card" v-for="r in summary.upcoming" :key="r.id">
 					<view class="res-top">
-						<text class="res-seat">{{r.seatCode}}</text>
+						<text class="res-seat">{{r.displayCode || r.seatCode}}</text>
 						<text class="tag" :class="'status-' + r.status.toLowerCase()">{{statusText(r.status)}}</text>
 					</view>
-					<text class="res-venue">{{r.venueName}}</text>
+					<text class="res-venue">{{r.venueName}}<text v-if="r.floorName" class="res-floor"> · {{r.floorName}}</text><text v-if="r.areaName" class="res-floor"> · {{r.areaName}}</text></text>
 					<text class="res-time">{{formatTime(r.startAt)}} ~ {{formatTime(r.endAt)}}</text>
 					<view class="res-actions">
 						<button
@@ -41,10 +42,10 @@
 			<view v-if="summary.myShares.length">
 				<view class="card res-card" v-for="s in summary.myShares" :key="s.id">
 					<view class="res-top">
-						<text class="res-seat">{{s.seatCode}}</text>
+						<text class="res-seat">{{s.displayCode || s.seatCode}}</text>
 						<text class="tag" :class="'status-' + s.status.toLowerCase()">{{statusText(s.status)}}</text>
 					</view>
-					<text class="res-venue">{{s.venueName}}</text>
+					<text class="res-venue">{{s.venueName}}<text v-if="s.floorName" class="res-floor"> · {{s.floorName}}</text><text v-if="s.areaName" class="res-floor"> · {{s.areaName}}</text></text>
 					<text class="res-time">{{formatTime(s.startAt)}} ~ {{formatTime(s.endAt)}}</text>
 					<view class="res-actions">
 						<button
@@ -58,14 +59,35 @@
 			<view v-else class="empty">还没有分享过座位</view>
 		</view>
 
+		<view v-if="tab === 'waitlist'">
+			<view v-if="waitlist.length">
+				<view class="card res-card" v-for="w in waitlist" :key="w.id" @click="goSeat(w)">
+					<view class="res-top">
+						<text class="res-seat">{{w.seatCode}}</text>
+						<text class="tag" :class="'status-' + w.status.toLowerCase()">{{statusText(w.status)}}</text>
+					</view>
+					<text class="res-venue">{{w.venueName}}</text>
+					<text class="res-time">{{formatTime(w.startAt)}} ~ {{formatTime(w.endAt)}}</text>
+					<view class="res-actions">
+						<button
+							v-if="w.status === 'Waiting' || w.status === 'Notified'"
+							class="btn-outline small"
+							@click.stop="cancelWaitlist(w)"
+						>取消候补</button>
+					</view>
+				</view>
+			</view>
+			<view v-else class="empty">暂无候补</view>
+		</view>
+
 		<view v-if="tab === 'history'">
 			<view v-if="summary.history.length">
 				<view class="card res-card" v-for="r in summary.history" :key="r.id">
 					<view class="res-top">
-						<text class="res-seat">{{r.seatCode}}</text>
+						<text class="res-seat">{{r.displayCode || r.seatCode}}</text>
 						<text class="tag" :class="'status-' + r.status.toLowerCase()">{{statusText(r.status)}}</text>
 					</view>
-					<text class="res-venue">{{r.venueName}}</text>
+					<text class="res-venue">{{r.venueName}}<text v-if="r.floorName" class="res-floor"> · {{r.floorName}}</text><text v-if="r.areaName" class="res-floor"> · {{r.areaName}}</text></text>
 					<text class="res-time">{{formatTime(r.startAt)}} ~ {{formatTime(r.endAt)}}</text>
 				</view>
 			</view>
@@ -82,7 +104,8 @@
 		data() {
 			return {
 				tab: 'upcoming',
-				summary: { upcoming: [], history: [], myShares: [] }
+				summary: { upcoming: [], history: [], myShares: [] },
+				waitlist: []
 			}
 		},
 		onShow() {
@@ -104,6 +127,9 @@
 				} catch (e) {
 					uni.showToast({ title: '加载失败', icon: 'none' })
 				}
+				try {
+					this.waitlist = await api.getMyWaitlist()
+				} catch (e) {}
 			},
 			async cancel(r) {
 				uni.showModal({
@@ -181,6 +207,25 @@
 					}
 				})
 			},
+			async cancelWaitlist(w) {
+				uni.showModal({
+					title: '取消候补',
+					content: '确定取消这条候补吗？',
+					success: async (res) => {
+						if (!res.confirm) return
+						try {
+							await api.cancelWaitlist(w.id)
+							uni.showToast({ title: '已取消', icon: 'success' })
+							this.load()
+						} catch (e) {
+							uni.showToast({ title: e.message || '操作失败', icon: 'none' })
+						}
+					}
+				})
+			},
+			goSeat(w) {
+				uni.navigateTo({ url: `/pages/seat/seat?id=${w.seatId}` })
+			},
 		}
 	}
 </script>
@@ -223,6 +268,9 @@
 	.res-venue {
 		font-size: 26rpx;
 		color: #55554F;
+	}
+	.res-floor {
+		color: #3A8A7E;
 	}
 	.res-time {
 		font-size: 26rpx;

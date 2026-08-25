@@ -40,8 +40,8 @@
 			<text class="section-title">最近分享的座位</text>
 			<view class="card share-card" v-for="s in shares" :key="s.id" @click="goSeat(s.seatId)">
 				<view class="share-top">
-					<text class="share-seat">{{s.seatCode}}</text>
-					<text class="share-venue">{{s.venueName}}</text>
+					<text class="share-seat">{{s.displayCode || s.seatCode}}</text>
+					<text class="share-venue">{{s.venueName}}<text v-if="s.floorName" class="share-floor"> · {{s.floorName}}</text><text v-if="s.areaName" class="share-floor"> · {{s.areaName}}</text></text>
 				</view>
 				<view class="share-time">{{formatTime(s.startAt)}} ~ {{formatTime(s.endAt)}}</view>
 				<view class="share-note" v-if="s.note">{{s.note}}</view>
@@ -97,6 +97,23 @@
 						this.nearby = []
 					}
 				}
+				// 同步底部「通知」tab 未读角标
+				const token = uni.getStorageSync('token')
+				if (token) {
+					try {
+						const unread = await api.getUnreadCount()
+						this.setTabBarBadge(unread)
+					} catch (e) {}
+				}
+			},
+			setTabBarBadge(count) {
+				try {
+					if (count > 0) {
+						uni.setTabBarBadge({ index: 2, text: count > 99 ? '99+' : String(count) })
+					} else {
+						uni.removeTabBarBadge({ index: 2 })
+					}
+				} catch (e) {}
 			},
 			getLocation() {
 				return new Promise((resolve) => {
@@ -246,6 +263,9 @@
 	.share-venue {
 		font-size: 24rpx;
 		color: #8A8A86;
+	}
+	.share-floor {
+		color: #3A8A7E;
 	}
 	.share-time {
 		font-size: 26rpx;

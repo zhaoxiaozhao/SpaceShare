@@ -37,7 +37,10 @@
 			</view>
 			<view class="menu-item" @click="goNotifications">
 				<text>🔔 消息通知</text>
-				<text class="arrow">›</text>
+				<view class="menu-right">
+					<text v-if="unreadCount > 0" class="badge">{{unreadCount > 99 ? '99+' : unreadCount}}</text>
+					<text class="arrow">›</text>
+				</view>
 			</view>
 			<view class="menu-item" @click="goReports">
 				<text>📝 我的举报</text>
@@ -55,8 +58,6 @@
 
 		<view class="card about">
 			<text class="about-line">一席相邻，善意相续</text>
-			<text class="about-line small">友邻座 · 公共学习空间座位共享与预约平台</text>
-			<text class="about-line small">免费共享 · 免费预约 · 不卖座 · 不炒座 · 不占座</text>
 		</view>
 
 		<button class="btn-outline logout" @click="logout">退出登录</button>
@@ -74,7 +75,8 @@
 				editNickname: '',
 				avatarFile: '',
 				previewAvatar: '',
-				saving: false
+				saving: false,
+				unreadCount: 0
 			}
 		},
 		onShow() {
@@ -92,6 +94,19 @@
 					this.user = await api.getMy()
 					uni.setStorageSync('user', this.user)
 					if (!this.editNickname) this.editNickname = this.user.nickname || ''
+				} catch (e) {}
+				try {
+					this.unreadCount = await api.getUnreadCount()
+					this.setTabBarBadge(this.unreadCount)
+				} catch (e) {}
+			},
+			setTabBarBadge(count) {
+				try {
+					if (count > 0) {
+						uni.setTabBarBadge({ index: 2, text: count > 99 ? '99+' : String(count) })
+					} else {
+						uni.removeTabBarBadge({ index: 2 })
+					}
 				} catch (e) {}
 			},
 			onChooseAvatar(e) {
@@ -144,7 +159,7 @@
 				uni.navigateTo({ url: '/pages/contribution/contribution' })
 			},
 			goNotifications() {
-				uni.navigateTo({ url: '/pages/notifications/notifications' })
+				uni.switchTab({ url: '/pages/notifications/notifications' })
 			},
 			goReports() {
 				uni.navigateTo({ url: '/pages/report/report' })
@@ -259,6 +274,22 @@
 	.arrow {
 		color: #C0C0BB;
 		font-size: 36rpx;
+	}
+	.menu-right {
+		display: flex;
+		align-items: center;
+		gap: 12rpx;
+	}
+	.badge {
+		min-width: 36rpx;
+		height: 36rpx;
+		line-height: 36rpx;
+		padding: 0 10rpx;
+		border-radius: 18rpx;
+		background: #D9822B;
+		color: #FFFFFF;
+		font-size: 22rpx;
+		text-align: center;
 	}
 	.about {
 		display: flex;

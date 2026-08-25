@@ -77,7 +77,9 @@ public class ShareService
 
         var now = DateTime.UtcNow;
         var shares = await _db.SeatShares
-            .Where(s => seatIds.Contains(s.SeatId) && s.Status == SeatShareStatus.Available && s.EndAt > now)
+            .Where(s => seatIds.Contains(s.SeatId)
+                && s.Status != SeatShareStatus.Cancelled && s.Status != SeatShareStatus.Expired
+                && s.EndAt > now)
             .Include(s => s.Seat!)
                 .ThenInclude(s => s.Zone!)
                     .ThenInclude(z => z.Floor!)
@@ -89,6 +91,8 @@ public class ShareService
                 SeatId = s.SeatId,
                 SeatCode = s.Seat!.Code,
                 VenueName = s.Seat.Zone!.Floor!.Venue!.Name,
+                FloorName = s.Seat.Zone!.Floor!.Name,
+                AreaName = s.Seat.Zone!.Area != null ? s.Seat.Zone.Area.Name : null,
                 OwnerUserId = s.OwnerUserId,
                 OwnerNickname = s.OwnerUser!.Nickname,
                 StartAt = s.StartAt,
@@ -96,7 +100,8 @@ public class ShareService
                 Status = s.Status.ToString(),
                 Note = s.Note,
                 AllowContact = s.AllowContact,
-                CreatedAt = s.CreatedAt
+                CreatedAt = s.CreatedAt,
+                IsReservable = s.Status == SeatShareStatus.Available && s.StartAt > now
             })
             .ToListAsync(ct);
 

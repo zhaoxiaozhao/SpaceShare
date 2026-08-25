@@ -40,7 +40,13 @@ public interface IDistributedLockHandle : IAsyncDisposable
 public interface IWechatService
 {
     Task<WechatSessionResult> Code2SessionAsync(string code, CancellationToken ct = default);
+
+    /// <summary>发送微信订阅消息（openid 为空或未配置凭据/模板时静默跳过）</summary>
+    Task<bool> SendSubscribeMessageAsync(string openId, string templateId, string page, IDictionary<string, SubscribeDataItem> data, CancellationToken ct = default);
 }
+
+/// <summary>订阅消息字段值（thing 等字段类型需限长，由调用方裁剪）</summary>
+public record SubscribeDataItem(string Value);
 
 public record WechatSessionResult(string OpenId, string? UnionId);
 

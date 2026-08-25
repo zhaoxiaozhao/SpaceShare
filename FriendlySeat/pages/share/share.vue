@@ -11,7 +11,7 @@
 		<view class="card" v-if="seatId && seatInfo">
 			<view class="section-label">分享座位</view>
 			<text class="current-seat">{{seatInfo.displayCode || seatInfo.code}}</text>
-			<text class="venue-name">{{seatInfo.venueName}}</text>
+			<text class="venue-name">{{seatInfo.venueName}}<text v-if="seatInfo.floorName" class="loc-sub"> · {{seatInfo.floorName}}</text><text v-if="seatInfo.areaName" class="loc-sub"> · {{seatInfo.areaName}}</text></text>
 		</view>
 
 		<view class="card" v-if="seatInfo">
@@ -68,6 +68,7 @@
 
 <script>
 	import { api } from '../../utils/request.js'
+	import { subscribeFor } from '../../utils/subscribe.js'
 	import { formatTime } from '../../utils/format.js'
 
 	export default {
@@ -202,6 +203,8 @@
 						allowContact: this.allowContact
 					})
 					uni.showToast({ title: '分享成功，谢谢你的善意', icon: 'success' })
+					// 分享成功：订阅「有人预约我的分享」通知
+					subscribeFor(['reservation_created'])
 					setTimeout(() => uni.switchTab({ url: '/pages/index/index' }), 600)
 				} catch (e) {
 					uni.showToast({ title: e.message || '分享失败', icon: 'none' })
@@ -230,6 +233,9 @@
 		font-size: 26rpx;
 		color: #55554F;
 		margin-bottom: 6rpx;
+	}
+	.loc-sub {
+		color: #3A8A7E;
 	}
 	.warn-text {
 		display: block;

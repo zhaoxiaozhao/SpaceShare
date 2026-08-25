@@ -360,6 +360,34 @@ public class ReservationService
             })
             .ToListAsync(ct);
 
+        // 统一填充展示编号与楼层（预约 + 我的分享）
+        var allSeatIds = upcoming.Select(r => r.SeatId).Concat(history.Select(r => r.SeatId))
+            .Concat(shareService.Select(s => s.SeatId)).Distinct().ToList();
+        var seatZone = await _db.Seats
+            .Where(s => allSeatIds.Contains(s.Id))
+            .Select(s => new { s.Id, s.ZoneId })
+            .ToDictionaryAsync(s => s.Id, s => s.ZoneId, ct);
+        var zoneMap = await SeatDisplayHelper.BuildZoneMapAsync(_db, seatZone.Values, ct);
+
+        foreach (var r in upcoming.Concat(history))
+        {
+            if (seatZone.TryGetValue(r.SeatId, out var zoneId) && zoneMap.TryGetValue(zoneId, out var info))
+            {
+                r.DisplayCode = SeatDisplayHelper.DisplayCode(info.Letter, r.SeatCode);
+                r.FloorName = info.FloorName;
+                r.AreaName = info.AreaName;
+            }
+        }
+        foreach (var s in shareService)
+        {
+            if (seatZone.TryGetValue(s.SeatId, out var zoneId) && zoneMap.TryGetValue(zoneId, out var info))
+            {
+                s.DisplayCode = SeatDisplayHelper.DisplayCode(info.Letter, s.SeatCode);
+                s.FloorName = info.FloorName;
+                s.AreaName = info.AreaName;
+            }
+        }
+
         return new MyReservationSummaryDto { Upcoming = upcoming, History = history, MyShares = shareService };
     }
 

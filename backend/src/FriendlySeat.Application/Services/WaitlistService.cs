@@ -82,6 +82,7 @@ public class WaitlistService
             {
                 Id = w.Id,
                 ShareId = w.ShareId,
+                SeatId = w.Share!.SeatId,
                 Position = w.Position,
                 Status = w.Status.ToString(),
                 CreatedAt = w.CreatedAt,
@@ -106,6 +107,7 @@ public class WaitlistService
             {
                 Id = w.Id,
                 ShareId = w.ShareId,
+                SeatId = w.Share!.SeatId,
                 Position = w.Position,
                 Status = w.Status.ToString(),
                 CreatedAt = w.CreatedAt,

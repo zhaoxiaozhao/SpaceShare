@@ -62,4 +62,11 @@ public class MeController : ControllerBase
     {
         return Ok(await _users.GetUnreadCountAsync(_currentUser.UserId!.Value, ct));
     }
+
+    /// <summary>小程序订阅消息模板列表（key → 模板ID），用于 wx.requestSubscribeMessage 订阅</summary>
+    [HttpGet("subscribe-templates")]
+    public async Task<ActionResult<Dictionary<string, string>>> GetSubscribeTemplates(CancellationToken ct)
+    {
+        return Ok(await _users.GetSubscribeTemplatesAsync(ct));
+    }
 }

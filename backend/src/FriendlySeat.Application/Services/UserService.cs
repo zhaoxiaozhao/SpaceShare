@@ -9,11 +9,26 @@ public class UserService
 {
     private readonly IAppDbContext _db;
     private readonly INotificationService _notifications;
+    private readonly ConfigService _config;
 
-    public UserService(IAppDbContext db, INotificationService notifications)
+    public UserService(IAppDbContext db, INotificationService notifications, ConfigService config)
     {
         _db = db;
         _notifications = notifications;
+        _config = config;
+    }
+
+    /// <summary>返回小程序端可用于请求订阅的消息模板（key→模板ID），未配置的模板不返回</summary>
+    public async Task<Dictionary<string, string>> GetSubscribeTemplatesAsync(CancellationToken ct = default)
+    {
+        var keys = new[] { "reservation_created", "reservation_starting", "arrival_required", "waitlist_available" };
+        var result = new Dictionary<string, string>();
+        foreach (var key in keys)
+        {
+            var id = await _config.GetValueAsync(ConfigCategory.NotificationTemplates, key, ct);
+            if (!string.IsNullOrEmpty(id)) result[key] = id;
+        }
+        return result;
     }
 
     public async Task<UserDto> GetProfileAsync(long userId, CancellationToken ct = default)

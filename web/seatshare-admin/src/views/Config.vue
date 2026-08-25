@@ -28,7 +28,7 @@ import { configApi } from '../api'
 
 const all = ref([])
 const activeTab = ref('ReservationRules')
-const categories = ['ReservationRules', 'CreditRules', 'RiskRules', 'ArrivalRules', 'ImageRules']
+const categories = ['ReservationRules', 'CreditRules', 'RiskRules', 'ArrivalRules', 'ImageRules', 'NotificationTemplates']
 const filtered = ref([])
 
 onMounted(load)
@@ -47,7 +47,7 @@ function filter() {
 function categoryText(cat) {
   const map = {
     ReservationRules: '预约规则', CreditRules: '信用规则', RiskRules: '风控规则',
-    ArrivalRules: '到座规则', ImageRules: '图片规则'
+    ArrivalRules: '到座规则', ImageRules: '图片规则', NotificationTemplates: '订阅消息模板'
   }
   return map[cat] || cat
 }

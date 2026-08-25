@@ -135,6 +135,7 @@ export const api = {
 	getNotifications: (unread) => request(`/me/notifications?unread=${unread || ''}`),
 	markNotificationsRead: () => request('/me/notifications/read', { method: 'POST' }),
 	getUnreadCount: () => request('/me/notifications/unread-count'),
+	getSubscribeTemplates: () => request('/me/subscribe-templates'),
 	getAds: (placement) => request(`/ads?placement=${placement || 'home_feed'}`, { auth: false }),
 	createReport: (data) => request('/reports', { method: 'POST', data }),
 	getMyReports: () => request('/reports/my'),

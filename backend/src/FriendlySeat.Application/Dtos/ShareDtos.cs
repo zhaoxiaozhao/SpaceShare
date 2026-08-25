@@ -34,6 +34,9 @@ public class SeatShareDto
     public string? Note { get; set; }
     public bool AllowContact { get; set; }
     public DateTime CreatedAt { get; set; }
+
+    /// <summary>当前是否可预约（Available 且尚未开始）</summary>
+    public bool IsReservable { get; set; }
 }
 
 public class ShareDetailDto : SeatShareDto

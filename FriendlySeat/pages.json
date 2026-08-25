@@ -132,15 +132,27 @@
 		"list": [
 			{
 				"pagePath": "pages/index/index",
-				"text": "找座"
+				"text": "主页",
+				"iconPath": "static/tabbar/home.png",
+				"selectedIconPath": "static/tabbar/home-active.png"
 			},
 			{
 				"pagePath": "pages/reservations/reservations",
-				"text": "预约"
+				"text": "预约",
+				"iconPath": "static/tabbar/reserve.png",
+				"selectedIconPath": "static/tabbar/reserve-active.png"
+			},
+			{
+				"pagePath": "pages/notifications/notifications",
+				"text": "通知",
+				"iconPath": "static/tabbar/notify.png",
+				"selectedIconPath": "static/tabbar/notify-active.png"
 			},
 			{
 				"pagePath": "pages/my/my",
-				"text": "我的"
+				"text": "我的",
+				"iconPath": "static/tabbar/mine.png",
+				"selectedIconPath": "static/tabbar/mine-active.png"
 			}
 		]
 	},

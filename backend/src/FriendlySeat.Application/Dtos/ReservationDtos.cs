@@ -10,7 +10,18 @@ public class ReservationDto
     public long Id { get; set; }
     public long SeatId { get; set; }
     public string SeatCode { get; set; } = string.Empty;
+
+    /// <summary>展示编号（如 B区-002）</summary>
+    public string DisplayCode { get; set; } = string.Empty;
+
     public string VenueName { get; set; } = string.Empty;
+
+    /// <summary>楼层（如 3F）</summary>
+    public string FloorName { get; set; } = string.Empty;
+
+    /// <summary>空间区域名（如 主空间）</summary>
+    public string? AreaName { get; set; }
+
     public long? ShareId { get; set; }
     public long UserId { get; set; }
     public DateTime StartAt { get; set; }
@@ -42,6 +53,7 @@ public class WaitlistDto
 {
     public long Id { get; set; }
     public long ShareId { get; set; }
+    public long SeatId { get; set; }
     public int Position { get; set; }
     public string Status { get; set; } = string.Empty;
     public DateTime CreatedAt { get; set; }

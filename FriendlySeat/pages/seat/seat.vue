@@ -19,7 +19,7 @@
 			<text class="seat-desc" v-if="seat.description">{{seat.description}}</text>
 		</view>
 
-		<!-- ============ 有分享：预约者视角 ============ -->
+		<!-- ============ 有分享：预约者/候补视角 ============ -->
 		<view v-if="shares.length" class="section">
 			<text class="section-title">分享者预计释放时间</text>
 			<view class="card share-card" v-for="s in shares" :key="s.id">
@@ -30,7 +30,14 @@
 						<text class="share-note" v-if="s.note">{{s.note}}</text>
 					</view>
 					<view class="share-actions">
-						<button class="btn-primary small" @click="reserve(s)">预约</button>
+						<button v-if="s.isReservable" class="btn-primary small" @click="reserve(s)">预约</button>
+						<button
+							v-else-if="!isMine(s) && s.status !== 'Available'"
+							class="btn-outline small"
+							:disabled="waiting(s)"
+							@click="waitlist(s)"
+						>{{waiting(s) ? '候补中' : '加入候补'}}</button>
+						<text v-else class="share-status-tag">{{s.status === 'Available' ? '即将可约' : '已被预约'}}</text>
 					</view>
 				</view>
 			</view>
@@ -38,7 +45,7 @@
 			<!-- 有分享才需要举报（针对虚假分享） -->
 			<view class="card" style="margin-top:16rpx;">
 				<text class="share-note">发现这个分享是虚假的？</text>
-				<button class="btn-outline" style="margin-top:16rpx;" @click="report(s)">举报该分享</button>
+				<button class="btn-outline" style="margin-top:16rpx;" @click="report(shares[0])">举报该分享</button>
 			</view>
 		</view>
 
@@ -56,6 +63,7 @@
 <script>
 	import { api } from '../../utils/request.js'
 	import { formatTime, statusText } from '../../utils/format.js'
+	import { subscribeFor } from '../../utils/subscribe.js'
 
 	export default {
 		data() {
@@ -64,6 +72,7 @@
 				seat: null,
 				shares: [],
 				mySession: null,
+				myWaitlist: [],
 				loading: false
 			}
 		},
@@ -79,21 +88,44 @@
 			async load() {
 				try {
 					this.seat = await api.getSeat(this.id)
-					// 座位状态语义：未知（默认）/ 已预约 / 不可用
-					this.seat.statusText = {
-						Available: '未知',
-						Occupied: '已预约',
-						Unavailable: '不可用'
-					}[this.seat.status] || '未知'
+					// 座位状态语义：不可用 > 已预约(进行中) > 可预约(有可用分享) > 未知
+					if (this.seat.status === 'Unavailable') {
+						this.seat.statusText = '不可用'
+					} else if (this.seat.currentReservedCount > 0) {
+						this.seat.statusText = '已预约'
+					} else if (this.seat.currentShareCount > 0) {
+						this.seat.statusText = '可预约'
+					} else {
+						this.seat.statusText = '未知'
+					}
 					this.shares = await api.getShares(this.id)
 					const token = uni.getStorageSync('token')
 					if (token) {
 						try {
 							this.mySession = await api.getMySession()
 						} catch (e) {}
+						try {
+							this.myWaitlist = await api.getMyWaitlist()
+						} catch (e) {}
 					}
 				} catch (e) {
 					uni.showToast({ title: '加载失败', icon: 'none' })
+				}
+			},
+			isMine(s) {
+				return s.ownerUserId === (uni.getStorageSync('user') || {}).id
+			},
+			waiting(s) {
+				return this.myWaitlist.some(w => w.shareId === s.id && (w.status === 'Waiting' || w.status === 'Notified'))
+			},
+			async waitlist(s) {
+				if (!this.checkLogin()) return
+				try {
+					await api.joinWaitlist(s.id)
+					this.myWaitlist = await api.getMyWaitlist()
+					uni.showToast({ title: '已加入候补，有空位会通知你', icon: 'none' })
+				} catch (e) {
+					uni.showToast({ title: e.message || '操作失败', icon: 'none' })
 				}
 			},
 			checkLogin() {
@@ -114,6 +146,8 @@
 							try {
 								const r = await api.createReservation(share.id)
 								uni.showToast({ title: '预约成功', icon: 'success' })
+								// 预约成功后请求订阅：预约创建/即将开始/到座提醒
+								subscribeFor(['reservation_created', 'reservation_starting', 'arrival_required'])
 								setTimeout(() => uni.switchTab({ url: '/pages/reservations/reservations' }), 600)
 							} catch (e) {
 								uni.showToast({ title: e.message || '预约失败', icon: 'none' })
@@ -216,6 +250,11 @@
 		display: flex;
 		flex-direction: column;
 		gap: 12rpx;
+	}
+	.share-status-tag {
+		font-size: 24rpx;
+		color: #8A8A86;
+		text-align: center;
 	}
 	.btn-primary.small, .btn-outline.small {
 		font-size: 26rpx;

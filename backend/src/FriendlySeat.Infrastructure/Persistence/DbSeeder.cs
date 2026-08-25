@@ -44,7 +44,16 @@ public static class DbSeeder
                 new SystemConfig { Category = ConfigCategory.RiskRules, ConfigKey = "no_show_threshold", Value = "2" },
                 new SystemConfig { Category = ConfigCategory.RiskRules, ConfigKey = "cancel_threshold", Value = "5" },
                 new SystemConfig { Category = ConfigCategory.ImageRules, ConfigKey = "max_size_mb", Value = "10" },
-                new SystemConfig { Category = ConfigCategory.ImageRules, ConfigKey = "daily_upload_limit", Value = "20" }
+                new SystemConfig { Category = ConfigCategory.ImageRules, ConfigKey = "daily_upload_limit", Value = "20" },
+                new SystemConfig { Category = ConfigCategory.NotificationTemplates, ConfigKey = "reservation_created", Value = "", Description = "预约成功通知 订阅消息模板ID" },
+                new SystemConfig { Category = ConfigCategory.NotificationTemplates, ConfigKey = "reservation_starting", Value = "", Description = "预约即将开始通知 模板ID" },
+                new SystemConfig { Category = ConfigCategory.NotificationTemplates, ConfigKey = "arrival_required", Value = "", Description = "到座提醒通知 模板ID" },
+                new SystemConfig { Category = ConfigCategory.NotificationTemplates, ConfigKey = "reservation_expired", Value = "", Description = "预约过期/爽约通知 模板ID" },
+                new SystemConfig { Category = ConfigCategory.NotificationTemplates, ConfigKey = "reservation_cancelled", Value = "", Description = "预约取消通知 模板ID" },
+                new SystemConfig { Category = ConfigCategory.NotificationTemplates, ConfigKey = "waitlist_available", Value = "", Description = "候补成功通知 模板ID" },
+                new SystemConfig { Category = ConfigCategory.NotificationTemplates, ConfigKey = "credit_changed", Value = "", Description = "信用变更通知 模板ID" },
+                new SystemConfig { Category = ConfigCategory.NotificationTemplates, ConfigKey = "report_result", Value = "", Description = "举报处理结果通知 模板ID" },
+                new SystemConfig { Category = ConfigCategory.NotificationTemplates, ConfigKey = "system", Value = "", Description = "系统通知 模板ID" }
             });
             await db.SaveChangesAsync();
         }
