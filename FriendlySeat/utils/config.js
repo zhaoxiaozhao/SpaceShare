@@ -2,7 +2,7 @@
 // 生产环境使用微信云托管「云调用」（wx.cloud.callContainer），无需配置 request 合法域名
 
 // ===== 云调用配置（微信云托管）=====
-export const CLOUD_ENV = 'prod-d3gm8r5478549fe3b' // 云开发/云托管环境 ID
+export const CLOUD_ENV = 'prod-d5gxxa79p037c8e56' // 云开发/云托管环境 ID
 export const CLOUD_SERVICE = 'friendlyseat-api' // 云托管服务名
 export const USE_CLOUD = true // true=云调用；false=普通 HTTPS
 

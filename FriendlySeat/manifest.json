@@ -50,7 +50,7 @@
     "quickapp" : {},
     /* 小程序特有相关 */
     "mp-weixin" : {
-        "appid" : "wx342e7af119449059",
+        "appid" : "wxffc16ae0e1c7e85e",
         "setting" : {
             "urlCheck" : false,
             "es6" : true,
@@ -59,7 +59,11 @@
         },
         "usingComponents" : true,
         "lazyCodeLoading" : "requiredComponents",
-        "permission" : {}
+        "permission" : {
+            "scope.userLocation" : {
+                "desc" : "用户预约某图书馆座位后，到达时系统获取位置，若距离该图书馆超过一定范围，则提示用户尚不在场馆附近，无法确认到座。"
+            }
+        }
     },
     "mp-alipay" : {
         "usingComponents" : true
