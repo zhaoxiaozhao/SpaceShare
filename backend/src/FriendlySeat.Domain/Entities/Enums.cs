@@ -91,7 +91,8 @@ public enum ReportTargetType
     Share,
     Reservation,
     User,
-    Review
+    Review,
+    Feedback
 }
 
 public enum ReportStatus

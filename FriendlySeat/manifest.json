@@ -61,7 +61,7 @@
         "lazyCodeLoading" : "requiredComponents",
         "permission" : {
             "scope.userLocation" : {
-                "desc" : "用户预约某图书馆座位后，到达时系统获取位置，若距离该图书馆超过一定范围，则提示用户尚不在场馆附近，无法确认到座。"
+                "desc" : "用于附近场馆展示与预约到座核验"
             }
         }
     },

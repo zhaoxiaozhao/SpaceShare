@@ -185,12 +185,7 @@
 				uni.navigateTo({ url: '/pages/privacy/privacy' })
 			},
 			openFeedback() {
-				uni.showModal({
-					title: '意见反馈',
-					content: '欢迎通过「我的举报」提交问题反馈，或联系管理员处理。感谢你的支持！',
-					showCancel: false,
-					confirmText: '知道了'
-				})
+				uni.navigateTo({ url: '/pages/feedback/feedback' })
 			},
 			deleteAccount() {
 				uni.showModal({
