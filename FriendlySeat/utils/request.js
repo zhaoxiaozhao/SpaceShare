@@ -145,7 +145,24 @@ export const api = {
 	setStudyGoal: (data) => request('/study/goals', { method: 'POST', data }),
 	getStudyGoals: () => request('/study/goals'),
 	getStudyReport: (period) => request(`/study/report?period=${period || 'weekly'}`),
-	getStudyAchievements: () => request('/study/achievements')
+	getStudyAchievements: () => request('/study/achievements'),
+
+	// ===== 阅读管理 =====
+	addReadingBook: (data) => request('/reading/books', { method: 'POST', data }),
+	updateReadingBook: (id, data) => request(`/reading/books/${id}`, { method: 'PUT', data }),
+	deleteReadingBook: (id) => request(`/reading/books/${id}`, { method: 'DELETE' }),
+	getReadingBooks: (status) => request(`/reading/books${status ? '?status=' + status : ''}`),
+	getReadingBook: (id) => request(`/reading/books/${id}`),
+	startReading: (bookId, data) => request(`/reading/books/${bookId}/start`, { method: 'POST', data: data || {} }),
+	endReading: (bookId, data) => request(`/reading/books/${bookId}/end`, { method: 'POST', data }),
+	endActiveReading: (data) => request('/reading/end-active', { method: 'POST', data }),
+	getReadingSessions: (take) => request(`/reading/sessions?take=${take || 50}`),
+	addReadingNote: (bookId, data) => request(`/reading/books/${bookId}/notes`, { method: 'POST', data }),
+	deleteReadingNote: (id) => request(`/reading/notes/${id}`, { method: 'DELETE' }),
+	getReadingNotes: (bookId, type) => request(`/reading/books/${bookId}/notes${type ? '?type=' + type : ''}`),
+	getReadingStats: () => request('/reading/stats'),
+	getReadingCalendar: (year) => request(`/reading/calendar?year=${year || ''}`),
+	getReadingYearlyReport: (year) => request(`/reading/yearly-report?year=${year || ''}`)
 }
 
 function qs(params) {

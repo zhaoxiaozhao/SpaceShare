@@ -20,6 +20,10 @@
 		</view>
 
 		<view class="card menu">
+			<view class="menu-item" @click="goReading">
+				<text>📚 我的阅读</text>
+				<text class="arrow">›</text>
+			</view>
 			<view class="menu-item" @click="goStudy">
 				<text>📖 我的学习</text>
 				<text class="arrow">›</text>
@@ -162,6 +166,9 @@
 			},
 			goStudy() {
 				uni.navigateTo({ url: '/pages/study/study' })
+			},
+			goReading() {
+				uni.navigateTo({ url: '/pages/reading/reading' })
 			},
 			goReservations() {
 				uni.switchTab({ url: '/pages/reservations/reservations' })

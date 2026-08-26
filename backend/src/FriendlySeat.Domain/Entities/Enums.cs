@@ -179,3 +179,22 @@ public enum GoalPeriod
     Weekly,
     Monthly
 }
+
+public enum BookStatus
+{
+    WantToRead,
+    Reading,
+    Finished
+}
+
+public enum ReadingSessionStatus
+{
+    Active,
+    Completed
+}
+
+public enum ReadingNoteType
+{
+    Highlight,
+    Note
+}

@@ -94,6 +94,36 @@
 			}
 		},
 		{
+			"path": "pages/reading/reading",
+			"style": {
+				"navigationBarTitleText": "我的阅读"
+			}
+		},
+		{
+			"path": "pages/reading/book",
+			"style": {
+				"navigationBarTitleText": "书籍详情"
+			}
+		},
+		{
+			"path": "pages/reading/stats",
+			"style": {
+				"navigationBarTitleText": "阅读统计"
+			}
+		},
+		{
+			"path": "pages/reading/history",
+			"style": {
+				"navigationBarTitleText": "阅读历史"
+			}
+		},
+		{
+			"path": "pages/reading/yearly",
+			"style": {
+				"navigationBarTitleText": "年度阅读报告"
+			}
+		},
+		{
 			"path": "pages/report/report",
 			"style": {
 				"navigationBarTitleText": "举报"

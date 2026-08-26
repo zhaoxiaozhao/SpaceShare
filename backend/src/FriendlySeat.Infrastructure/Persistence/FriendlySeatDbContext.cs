@@ -40,6 +40,9 @@ public class FriendlySeatDbContext : DbContext, IAppDbContext
     public DbSet<StudySession> StudySessions => Set<StudySession>();
     public DbSet<StudyGoal> StudyGoals => Set<StudyGoal>();
     public DbSet<StudyAchievement> StudyAchievements => Set<StudyAchievement>();
+    public DbSet<ReadingBook> ReadingBooks => Set<ReadingBook>();
+    public DbSet<ReadingSession> ReadingSessions => Set<ReadingSession>();
+    public DbSet<ReadingNote> ReadingNotes => Set<ReadingNote>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -149,5 +152,17 @@ public class FriendlySeatDbContext : DbContext, IAppDbContext
 
         modelBuilder.Entity<StudyAchievement>()
             .HasIndex(a => new { a.UserId, a.Code });
+
+        modelBuilder.Entity<ReadingBook>()
+            .HasIndex(b => new { b.UserId, b.Status });
+
+        modelBuilder.Entity<ReadingSession>()
+            .HasIndex(s => new { s.UserId, s.StartedAt });
+
+        modelBuilder.Entity<ReadingSession>()
+            .HasIndex(s => new { s.UserId, s.Status });
+
+        modelBuilder.Entity<ReadingNote>()
+            .HasIndex(n => new { n.UserId, n.BookId, n.Type });
     }
 }

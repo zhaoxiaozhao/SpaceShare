@@ -3,6 +3,7 @@ using System;
 using FriendlySeat.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace FriendlySeat.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(FriendlySeatDbContext))]
-    partial class FriendlySeatDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260826062646_ReadingFeature")]
+    partial class ReadingFeature
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -576,15 +579,7 @@ namespace FriendlySeat.Infrastructure.Persistence.Migrations
                     b.Property<long>("UserId")
                         .HasColumnType("bigint");
 
-                    b.Property<long?>("VenueId")
-                        .HasColumnType("bigint");
-
-                    b.Property<string>("VenueName")
-                        .HasColumnType("text");
-
                     b.HasKey("Id");
-
-                    b.HasIndex("VenueId");
 
                     b.HasIndex("UserId", "Status");
 
@@ -656,17 +651,9 @@ namespace FriendlySeat.Infrastructure.Persistence.Migrations
                     b.Property<long>("UserId")
                         .HasColumnType("bigint");
 
-                    b.Property<long?>("VenueId")
-                        .HasColumnType("bigint");
-
-                    b.Property<string>("VenueName")
-                        .HasColumnType("text");
-
                     b.HasKey("Id");
 
                     b.HasIndex("BookId");
-
-                    b.HasIndex("VenueId");
 
                     b.HasIndex("UserId", "StartedAt");
 
@@ -1499,13 +1486,7 @@ namespace FriendlySeat.Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("FriendlySeat.Domain.Entities.Venue", "Venue")
-                        .WithMany()
-                        .HasForeignKey("VenueId");
-
                     b.Navigation("User");
-
-                    b.Navigation("Venue");
                 });
 
             modelBuilder.Entity("FriendlySeat.Domain.Entities.ReadingNote", b =>
@@ -1541,15 +1522,9 @@ namespace FriendlySeat.Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("FriendlySeat.Domain.Entities.Venue", "Venue")
-                        .WithMany()
-                        .HasForeignKey("VenueId");
-
                     b.Navigation("Book");
 
                     b.Navigation("User");
-
-                    b.Navigation("Venue");
                 });
 
             modelBuilder.Entity("FriendlySeat.Domain.Entities.Report", b =>

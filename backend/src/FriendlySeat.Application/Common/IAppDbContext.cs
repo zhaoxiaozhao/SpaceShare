@@ -36,6 +36,9 @@ public interface IAppDbContext
     DbSet<StudySession> StudySessions { get; }
     DbSet<StudyGoal> StudyGoals { get; }
     DbSet<StudyAchievement> StudyAchievements { get; }
+    DbSet<ReadingBook> ReadingBooks { get; }
+    DbSet<ReadingSession> ReadingSessions { get; }
+    DbSet<ReadingNote> ReadingNotes { get; }
 
     DatabaseFacade Database { get; }
     Task<int> SaveChangesAsync(CancellationToken ct = default);
