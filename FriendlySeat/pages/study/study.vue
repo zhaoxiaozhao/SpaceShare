@@ -106,7 +106,6 @@
 	import { api } from '../../utils/request.js'
 
 	const STUDY_TYPES = [
-		{ label: '阅读', value: 'Reading' },
 		{ label: '编程', value: 'Programming' },
 		{ label: '英语', value: 'English' },
 		{ label: '考研', value: 'Exam' },
@@ -119,7 +118,7 @@
 		data() {
 			return {
 				studyTypes: STUDY_TYPES,
-				studyType: 'Reading',
+				studyType: 'Programming',
 				today: {},
 				sessions: [],
 				showGoalModal: false,

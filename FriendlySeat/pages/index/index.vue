@@ -9,9 +9,9 @@
 				<text class="action-icon">📖</text>
 				<text>开始学习</text>
 			</view>
-			<view class="action-btn" @click="goReservations">
-				<text class="action-icon">📅</text>
-				<text>我的预约</text>
+			<view class="action-btn" @click="goReading">
+				<text class="action-icon">📚</text>
+				<text>我的阅读</text>
 			</view>
 		</view>
 
@@ -139,6 +139,13 @@
 					return
 				}
 				uni.navigateTo({ url: '/pages/study/study' })
+			},
+			goReading() {
+				if (!uni.getStorageSync('token')) {
+					uni.navigateTo({ url: '/pages/login/login' })
+					return
+				}
+				uni.navigateTo({ url: '/pages/reading/reading' })
 			},
 			goReservations() {
 				uni.switchTab({ url: '/pages/reservations/reservations' })

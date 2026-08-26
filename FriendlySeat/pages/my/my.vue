@@ -20,18 +20,6 @@
 		</view>
 
 		<view class="card menu">
-			<view class="menu-item" @click="goReading">
-				<text>📚 我的阅读</text>
-				<text class="arrow">›</text>
-			</view>
-			<view class="menu-item" @click="goStudy">
-				<text>📖 我的学习</text>
-				<text class="arrow">›</text>
-			</view>
-			<view class="menu-item" @click="goReservations">
-				<text>📅 我的预约</text>
-				<text class="arrow">›</text>
-			</view>
 			<view class="menu-item" @click="goCredit">
 				<text>💚 友邻信用</text>
 				<text class="arrow">›</text>
@@ -163,15 +151,6 @@
 				} finally {
 					this.saving = false
 				}
-			},
-			goStudy() {
-				uni.navigateTo({ url: '/pages/study/study' })
-			},
-			goReading() {
-				uni.navigateTo({ url: '/pages/reading/reading' })
-			},
-			goReservations() {
-				uni.switchTab({ url: '/pages/reservations/reservations' })
 			},
 			goCredit() {
 				uni.navigateTo({ url: '/pages/credit/credit' })

@@ -22,18 +22,18 @@
 		</view>
 
 		<!-- 统计概览 -->
-		<view class="card stat-row">
+		<view class="stat-row">
+			<view class="stat">
+				<text class="stat-num">{{stats.todayMinutes}}</text>
+				<text class="stat-label">今日阅读</text>
+			</view>
+			<view class="stat">
+				<text class="stat-num">{{stats.weekMinutes}}</text>
+				<text class="stat-label">本周阅读</text>
+			</view>
 			<view class="stat">
 				<text class="stat-num">{{stats.totalMinutes}}</text>
 				<text class="stat-label">累计分钟</text>
-			</view>
-			<view class="stat">
-				<text class="stat-num">{{list.readingCount}}</text>
-				<text class="stat-label">在读</text>
-			</view>
-			<view class="stat">
-				<text class="stat-num">{{list.finishedCount}}</text>
-				<text class="stat-label">已读完</text>
 			</view>
 		</view>
 
@@ -53,33 +53,41 @@
 			</view>
 		</view>
 
-		<!-- 状态筛选 + 书籍列表 -->
+		<!-- 书籍列表 -->
+		<view class="section-head">
+			<text class="section-title">我的书籍</text>
+			<text class="add-btn" @click="openEdit()">＋ 添加书籍</text>
+		</view>
 		<view class="filter-row">
 			<text class="filter-tab" :class="{ active: filter === '' }" @click="switchFilter('')">全部</text>
 			<text class="filter-tab" :class="{ active: filter === 'Reading' }" @click="switchFilter('Reading')">在读</text>
 			<text class="filter-tab" :class="{ active: filter === 'WantToRead' }" @click="switchFilter('WantToRead')">想读</text>
 			<text class="filter-tab" :class="{ active: filter === 'Finished' }" @click="switchFilter('Finished')">已读</text>
-			<text class="add-btn" @click="openEdit()">＋ 添加书籍</text>
 		</view>
 
 		<view v-if="list.books.length">
 			<view class="card book-card" v-for="b in list.books" :key="b.id" @click="goBook(b.id)">
 				<image class="book-cover" :src="b.coverUrl || '/static/logo.png'" mode="aspectFill" />
 				<view class="book-info">
-					<text class="book-title">{{b.title}}</text>
+					<view class="book-top">
+						<text class="book-title">{{b.title}}</text>
+						<text class="book-status" :class="'st-' + b.status">{{statusText(b.status)}}</text>
+					</view>
 					<text class="book-author" v-if="b.author">{{b.author}}</text>
-					<text class="book-status" :class="'st-' + b.status">{{statusText(b.status)}}</text>
 					<template v-if="b.totalPages">
 						<view class="progress-bar">
 							<view class="progress-fill" :style="{ width: Math.min(b.progressPercent, 100) + '%' }"></view>
 						</view>
-						<text class="book-progress">{{b.currentProgress}}/{{b.totalPages}}页 · {{b.progressPercent}}%</text>
+						<view class="book-meta-row">
+							<text class="book-progress">{{b.currentProgress}}/{{b.totalPages}}页 · {{b.progressPercent}}%</text>
+							<text class="book-minutes" v-if="b.totalMinutes">已读 {{b.totalMinutes}} 分钟</text>
+						</view>
 					</template>
-					<text class="book-minutes" v-if="b.totalMinutes">累计 {{b.totalMinutes}} 分钟</text>
+					<text class="book-minutes" v-else-if="b.totalMinutes">累计阅读 {{b.totalMinutes}} 分钟</text>
 				</view>
 			</view>
 		</view>
-		<view v-else class="empty">还没有书籍，点击右上角添加第一本书吧</view>
+		<view v-else class="empty">还没有书籍，点右上角「添加书籍」开始记录吧</view>
 
 		<!-- 添加/编辑书籍弹窗 -->
 		<view class="modal-mask" v-if="editVisible" @click="editVisible = false">
@@ -296,39 +304,57 @@
 </script>
 
 <style scoped>
-	.today-card { background: #3A8A7E; color: #FFFFFF; }
-	.today-label { font-size: 26rpx; opacity: 0.9; }
-	.today-time { font-size: 56rpx; font-weight: 700; margin: 6rpx 0; }
-	.today-sub { font-size: 24rpx; opacity: 0.9; }
-	.today-book { display: block; margin-top: 8rpx; font-size: 26rpx; }
-	.stat-row { display: flex; }
-	.stat { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 6rpx; }
-	.stat-num { font-size: 40rpx; font-weight: 700; color: #3A8A7E; }
-	.stat-label { font-size: 22rpx; color: #8A8A86; }
+	/* 今日阅读卡片 */
+	.today-card { background: linear-gradient(135deg, #3A8A7E 0%, #5BA48D 100%); color: #FFFFFF; }
+	.today-label { font-size: 26rpx; opacity: 0.9; display: block; }
+	.today-time { font-size: 64rpx; font-weight: 700; margin: 8rpx 0; display: block; }
+	.today-sub { font-size: 24rpx; opacity: 0.9; display: block; }
+	.today-book { display: block; margin-top: 12rpx; font-size: 26rpx; font-weight: 500; }
+
+	/* 正在阅读（计时中） */
 	.active-info { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20rpx; }
 	.active-book { font-size: 30rpx; font-weight: 600; }
 	.active-time { font-size: 32rpx; font-weight: 700; color: #3A8A7E; }
+	.end-btn { margin-top: 10rpx; }
+
+	/* 统计概览（无背景卡片，紧凑三列） */
+	.stat-row { display: flex; background: #FFFFFF; border-radius: 20rpx; margin: 20rpx; padding: 24rpx 0; box-shadow: 0 4rpx 16rpx rgba(0,0,0,0.04); }
+	.stat { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4rpx; }
+	.stat-num { font-size: 40rpx; font-weight: 700; color: #3A8A7E; }
+	.stat-label { font-size: 24rpx; color: #8A8A86; }
+
+	/* 快捷入口 */
 	.quick-row { display: flex; gap: 16rpx; margin: 0 20rpx; }
-	.quick-btn { flex: 1; background: #FFFFFF; border-radius: 16rpx; padding: 20rpx 0; display: flex; flex-direction: column; align-items: center; gap: 8rpx; font-size: 24rpx; color: #55554F; }
-	.quick-icon { font-size: 32rpx; }
-	.filter-row { display: flex; align-items: center; gap: 16rpx; margin: 20rpx; }
-	.filter-tab { font-size: 26rpx; color: #8A8A86; padding: 8rpx 16rpx; border-radius: 24rpx; }
+	.quick-btn { flex: 1; background: #FFFFFF; border-radius: 16rpx; padding: 24rpx 0; display: flex; flex-direction: column; align-items: center; gap: 10rpx; font-size: 26rpx; color: #55554F; box-shadow: 0 4rpx 16rpx rgba(0,0,0,0.04); }
+	.quick-icon { font-size: 36rpx; }
+
+	/* 书籍列表标题 + 添加 */
+	.section-head { display: flex; align-items: center; justify-content: space-between; margin: 30rpx 20rpx 6rpx; }
+	.section-title { font-size: 32rpx; font-weight: 700; color: #2B2B27; }
+	.add-btn { font-size: 26rpx; color: #3A8A7E; font-weight: 500; }
+
+	/* 状态筛选 */
+	.filter-row { display: flex; align-items: center; gap: 12rpx; margin: 10rpx 20rpx 0; }
+	.filter-tab { font-size: 26rpx; color: #8A8A86; padding: 10rpx 24rpx; border-radius: 24rpx; background: #F1EFE9; }
 	.filter-tab.active { background: #3A8A7E; color: #FFFFFF; }
-	.add-btn { margin-left: auto; font-size: 24rpx; color: #3A8A7E; }
-	.book-card { display: flex; gap: 20rpx; }
-	.book-cover { width: 120rpx; height: 160rpx; border-radius: 8rpx; background: #EAF3F0; flex-shrink: 0; }
-	.book-info { flex: 1; display: flex; flex-direction: column; gap: 6rpx; }
-	.book-title { font-size: 30rpx; font-weight: 600; }
+
+	/* 书籍卡片 */
+	.book-card { display: flex; gap: 24rpx; align-items: stretch; }
+	.book-cover { width: 110rpx; height: 150rpx; border-radius: 10rpx; background: #EAF3F0; flex-shrink: 0; }
+	.book-info { flex: 1; display: flex; flex-direction: column; justify-content: center; gap: 8rpx; min-width: 0; }
+	.book-top { display: flex; align-items: center; justify-content: space-between; gap: 12rpx; }
+	.book-title { font-size: 30rpx; font-weight: 600; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 	.book-author { font-size: 24rpx; color: #8A8A86; }
-	.book-status { font-size: 22rpx; align-self: flex-start; padding: 2rpx 14rpx; border-radius: 8rpx; }
+	.book-status { font-size: 20rpx; flex-shrink: 0; padding: 4rpx 16rpx; border-radius: 8rpx; }
 	.st-WantToRead { background: #F1EFE9; color: #8A8A86; }
 	.st-Reading { background: #EAF3F0; color: #3A8A7E; }
 	.st-Finished { background: #E8F1E8; color: #4A7A4A; }
 	.progress-bar { height: 8rpx; background: #F1EFE9; border-radius: 4rpx; overflow: hidden; }
 	.progress-fill { height: 100%; background: #3A8A7E; border-radius: 4rpx; }
+	.book-meta-row { display: flex; justify-content: space-between; align-items: center; }
 	.book-progress { font-size: 22rpx; color: #8A8A86; }
 	.book-minutes { font-size: 22rpx; color: #3A8A7E; }
-	.end-btn { margin-top: 10rpx; }
+
 	/* 弹窗 */
 	.modal-mask { position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 999; display: flex; align-items: center; justify-content: center; }
 	.modal { width: 640rpx; background: #FFFFFF; border-radius: 20rpx; padding: 30rpx; }
