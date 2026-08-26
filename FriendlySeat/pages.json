@@ -100,12 +100,6 @@
 			}
 		},
 		{
-			"path": "pages/contact/contact",
-			"style": {
-				"navigationBarTitleText": "联系方式"
-			}
-		},
-		{
 			"path": "pages/agreement/agreement",
 			"style": {
 				"navigationBarTitleText": "用户服务协议"

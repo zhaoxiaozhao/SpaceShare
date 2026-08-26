@@ -45,9 +45,3 @@ public class ShareDetailDto : SeatShareDto
     public bool IsMine { get; set; }
     public bool IsReservable { get; set; }
 }
-
-public class ContactResultDto
-{
-    public string ContactType { get; set; } = string.Empty;
-    public string ContactValue { get; set; } = string.Empty;
-}

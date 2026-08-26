@@ -32,16 +32,12 @@ public class MeController : ControllerBase
         return Ok(await _users.UpdateProfileAsync(_currentUser.UserId!.Value, request, ct));
     }
 
-    [HttpGet("contacts")]
-    public async Task<ActionResult<List<UserContactDto>>> GetContacts(CancellationToken ct)
+    /// <summary>注销账号（匿名化个人信息并禁用账号）</summary>
+    [HttpPost("delete-account")]
+    public async Task<IActionResult> DeleteAccount(CancellationToken ct)
     {
-        return Ok(await _users.GetContactsAsync(_currentUser.UserId!.Value, ct));
-    }
-
-    [HttpPost("contacts")]
-    public async Task<ActionResult<UserContactDto>> UpsertContact([FromBody] UpsertContactRequest request, CancellationToken ct)
-    {
-        return Ok(await _users.UpsertContactAsync(_currentUser.UserId!.Value, request, ct));
+        await _users.DeleteAccountAsync(_currentUser.UserId!.Value, ct);
+        return Ok();
     }
 
     [HttpGet("notifications")]

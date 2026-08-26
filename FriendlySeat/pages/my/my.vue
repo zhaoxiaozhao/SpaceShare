@@ -1,12 +1,13 @@
 <template>
 	<view>
 		<view class="card profile-card">
-			<button class="avatar-btn" open-type="chooseAvatar" @chooseavatar="onChooseAvatar">
+			<view class="avatar-btn" @click="chooseAvatar">
 				<image class="avatar" :src="previewAvatar || user.avatarUrl || '/static/logo.png'" mode="aspectFill" />
-			</button>
+				<view class="avatar-edit">更换头像</view>
+			</view>
 			<view class="profile-info">
 				<view class="nickname-row">
-					<input class="nickname-input" type="nickname" v-model="editNickname" placeholder="请输入昵称" />
+					<input class="nickname-input" v-model="editNickname" placeholder="请输入昵称" />
 					<text class="random-btn" @click="randomNickname">🎲 随机</text>
 				</view>
 				<view class="credit-row" @click="goCredit">
@@ -46,6 +47,10 @@
 				<text>📝 我的举报</text>
 				<text class="arrow">›</text>
 			</view>
+			<view class="menu-item" @click="openFeedback">
+				<text>💬 意见反馈</text>
+				<text class="arrow">›</text>
+			</view>
 			<view class="menu-item" @click="openAgreement">
 				<text>📄 用户服务协议</text>
 				<text class="arrow">›</text>
@@ -60,6 +65,7 @@
 			<text class="about-line">一席相邻，善意相续</text>
 		</view>
 
+		<button class="btn-outline logout" @click="deleteAccount">注销账号</button>
 		<button class="btn-outline logout" @click="logout">退出登录</button>
 	</view>
 </template>
@@ -109,11 +115,19 @@
 					}
 				} catch (e) {}
 			},
-			onChooseAvatar(e) {
-				const filePath = e.detail.avatarUrl
-				if (!filePath) return
-				this.avatarFile = filePath
-				this.previewAvatar = filePath
+			chooseAvatar() {
+				// 从相册/拍摄选择本地图片上传，不通过微信头像授权接口
+				uni.chooseImage({
+					count: 1,
+					sizeType: ['compressed'],
+					sourceType: ['album', 'camera'],
+					success: (res) => {
+						const filePath = res.tempFilePaths && res.tempFilePaths[0]
+						if (!filePath) return
+						this.avatarFile = filePath
+						this.previewAvatar = filePath
+					}
+				})
 			},
 			randomNickname() {
 				this.editNickname = randomNickname()
@@ -170,6 +184,34 @@
 			openPrivacy() {
 				uni.navigateTo({ url: '/pages/privacy/privacy' })
 			},
+			openFeedback() {
+				uni.showModal({
+					title: '意见反馈',
+					content: '欢迎通过「我的举报」提交问题反馈，或联系管理员处理。感谢你的支持！',
+					showCancel: false,
+					confirmText: '知道了'
+				})
+			},
+			deleteAccount() {
+				uni.showModal({
+					title: '注销账号',
+					content: '注销后你的个人信息将被匿名化处理，且无法再使用原账号登录。确定注销吗？',
+					confirmText: '确认注销',
+					confirmColor: '#B85450',
+					success: async (res) => {
+						if (!res.confirm) return
+						try {
+							await api.deleteAccount()
+							uni.removeStorageSync('token')
+							uni.removeStorageSync('user')
+							uni.showToast({ title: '已注销', icon: 'success' })
+							setTimeout(() => uni.navigateTo({ url: '/pages/login/login' }), 600)
+						} catch (e) {
+							uni.showToast({ title: e.message || '注销失败', icon: 'none' })
+						}
+					}
+				})
+			},
 			logout() {
 				uni.removeStorageSync('token')
 				uni.removeStorageSync('user')
@@ -187,14 +229,25 @@
 		gap: 24rpx;
 	}
 	.avatar-btn {
+		position: relative;
 		padding: 0;
 		margin: 0;
 		background: transparent;
 		border: none;
 		line-height: 1;
 	}
-	.avatar-btn::after {
-		border: none;
+	.avatar-edit {
+		position: absolute;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		background: rgba(0, 0, 0, 0.45);
+		color: #FFFFFF;
+		font-size: 18rpx;
+		text-align: center;
+		line-height: 36rpx;
+		border-radius: 0 0 60rpx 60rpx;
+		height: 36rpx;
 	}
 	.avatar {
 		width: 120rpx;

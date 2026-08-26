@@ -78,7 +78,6 @@
 				seatInfo: null,
 				noteOptions: ['靠窗', '有插座', '安静', '光线好'],
 				selectedTags: [],
-				allowContact: false, // 个人主体阶段隐藏联系方式分享
 				duration: 1,
 					customTime: '', // 自定义预计离开时刻 "HH:mm"
 					loadingFail: false
@@ -177,7 +176,6 @@
 					this.customTime = t
 				}
 			},
-			onAllowContact(e) { this.allowContact = e.detail.value },
 			toggleTag(t) {
 				const idx = this.selectedTags.indexOf(t)
 				if (idx >= 0) {
@@ -199,8 +197,7 @@
 						seatId: this.seatId,
 						startAt,
 						endAt,
-						note: this.selectedTags.join(' '),
-						allowContact: this.allowContact
+						note: this.selectedTags.join(' ')
 					})
 					uni.showToast({ title: '分享成功，谢谢你的善意', icon: 'success' })
 					// 分享成功：订阅「有人预约我的分享」通知

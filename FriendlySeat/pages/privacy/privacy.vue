@@ -16,17 +16,18 @@
 			<text class="doc-p">· 微信用户标识（OpenID）：用于识别您的账号，是登录和服务的必需信息。</text>
 			<text class="doc-p">· 预约记录：您预约、取消、到座、使用座位的历史记录。</text>
 			<text class="doc-p">· 座位分享记录：您分享座位的相关信息。</text>
-			<text class="doc-p">· 账号状态：您的信用分、风险分、封禁状态等。</text>
+			<text class="doc-p">· 候补记录：您加入候补、候补成功或取消候补的记录。</text>
+			<text class="doc-p">· 账号状态：您的信用分、履约记录、账号状态等。</text>
 			<text class="doc-p">2. 按功能需要的信息：</text>
-			<text class="doc-p">· 昵称、头像：用于在分享、预约时展示您的身份。</text>
-			<text class="doc-p">· 位置信息：仅在您使用"附近场馆"或"确认到座"功能时获取，用于粗粒度的场馆范围校验，不会向其他用户展示您的精确位置。</text>
-			<text class="doc-p">· 联系方式：仅当您主动填写并在预约成功后经分享者授权，才向相关用户展示。</text>
+			<text class="doc-p">· 昵称、头像：用于在分享、预约时展示您的身份。头像由您主动上传，存储于微信云存储。</text>
+			<text class="doc-p">· 位置信息：仅在您使用"附近场馆"或"确认到座"功能时获取，用于粗粒度的场馆范围校验，不会向其他用户展示您的精确位置。您可随时拒绝授权，拒绝后仍可手动选择场馆使用基本功能。</text>
+			<text class="doc-p">· 订阅消息授权：经您主动授权后，用于向您推送预约、候补、信用等相关服务通知。</text>
 		</view>
 
 		<view class="doc-section">
 			<text class="doc-h2">三、我们收集信息的目的</text>
 			<text class="doc-p">1. 实现账号登录和身份识别。</text>
-			<text class="doc-p">2. 提供座位浏览、分享、预约、到座等服务。</text>
+			<text class="doc-p">2. 提供座位浏览、分享、预约、候补、到座等服务。</text>
 			<text class="doc-p">3. 维护信用体系，保障座位共享秩序。</text>
 			<text class="doc-p">4. 处理举报、申诉和违规处罚。</text>
 			<text class="doc-p">5. 用于统计分析和改善服务质量（不涉及个人身份识别）。</text>
@@ -36,16 +37,16 @@
 			<text class="doc-h2">四、信息的使用与共享</text>
 			<text class="doc-p">1. 我们不会向任何第三方出售您的个人信息。</text>
 			<text class="doc-p">2. 仅在与服务直接相关的范围内展示必要信息，例如：分享座位时展示您的昵称和头像。</text>
-			<text class="doc-p">3. 联系方式仅在预约成功后、分享者主动授权的情况下对预约者展示，预约结束后自动隐藏。</text>
-			<text class="doc-p">4. 不会向其他用户展示您的手机号、精确位置、设备信息等非必要个人资料。</text>
-			<text class="doc-p">5. 法律法规要求或经您明确同意时，方可对外提供。</text>
+			<text class="doc-p">3. 不会向其他用户展示您的手机号、精确位置、设备信息等非必要个人资料。</text>
+			<text class="doc-p">4. 法律法规要求或经您明确同意时，方可对外提供。</text>
 		</view>
 
 		<view class="doc-section">
 			<text class="doc-h2">五、信息的存储与保护</text>
 			<text class="doc-p">1. 我们采取技术和管理措施保护您的信息安全，包括加密传输、访问控制、日志审计等。</text>
 			<text class="doc-p">2. 您的个人信息将保存于中国大陆境内的服务器。</text>
-			<text class="doc-p">3. 我们仅在实现服务目的所需的期限内保存您的信息，超出期限将进行删除或匿名化处理。</text>
+			<text class="doc-p">3. 您上传的头像等文件存储于微信云存储，并按微信云存储的安全规则进行保护。</text>
+			<text class="doc-p">4. 我们仅在实现服务目的所需的期限内保存您的信息，超出期限将进行删除或匿名化处理。</text>
 		</view>
 
 		<view class="doc-section">
@@ -53,9 +54,8 @@
 			<text class="doc-p">您有权：</text>
 			<text class="doc-p">1. 查看您的账号信息和信用记录。</text>
 			<text class="doc-p">2. 修改您的昵称、头像等资料。</text>
-			<text class="doc-p">3. 管理或删除您的联系方式。</text>
-			<text class="doc-p">4. 删除账号（通过联系我们申请，我们将依法删除您的个人信息）。</text>
-			<text class="doc-p">5. 撤回授权：您可随时关闭相关系统权限（如定位），关闭后不影响使用基本功能。</text>
+			<text class="doc-p">3. 删除账号（通过联系我们申请，我们将依法删除您的个人信息）。</text>
+			<text class="doc-p">4. 撤回授权：您可随时关闭相关系统权限（如定位），或在微信设置中关闭订阅消息授权。关闭后不影响使用基本功能。</text>
 		</view>
 
 		<view class="doc-section">
@@ -65,7 +65,7 @@
 
 		<view class="doc-section">
 			<text class="doc-h2">八、第三方服务</text>
-			<text class="doc-p">本服务可能集成微信小程序运行环境等第三方服务，这些服务将按照其自身的隐私政策处理相关信息，建议您一并了解。</text>
+			<text class="doc-p">本服务可能集成微信小程序运行环境、微信云存储等第三方服务，这些服务将按照其自身的隐私政策处理相关信息，建议您一并了解。</text>
 		</view>
 
 		<view class="doc-section">

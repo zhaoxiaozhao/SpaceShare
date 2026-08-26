@@ -25,7 +25,7 @@
           "maxNum": 3,
           "policyType": "cpu",
           "policyThreshold": 60,
-            "envParams": {
+"envParams": {
             "ASPNETCORE_ENVIRONMENT": "Production",
             "Database__Provider": "MySql",
             "ConnectionStrings__Default": "Server=10.24.109.149;Port=3306;Database=friendlyseat;User=root;Password=REPLACE_IN_ENV",

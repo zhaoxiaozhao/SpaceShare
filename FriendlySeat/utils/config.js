@@ -7,7 +7,7 @@ export const CLOUD_SERVICE = 'friendlyseat-api' // 云托管服务名
 export const USE_CLOUD = true // true=云调用；false=普通 HTTPS
 
 // ===== 普通 HTTPS 兜底（USE_CLOUD=false 时使用）=====
-export const BASE_URL = 'https://friendlyseat-api-298258-11-1470097997.sh.run.tcloudbase.com/api/v1'
+export const BASE_URL = 'https://friendlyseat-api-302731-11-1474904162.sh.run.tcloudbase.com/api/v1'
 // 本地开发
 // export const BASE_URL = 'http://localhost:5000/api/v1'
 

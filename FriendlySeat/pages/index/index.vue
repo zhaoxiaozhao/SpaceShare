@@ -1,11 +1,5 @@
 <template>
 	<view>
-		<view class="hero">
-			<text class="hero-title">友邻座</text>
-			<text class="hero-slogan">一席相邻，善意相续</text>
-			<text class="hero-desc">让公共空间里每一个空闲座位，继续被需要</text>
-		</view>
-
 		<view class="quick-actions">
 			<view class="action-btn" @click="goFindSeat">
 				<text class="action-icon">🔍</text>
@@ -160,33 +154,9 @@
 </script>
 
 <style scoped>
-	.hero {
-		padding: 60rpx 40rpx 40rpx;
-		background: linear-gradient(160deg, #3A8A7E 0%, #5BA48D 60%, #F7F5EF 100%);
-		display: flex;
-		flex-direction: column;
-	}
-	.hero-title {
-		color: #FFFFFF;
-		font-size: 56rpx;
-		font-weight: 700;
-		letter-spacing: 8rpx;
-	}
-	.hero-slogan {
-		color: #FFFFFF;
-		font-size: 32rpx;
-		margin-top: 12rpx;
-		opacity: 0.95;
-	}
-	.hero-desc {
-		color: #FFFFFF;
-		font-size: 24rpx;
-		margin-top: 16rpx;
-		opacity: 0.8;
-	}
 	.quick-actions {
 		display: flex;
-		margin: -30rpx 20rpx 0;
+		margin: 20rpx;
 		background: #FFFFFF;
 		border-radius: 20rpx;
 		padding: 24rpx 0;

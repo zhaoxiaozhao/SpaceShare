@@ -47,47 +47,6 @@ public class UserService
         return AuthService.ToDto(user);
     }
 
-    public async Task<List<UserContactDto>> GetContactsAsync(long userId, CancellationToken ct = default)
-    {
-        return await _db.UserContacts
-            .Where(c => c.UserId == userId)
-            .Select(c => new UserContactDto
-            {
-                Id = c.Id,
-                ContactType = c.ContactType.ToString(),
-                ContactValue = c.ContactValue,
-                IsPublic = c.IsPublic
-            })
-            .ToListAsync(ct);
-    }
-
-    public async Task<UserContactDto> UpsertContactAsync(long userId, UpsertContactRequest request, CancellationToken ct = default)
-    {
-        if (!Enum.TryParse<ContactType>(request.ContactType, true, out var type))
-            throw AppException.BadRequest("contact_type_invalid", "联系方式类型无效");
-        if (string.IsNullOrWhiteSpace(request.ContactValue))
-            throw AppException.BadRequest("contact_value_required", "联系方式不能为空");
-
-        var contact = await _db.UserContacts.FirstOrDefaultAsync(c => c.UserId == userId && c.ContactType == type, ct);
-        if (contact is null)
-        {
-            contact = new UserContact { UserId = userId, ContactType = type };
-            _db.UserContacts.Add(contact);
-        }
-        contact.ContactValue = request.ContactValue.Trim();
-        contact.IsPublic = request.IsPublic;
-        contact.UpdatedAt = DateTime.UtcNow;
-        await _db.SaveChangesAsync(ct);
-
-        return new UserContactDto
-        {
-            Id = contact.Id,
-            ContactType = contact.ContactType.ToString(),
-            ContactValue = contact.ContactValue,
-            IsPublic = contact.IsPublic
-        };
-    }
-
     public async Task<List<NotificationDto>> GetNotificationsAsync(long userId, bool? unread, CancellationToken ct = default)
     {
         var query = _db.Notifications.Where(n => n.UserId == userId);
@@ -124,39 +83,26 @@ public class UserService
         return await _db.Notifications.CountAsync(n => n.UserId == userId && !n.IsRead, ct);
     }
 
-    public async Task<bool> CheckContactAuthorizationAsync(long viewerId, long shareId, CancellationToken ct = default)
+    /// <summary>注销账号：匿名化个人信息并禁用账号（预约等业务记录按合规要求脱敏保留）</summary>
+    public async Task DeleteAccountAsync(long userId, CancellationToken ct = default)
     {
-        var share = await _db.SeatShares
-            .Include(s => s.Reservations)
-            .FirstOrDefaultAsync(s => s.Id == shareId, ct)
-            ?? throw AppException.NotFound("分享不存在");
+        var user = await _db.Users.FirstOrDefaultAsync(u => u.Id == userId, ct)
+            ?? throw AppException.NotFound("账号不存在");
 
-        if (!share.AllowContact)
-            return false;
+        user.Nickname = null;
+        user.AvatarUrl = null;
+        user.UnionId = null;
+        user.OpenId = "deleted_" + user.Id; // 匿名化标识，防止复用原 openid 重建身份关联
+        user.Status = UserStatus.Banned;
+        user.UpdatedAt = DateTime.UtcNow;
 
-        // 仅当分享者授权、且对方已成功预约该分享
-        var reserved = share.Reservations.Any(
-            r => r.UserId == viewerId && (r.Status == ReservationStatus.Reserved || r.Status == ReservationStatus.Arrived));
-        return reserved;
-    }
-
-    public async Task<ContactResultDto?> GetShareOwnerContactAsync(long viewerId, long shareId, CancellationToken ct = default)
-    {
-        if (!await CheckContactAuthorizationAsync(viewerId, shareId, ct))
-            return null;
-
-        var share = await _db.SeatShares.FirstAsync(s => s.Id == shareId, ct);
-        var contact = await _db.UserContacts
-            .Where(c => c.UserId == share.OwnerUserId && c.IsPublic)
-            .OrderBy(c => c.ContactType)
-            .FirstOrDefaultAsync(ct);
-
-        if (contact is null) return null;
-
-        return new ContactResultDto
+        // 删除用户联系方式等个人敏感信息（如有）
+        var contacts = await _db.UserContacts.Where(c => c.UserId == userId).ToListAsync(ct);
+        if (contacts.Count > 0)
         {
-            ContactType = contact.ContactType.ToString(),
-            ContactValue = contact.ContactValue
-        };
+            _db.UserContacts.RemoveRange(contacts);
+        }
+
+        await _db.SaveChangesAsync(ct);
     }
 }

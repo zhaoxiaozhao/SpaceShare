@@ -20,6 +20,7 @@
 
 <script>
 	import { api } from '../../utils/request.js'
+	import { randomNickname } from '../../utils/profile.js'
 
 	export default {
 		data() {
@@ -40,7 +41,8 @@
 				uni.showLoading({ title: '登录中', mask: true })
 
 				const doLogin = (code) => {
-					api.login(code, '', '').then((res) => {
+					// 昵称不通过微信收集：首次登录自动生成随机昵称，用户可在"我的"页自行编辑
+					api.login(code, randomNickname(), '').then((res) => {
 						uni.setStorageSync('token', res.token)
 						uni.setStorageSync('user', res.user)
 						uni.hideLoading()

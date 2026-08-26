@@ -49,11 +49,4 @@ public class SharesController : ControllerBase
         await _shares.CancelShareAsync(id, _currentUser.UserId!.Value, ct);
         return Ok();
     }
-
-    [HttpGet("{id:long}/contact")]
-    public async Task<ActionResult<ContactResultDto?>> GetContact(long id, CancellationToken ct)
-    {
-        var contact = await _users.GetShareOwnerContactAsync(_currentUser.UserId!.Value, id, ct);
-        return Ok(contact);
-    }
 }

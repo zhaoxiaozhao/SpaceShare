@@ -1,3 +1,6 @@
 unpackage/
 .DS_Store
 .hbuilderx/
+/node_modules/
+# 微信小程序代码上传私钥（绝不提交）
+keys/

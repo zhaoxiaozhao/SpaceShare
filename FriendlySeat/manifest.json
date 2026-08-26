@@ -1,7 +1,7 @@
 {
     "name" : "友邻座",
     "appid" : "__UNI__1960913",
-    "description" : "公共学习空间座位共享与预约平台。一席相邻，善意相续。",
+    "description" : "友邻座，一个座位共享与预约服务，让图书馆、自习室等空间的空闲座位被接力使用。",
     "versionName" : "1.0.0",
     "versionCode" : "100",
     "transformPx" : false,

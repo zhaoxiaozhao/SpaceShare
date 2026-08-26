@@ -34,6 +34,15 @@ public class ShareService
             throw AppException.BadRequest("share_too_short", $"共享时长不能少于{rules.MinMinutes}分钟");
         // 分享起点允许为“现在”或未来（前端默认从现在开始；也支持分享未来时段）
 
+        // 备注仅限座位属性描述，拦截联系方式与社交类内容（整改要求：备注不演变为社交入口）
+        if (!string.IsNullOrWhiteSpace(request.Note))
+        {
+            var note = request.Note.Trim();
+            if (ContainsContactInfo(note))
+                throw AppException.BadRequest("note_contact_forbidden", "备注中不允许包含联系方式");
+            request.Note = note;
+        }
+
         var seat = await _db.Seats
             .Include(s => s.Zone)
             .FirstOrDefaultAsync(s => s.Id == request.SeatId, ct)
@@ -365,5 +374,15 @@ public class ShareService
             dto.DisplayCode = $"{letter}区-{seatNo}";
         }
         return dto;
+    }
+
+    // 备注中检测联系方式：手机号、微信号、QQ、网址等，防止备注演变为社交/交易入口
+    private static bool ContainsContactInfo(string text)
+    {
+        if (string.IsNullOrEmpty(text)) return false;
+        // 手机号（11位数字）、微信号/QQ（字母数字混排的常见联系方式）、邮箱、网址、vx/q/wx 等缩写
+        return System.Text.RegularExpressions.Regex.IsMatch(text,
+            @"1[3-9]\d{9}|[a-zA-Z0-9_]{4,20}@[\w.-]+|(?:https?://|www\.)[\w.-]+|(?:vx|wx|qq|微信|加我|联系我|wechat|weixin)\s*[:：]?[\s0-9a-zA-Z_-]{1,20}",
+            System.Text.RegularExpressions.RegexOptions.IgnoreCase);
     }
 }
