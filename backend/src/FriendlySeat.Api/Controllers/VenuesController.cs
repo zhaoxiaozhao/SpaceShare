@@ -24,9 +24,11 @@ public class VenuesController : ControllerBase
         [FromQuery] double? lat,
         [FromQuery] double? lng,
         [FromQuery] double? radiusKm,
+        [FromQuery] int? page,
+        [FromQuery] int? pageSize,
         CancellationToken ct)
     {
-        return Ok(await _venueService.GetVenuesAsync(cityId, keyword, lat, lng, radiusKm, ct));
+        return Ok(await _venueService.GetVenuesAsync(cityId, keyword, lat, lng, radiusKm, page, pageSize, ct));
     }
 
     [HttpGet("nearby")]
@@ -36,7 +38,7 @@ public class VenuesController : ControllerBase
         [FromQuery] double lng,
         [FromQuery] double? radiusKm = 10)
     {
-        return Ok(await _venueService.GetVenuesAsync(null, null, lat, lng, radiusKm, ct));
+        return Ok(await _venueService.GetVenuesAsync(null, null, lat, lng, radiusKm, ct: ct));
     }
 
     [HttpGet("{id:long}")]

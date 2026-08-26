@@ -20,4 +20,11 @@ public class CitiesController : ControllerBase
     {
         return Ok(await _venueService.GetCitiesAsync(ct));
     }
+
+    /// <summary>根据定位反查最近的可用城市（用于小程序自动识别所在城市）</summary>
+    [HttpGet("nearest")]
+    public async Task<ActionResult<CityDto?>> GetNearestCity([FromQuery] double lat, [FromQuery] double lng, CancellationToken ct)
+    {
+        return Ok(await _venueService.GetNearestCityAsync(lat, lng, ct));
+    }
 }

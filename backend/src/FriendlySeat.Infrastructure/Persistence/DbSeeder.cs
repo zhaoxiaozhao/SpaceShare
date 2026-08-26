@@ -163,7 +163,9 @@ public static class DbSeeder
         };
 
         // 阅读管理（V1.5）
-        if (!await tableExists("ReadingBooks"))
+        var readingBooksExists = await tableExists("ReadingBooks");
+        logger.LogInformation("MySQL 阅读表检测：ReadingBooks exists={ReadingBooksExists}", readingBooksExists);
+        if (!readingBooksExists)
         {
             logger.LogInformation("MySQL 补建阅读管理表（ReadingBooks/ReadingNotes/ReadingSessions）");
             await db.Database.ExecuteSqlRawAsync(@"

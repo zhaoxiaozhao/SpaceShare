@@ -74,7 +74,9 @@
 					this.nearby = await api.getVenues({
 						lat: location.latitude,
 						lng: location.longitude,
-						radiusKm: 20
+						radiusKm: 20,
+						page: 1,
+						pageSize: 10
 					})
 					if (!this.nearby.length) {
 						this.nearby = await api.getVenues({})

@@ -33,23 +33,63 @@ public class VenueService
             .ToListAsync(ct);
     }
 
+    /// <summary>根据经纬度反查最近的可用城市（用于小程序定位后自动识别所在城市）</summary>
+    public async Task<CityDto?> GetNearestCityAsync(double lat, double lng, CancellationToken ct = default)
+    {
+        var cities = await _db.Cities
+            .Where(c => c.Status == EntityStatus.Active && c.Latitude != null && c.Longitude != null)
+            .Select(c => new CityDto
+            {
+                Id = c.Id,
+                Name = c.Name,
+                Province = c.Province,
+                CountryCode = c.CountryCode,
+                Longitude = c.Longitude,
+                Latitude = c.Latitude
+            })
+            .ToListAsync(ct);
+
+        if (cities.Count == 0) return null;
+
+        return cities
+            .Select(c => new { City = c, Dist = HaversineKm(lat, lng, c.Latitude!.Value, c.Longitude!.Value) })
+            .OrderBy(x => x.Dist)
+            .First()
+            .City;
+    }
+
     public async Task<List<VenueListItemDto>> GetVenuesAsync(
-        long? cityId, string? keyword, double? lat, double? lng, double? radiusKm, CancellationToken ct = default)
+        long? cityId, string? keyword, double? lat, double? lng, double? radiusKm,
+        int? page = null, int? pageSize = null, CancellationToken ct = default)
     {
         var query = _db.Venues
             .Where(v => v.Status == EntityStatus.Active);
 
         if (cityId.HasValue) query = query.Where(v => v.CityId == cityId.Value);
-        if (!string.IsNullOrWhiteSpace(keyword)) query = query.Where(v => v.Name.Contains(keyword));
+        // 关键词前缀匹配，可利用 (CityId, Name) 复合索引的前缀查询（比 %keyword% 全表扫描高效）
+        if (!string.IsNullOrWhiteSpace(keyword)) query = query.Where(v => v.Name.StartsWith(keyword));
+
+        // 有定位+半径时，先用经纬度范围粗筛（约 1°≈111km），缩小查库范围，再内存精算 Haversine
+        if (lat.HasValue && lng.HasValue && radiusKm.HasValue && radiusKm.Value > 0)
+        {
+            var delta = radiusKm.Value / 111.0;
+            var latMin = lat.Value - delta;
+            var latMax = lat.Value + delta;
+            // 经度需按纬度缩放
+            var lngDelta = delta / Math.Max(0.1, Math.Abs(Math.Cos(lat.Value * Math.PI / 180.0)));
+            var lngMin = lng.Value - lngDelta;
+            var lngMax = lng.Value + lngDelta;
+            query = query.Where(v => v.Latitude != null && v.Longitude != null
+                && v.Latitude >= latMin && v.Latitude <= latMax
+                && v.Longitude >= lngMin && v.Longitude <= lngMax);
+        }
 
         var venues = await query.ToListAsync(ct);
 
-        var now = DateTime.UtcNow;
-        var result = new List<VenueListItemDto>();
+        // 先做距离过滤 + 排序（内存计算），再分页切片
+        var filtered = new List<VenueListItemDto>();
         foreach (var v in venues)
         {
-            var (seatCount, availableCount) = await GetVenueCountsAsync(v.Id, now, ct);
-
             var dto = new VenueListItemDto
             {
                 Id = v.Id,
@@ -59,9 +99,7 @@ public class VenueService
                 Longitude = v.Longitude,
                 Latitude = v.Latitude,
                 OpeningTime = v.OpeningTime.ToString(@"hh\:mm"),
-                ClosingTime = v.ClosingTime.ToString(@"hh\:mm"),
-                SeatCount = seatCount,
-                AvailableCount = availableCount
+                ClosingTime = v.ClosingTime.ToString(@"hh\:mm")
             };
 
             if (lat.HasValue && lng.HasValue && v.Latitude.HasValue && v.Longitude.HasValue)
@@ -70,10 +108,64 @@ public class VenueService
                 if (radiusKm.HasValue && d > radiusKm.Value) continue;
                 dto.DistanceKm = Math.Round(d, 2);
             }
-
-            result.Add(dto);
+            filtered.Add(dto);
         }
 
+        if (lat.HasValue && lng.HasValue)
+        {
+            filtered = filtered.OrderBy(v => v.DistanceKm ?? double.MaxValue).ToList();
+        }
+
+        // 分页切片
+        IEnumerable<VenueListItemDto> pageItems = filtered;
+        if (page.HasValue && pageSize.HasValue)
+        {
+            var p = Math.Max(1, page.Value);
+            var size = Math.Min(50, Math.Max(1, pageSize.Value));
+            pageItems = filtered.Skip((p - 1) * size).Take(size);
+        }
+
+        var pageList = pageItems.ToList();
+
+        // 对当前页场馆批量统计座位数与可预约数（2 次 SQL）
+        var counts = await GetVenueCountsBatchAsync(pageList.Select(v => v.Id).ToList(), DateTime.UtcNow, ct);
+        foreach (var v in pageList)
+        {
+            var (seatCount, availableCount) = counts.GetValueOrDefault(v.Id, (0, 0));
+            v.SeatCount = seatCount;
+            v.AvailableCount = availableCount;
+        }
+
+        return pageList;
+    }
+
+    // 批量统计多个场馆的座位数与可预约数（2 次 SQL，替代每场馆 3 次）
+    private async Task<Dictionary<long, (int SeatCount, int AvailableCount)>> GetVenueCountsBatchAsync(
+        List<long> venueIds, DateTime now, CancellationToken ct)
+    {
+        var result = new Dictionary<long, (int, int)>();
+        if (venueIds.Count == 0) return result;
+
+        // 座位数：Zone.Floor.VenueId -> Count(Seat)
+        var seatCounts = await _db.Zones
+            .Where(z => venueIds.Contains(z.Floor!.VenueId))
+            .SelectMany(z => z.Seats, (z, s) => new { z.Floor!.VenueId, s.Id })
+            .GroupBy(x => x.VenueId)
+            .Select(g => new { VenueId = g.Key, Count = g.Count() })
+            .ToDictionaryAsync(x => x.VenueId, x => x.Count, ct);
+
+        // 可预约数：VenueId -> 有可用分享的座位数（Distinct SeatId）
+        var availableCounts = await _db.SeatShares
+            .Where(s => s.EndAt > now && s.Status == SeatShareStatus.Available
+                && venueIds.Contains(s.Seat!.Zone!.Floor!.VenueId))
+            .GroupBy(s => s.Seat!.Zone!.Floor!.VenueId)
+            .Select(g => new { VenueId = g.Key, SeatIds = g.Select(x => x.SeatId).Distinct().Count() })
+            .ToDictionaryAsync(x => x.VenueId, x => x.SeatIds, ct);
+
+        foreach (var vid in venueIds)
+        {
+            result[vid] = (seatCounts.GetValueOrDefault(vid), availableCounts.GetValueOrDefault(vid));
+        }
         return result;
     }
 

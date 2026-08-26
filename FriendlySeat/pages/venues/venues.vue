@@ -8,12 +8,17 @@
 		<scroll-view scroll-x class="city-scroll" v-if="cities.length">
 			<view
 				class="city-chip"
-				:class="{ active: cityId === null }"
+				:class="{ active: mode === 'nearby' }"
+				@click="selectNearby"
+			>📍 附近</view>
+			<view
+				class="city-chip"
+				:class="{ active: mode === 'city' && cityId === null }"
 				@click="selectCity(null)"
 			>全部</view>
 			<view
 				class="city-chip"
-				:class="{ active: cityId === c.id }"
+				:class="{ active: mode === 'city' && cityId === c.id }"
 				v-for="c in cities"
 				:key="c.id"
 				@click="selectCity(c.id)"
@@ -35,7 +40,12 @@
 			</view>
 		</view>
 
-		<view v-if="!venues.length" class="empty">没有找到场馆</view>
+		<view class="list-footer">
+			<text v-if="loading" class="footer-text">加载中…</text>
+			<text v-else-if="venues.length && !hasMore" class="footer-text">已加载全部场馆</text>
+		</view>
+
+		<view v-if="!venues.length && !loading" class="empty">没有找到场馆</view>
 	</view>
 </template>
 
@@ -48,15 +58,25 @@
 				cities: [],
 				venues: [],
 				cityId: null,
-				keyword: ''
+				keyword: '',
+				mode: 'nearby',
+				page: 1,
+				pageSize: 20,
+				hasMore: true,
+				loading: false,
+				location: null,
+				autoLocated: false
 			}
 		},
 		onShow() {
 			this.loadCities()
-			this.loadVenues()
+			this.initLocation()
 		},
 		onPullDownRefresh() {
-			this.loadVenues().then(() => uni.stopPullDownRefresh())
+			this.loadVenues(true).then(() => uni.stopPullDownRefresh())
+		},
+		onReachBottom() {
+			this.loadMore()
 		},
 		methods: {
 			async loadCities() {
@@ -64,18 +84,60 @@
 					this.cities = await api.getCities()
 				} catch (e) {}
 			},
-			async loadVenues() {
+			// 首次进入：定位 + 自动识别所在城市（成功后切到该城市，否则保持附近模式）
+			async initLocation() {
+				const location = await this.getLocation()
+				this.location = location
+				if (this.autoLocated) {
+					this.loadVenues(true)
+					return
+				}
+				this.autoLocated = true
 				try {
-					const location = await this.getLocation()
-					this.venues = await api.getVenues({
-						cityId: this.cityId,
-						keyword: this.keyword,
+					const city = await api.getNearestCity(location.latitude, location.longitude)
+					if (city && city.id) {
+						this.mode = 'city'
+						this.cityId = city.id
+					}
+				} catch (e) {}
+				this.loadVenues(true)
+			},
+			async loadVenues(reset) {
+				if (this.loading) return
+				this.loading = true
+				try {
+					const location = this.location || await this.getLocation()
+					const targetPage = reset ? 1 : this.page
+					const params = {
 						lat: location.latitude,
-						lng: location.longitude
-					})
+						lng: location.longitude,
+						page: targetPage,
+						pageSize: this.pageSize
+					}
+					if (this.mode === 'nearby') {
+						params.radiusKm = 20
+					} else {
+						params.cityId = this.cityId
+					}
+					if (this.keyword) params.keyword = this.keyword
+					const data = await api.getVenues(params)
+					if (reset) {
+						this.venues = data
+						this.page = 1
+					} else {
+						this.venues = this.venues.concat(data)
+					}
+					this.hasMore = data.length >= this.pageSize
 				} catch (e) {
 					uni.showToast({ title: '加载失败', icon: 'none' })
+				} finally {
+					this.loading = false
 				}
+			},
+			loadMore() {
+				if (!this.hasMore || this.loading) return
+				this.page += 1
+				this.loadVenues()
 			},
 			getLocation() {
 				return new Promise((resolve) => {
@@ -87,11 +149,20 @@
 				})
 			},
 			search() {
-				this.loadVenues()
+				this.page = 1
+				this.loadVenues(true)
+			},
+			selectNearby() {
+				this.mode = 'nearby'
+				this.cityId = null
+				this.page = 1
+				this.loadVenues(true)
 			},
 			selectCity(id) {
+				this.mode = 'city'
 				this.cityId = id
-				this.loadVenues()
+				this.page = 1
+				this.loadVenues(true)
 			},
 			goVenue(id) {
 				uni.navigateTo({ url: `/pages/venue/venue?id=${id}` })
@@ -182,5 +253,13 @@
 	.venue-distance {
 		font-size: 22rpx;
 		color: #8A8A86;
+	}
+	.list-footer {
+		padding: 24rpx 0 40rpx;
+		text-align: center;
+	}
+	.footer-text {
+		font-size: 24rpx;
+		color: #B0B0AB;
 	}
 </style>

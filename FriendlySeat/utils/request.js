@@ -105,6 +105,7 @@ export const api = {
 		auth: false
 	}),
 	getCities: () => request('/cities', { auth: false }),
+	getNearestCity: (lat, lng) => request(`/cities/nearest?lat=${lat}&lng=${lng}`, { auth: false }),
 	getVenues: (params) => request('/venues?' + qs(params), { auth: false }),
 	getVenue: (id) => request(`/venues/${id}`, { auth: false }),
 	getSeat: (id) => request(`/seats/${id}`, { auth: false }),
