@@ -12,6 +12,8 @@ public static class DbSeeder
         if (provider == DbProvider.MySql)
         {
             await db.Database.EnsureCreatedAsync();
+            // MySQL 无迁移历史，EnsureCreated 不会为已有库补建新表，需手动补缺失表
+            await EnsureMySqlTablesAsync(db, logger);
         }
         else
         {
@@ -136,5 +138,94 @@ public static class DbSeeder
         }
 
         logger.LogInformation("数据库初始化完成");
+    }
+
+    // MySQL 使用 EnsureCreated，无迁移历史，EnsureCreated 不会为已有库补建新表。
+    // 这里检查缺失表并自动补建（当前含阅读管理 V1.5 三张表，后续新增表在此追加）。
+    private static async Task EnsureMySqlTablesAsync(FriendlySeatDbContext db, ILogger logger)
+    {
+        var tableExists = async (string table) =>
+        {
+            var conn = db.Database.GetDbConnection();
+            var open = conn.State != System.Data.ConnectionState.Open;
+            if (open) await conn.OpenAsync();
+            try
+            {
+                using var cmd = conn.CreateCommand();
+                cmd.CommandText = $"SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = '{table}'";
+                var result = await cmd.ExecuteScalarAsync();
+                return Convert.ToInt32(result) > 0;
+            }
+            finally
+            {
+                if (open) await conn.CloseAsync();
+            }
+        };
+
+        // 阅读管理（V1.5）
+        if (!await tableExists("ReadingBooks"))
+        {
+            logger.LogInformation("MySQL 补建阅读管理表（ReadingBooks/ReadingNotes/ReadingSessions）");
+            await db.Database.ExecuteSqlRawAsync(@"
+CREATE TABLE `ReadingBooks` (
+  `Id` bigint NOT NULL AUTO_INCREMENT,
+  `UserId` bigint NOT NULL,
+  `Title` longtext NOT NULL,
+  `Author` longtext NULL,
+  `CoverUrl` longtext NULL,
+  `VenueId` bigint NULL,
+  `VenueName` longtext NULL,
+  `Status` int NOT NULL,
+  `CurrentProgress` int NOT NULL,
+  `TotalPages` int NULL,
+  `LastPosition` longtext NULL,
+  `TotalMinutes` int NOT NULL,
+  `CreatedAt` datetime(6) NOT NULL,
+  `UpdatedAt` datetime(6) NOT NULL,
+  PRIMARY KEY (`Id`),
+  KEY `IX_ReadingBooks_UserId_Status` (`UserId`, `Status`),
+  KEY `IX_ReadingBooks_VenueId` (`VenueId`),
+  CONSTRAINT `FK_ReadingBooks_Users_UserId` FOREIGN KEY (`UserId`) REFERENCES `Users` (`Id`) ON DELETE CASCADE,
+  CONSTRAINT `FK_ReadingBooks_Venues_VenueId` FOREIGN KEY (`VenueId`) REFERENCES `Venues` (`Id`) ON DELETE RESTRICT
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
+
+            await db.Database.ExecuteSqlRawAsync(@"
+CREATE TABLE `ReadingNotes` (
+  `Id` bigint NOT NULL AUTO_INCREMENT,
+  `UserId` bigint NOT NULL,
+  `BookId` bigint NOT NULL,
+  `Type` int NOT NULL,
+  `Content` longtext NOT NULL,
+  `Position` longtext NULL,
+  `CreatedAt` datetime(6) NOT NULL,
+  PRIMARY KEY (`Id`),
+  KEY `IX_ReadingNotes_BookId` (`BookId`),
+  KEY `IX_ReadingNotes_UserId_BookId_Type` (`UserId`, `BookId`, `Type`),
+  CONSTRAINT `FK_ReadingNotes_ReadingBooks_BookId` FOREIGN KEY (`BookId`) REFERENCES `ReadingBooks` (`Id`) ON DELETE CASCADE,
+  CONSTRAINT `FK_ReadingNotes_Users_UserId` FOREIGN KEY (`UserId`) REFERENCES `Users` (`Id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
+
+            await db.Database.ExecuteSqlRawAsync(@"
+CREATE TABLE `ReadingSessions` (
+  `Id` bigint NOT NULL AUTO_INCREMENT,
+  `UserId` bigint NOT NULL,
+  `BookId` bigint NOT NULL,
+  `VenueId` bigint NULL,
+  `VenueName` longtext NULL,
+  `StartedAt` datetime(6) NOT NULL,
+  `EndedAt` datetime(6) NULL,
+  `DurationMinutes` int NOT NULL,
+  `Status` int NOT NULL,
+  `CreatedAt` datetime(6) NOT NULL,
+  PRIMARY KEY (`Id`),
+  KEY `IX_ReadingSessions_UserId_StartedAt` (`UserId`, `StartedAt`),
+  KEY `IX_ReadingSessions_UserId_Status` (`UserId`, `Status`),
+  KEY `IX_ReadingSessions_BookId` (`BookId`),
+  KEY `IX_ReadingSessions_VenueId` (`VenueId`),
+  CONSTRAINT `FK_ReadingSessions_ReadingBooks_BookId` FOREIGN KEY (`BookId`) REFERENCES `ReadingBooks` (`Id`) ON DELETE CASCADE,
+  CONSTRAINT `FK_ReadingSessions_Users_UserId` FOREIGN KEY (`UserId`) REFERENCES `Users` (`Id`) ON DELETE CASCADE,
+  CONSTRAINT `FK_ReadingSessions_Venues_VenueId` FOREIGN KEY (`VenueId`) REFERENCES `Venues` (`Id`) ON DELETE RESTRICT
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
+        }
     }
 }
