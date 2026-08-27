@@ -1,16 +1,17 @@
 <template>
-	<view>
+	<page-meta :page-style="pageThemeStyle" />
+		<view>
 		<view class="quick-actions">
 			<view class="action-btn" @click="goFindSeat">
-				<text class="action-icon">🔍</text>
+				<image class="action-icon" :src="`/static/icons/search-${season}.png`" mode="aspectFit" />
 				<text>找座位</text>
 			</view>
 			<view class="action-btn" @click="goStudy">
-				<text class="action-icon">📖</text>
+				<image class="action-icon" :src="`/static/icons/study-${season}.png`" mode="aspectFit" />
 				<text>开始学习</text>
 			</view>
 			<view class="action-btn" @click="goReading">
-				<text class="action-icon">📚</text>
+				<image class="action-icon" :src="`/static/icons/books-${season}.png`" mode="aspectFit" />
 				<text>我的阅读</text>
 			</view>
 		</view>
@@ -51,13 +52,15 @@
 <script>
 	import { api } from '../../utils/request.js'
 	import { formatTime } from '../../utils/format.js'
+	import { getSeasonKey } from '../../utils/theme.js'
 
 	export default {
 		data() {
 			return {
 				nearby: [],
 				shares: [],
-				venueShares: []
+				venueShares: [],
+				season: getSeasonKey()
 			}
 		},
 		onShow() {
@@ -183,7 +186,8 @@
 		font-size: 26rpx;
 	}
 	.action-icon {
-		font-size: 40rpx;
+		width: 56rpx;
+		height: 56rpx;
 	}
 	.section {
 		margin-top: 20rpx;
@@ -215,7 +219,7 @@
 	}
 	.venue-available {
 		font-size: 24rpx;
-		color: #3A8A7E;
+		color: var(--primary);
 	}
 	.venue-available.none {
 		color: #B85450;
@@ -237,14 +241,14 @@
 	.share-seat {
 		font-size: 30rpx;
 		font-weight: 600;
-		color: #3A8A7E;
+		color: var(--primary);
 	}
 	.share-venue {
 		font-size: 24rpx;
 		color: #8A8A86;
 	}
 	.share-floor {
-		color: #3A8A7E;
+		color: var(--primary);
 	}
 	.share-time {
 		font-size: 26rpx;

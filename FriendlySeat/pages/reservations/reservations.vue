@@ -1,5 +1,6 @@
 <template>
-	<view>
+	<page-meta :page-style="pageThemeStyle" />
+		<view>
 		<view class="tabs">
 			<view class="tab" :class="{ active: tab === 'upcoming' }" @click="tab = 'upcoming'">待使用</view>
 			<view class="tab" :class="{ active: tab === 'shares' }" @click="tab = 'shares'">我的分享</view>
@@ -247,7 +248,7 @@
 		border-radius: 14rpx;
 	}
 	.tab.active {
-		background: #3A8A7E;
+		background: var(--primary);
 		color: #FFFFFF;
 		font-weight: 600;
 	}
@@ -270,7 +271,7 @@
 		color: #55554F;
 	}
 	.res-floor {
-		color: #3A8A7E;
+		color: var(--primary);
 	}
 	.res-time {
 		font-size: 26rpx;

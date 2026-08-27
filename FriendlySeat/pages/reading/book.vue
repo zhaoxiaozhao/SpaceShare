@@ -1,5 +1,6 @@
 <template>
-	<view v-if="book" class="page">
+	<page-meta :page-style="pageThemeStyle" />
+		<view v-if="book" class="page">
 		<!-- 书籍头部 -->
 		<view class="book-hero">
 			<image class="cover" :src="book.coverUrl || '/static/logo.png'" mode="aspectFill" />
@@ -295,7 +296,7 @@
 		display: flex;
 		gap: 28rpx;
 		padding: 30rpx;
-		background: linear-gradient(135deg, #3A8A7E 0%, #5BA48D 100%);
+		background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
 	}
 	.cover {
 		width: 150rpx;
@@ -311,7 +312,7 @@
 	.status-row { display: flex; align-items: center; gap: 16rpx; }
 	.status { font-size: 22rpx; padding: 4rpx 16rpx; border-radius: 8rpx; }
 	.st-WantToRead { background: rgba(255,255,255,0.25); color: #FFFFFF; }
-	.st-Reading { background: #FFFFFF; color: #3A8A7E; }
+	.st-Reading { background: #FFFFFF; color: var(--primary); }
 	.st-Finished { background: rgba(255,255,255,0.25); color: #FFFFFF; }
 	.meta { font-size: 24rpx; color: rgba(255,255,255,0.85); }
 	.venue { font-size: 24rpx; color: rgba(255,255,255,0.9); align-self: flex-start; border-bottom: 1rpx dashed rgba(255,255,255,0.6); padding-bottom: 2rpx; }
@@ -320,19 +321,19 @@
 	.progress-overview { margin-top: -20rpx; }
 	.po-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14rpx; }
 	.po-label { font-size: 26rpx; color: #55554F; }
-	.po-percent { font-size: 32rpx; font-weight: 700; color: #3A8A7E; }
+	.po-percent { font-size: 32rpx; font-weight: 700; color: var(--primary); }
 	.progress-bar { height: 12rpx; background: #F1EFE9; border-radius: 6rpx; overflow: hidden; }
-	.progress-fill { height: 100%; background: linear-gradient(90deg, #3A8A7E, #5BA48D); border-radius: 6rpx; }
+	.progress-fill { height: 100%; background: linear-gradient(90deg, var(--primary), var(--primary-light)); border-radius: 6rpx; }
 	.po-pages { display: block; margin-top: 12rpx; font-size: 24rpx; color: #8A8A86; }
 
 	/* 阅读操作 */
 	.action-card { display: flex; flex-direction: column; align-items: center; gap: 18rpx; }
 	.action-card .btn-primary { width: 70%; margin: 0; }
 	.action-card .btn-outline { width: 70%; margin: 0; }
-	.reading-banner { display: flex; align-items: center; gap: 20rpx; background: #EAF3F0; border-radius: 14rpx; padding: 22rpx; width: 100%; box-sizing: border-box; }
+	.reading-banner { display: flex; align-items: center; gap: 20rpx; background: var(--primary-bg); border-radius: 14rpx; padding: 22rpx; width: 100%; box-sizing: border-box; }
 	.banner-icon { font-size: 44rpx; }
 	.banner-info { flex: 1; display: flex; flex-direction: column; gap: 4rpx; }
-	.banner-title { font-size: 30rpx; font-weight: 600; color: #3A8A7E; }
+	.banner-title { font-size: 30rpx; font-weight: 600; color: var(--primary); }
 	.banner-sub { font-size: 22rpx; color: #8A8A86; }
 
 	/* 通用卡片标题 */
@@ -349,7 +350,7 @@
 	/* 摘抄与笔记 */
 	.seg-tabs { display: inline-flex; background: #F1EFE9; border-radius: 24rpx; padding: 4rpx; margin-bottom: 18rpx; }
 	.seg-tab { font-size: 26rpx; color: #8A8A86; padding: 10rpx 36rpx; border-radius: 20rpx; }
-	.seg-tab.active { background: #3A8A7E; color: #FFFFFF; font-weight: 600; }
+	.seg-tab.active { background: var(--primary); color: #FFFFFF; font-weight: 600; }
 	.note-textarea { width: 100%; min-height: 220rpx; box-sizing: border-box; background: #F7F5EF; border-radius: 14rpx; padding: 22rpx; font-size: 28rpx; line-height: 1.7; margin-bottom: 16rpx; }
 	.note-actions { display: flex; align-items: center; gap: 14rpx; }
 	.note-pos-input { flex: 1; min-width: 0; background: #F7F5EF; border-radius: 12rpx; padding: 16rpx 20rpx; font-size: 26rpx; }
@@ -358,13 +359,13 @@
 	/* 笔记列表 */
 	.list-tabs { display: flex; gap: 12rpx; margin-bottom: 16rpx; }
 	.list-tab { font-size: 24rpx; color: #8A8A86; padding: 8rpx 26rpx; border-radius: 20rpx; background: #F1EFE9; }
-	.list-tab.active { background: #3A8A7E; color: #FFFFFF; }
+	.list-tab.active { background: var(--primary); color: #FFFFFF; }
 	.note-item { padding: 22rpx 0; border-bottom: 1rpx solid #F0EFEA; }
 	.note-item:last-child { border-bottom: none; }
 	.note-item-head { display: flex; align-items: center; gap: 16rpx; margin-bottom: 10rpx; }
 	.note-tag { font-size: 20rpx; padding: 4rpx 14rpx; border-radius: 6rpx; }
 	.nt-highlight { background: #FFF4E0; color: #B8860B; }
-	.nt-note { background: #EAF3F0; color: #3A8A7E; }
+	.nt-note { background: var(--primary-bg); color: var(--primary); }
 	.note-time { flex: 1; font-size: 22rpx; color: #B0B0AB; }
 	.note-del { font-size: 24rpx; color: #B85450; }
 	.note-content { display: block; font-size: 28rpx; line-height: 1.7; color: #33332E; }

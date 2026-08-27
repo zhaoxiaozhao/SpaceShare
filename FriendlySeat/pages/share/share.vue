@@ -1,5 +1,6 @@
 <template>
-	<view>
+	<page-meta :page-style="pageThemeStyle" />
+		<view>
 		<!-- 从座位详情进入分享：正常显示分享表单；无座位时自动去选座 -->
 		<view v-if="!seatId" class="empty">请先从座位详情发起分享</view>
 		<view v-else-if="!seatInfo && !loadingFail" class="empty">座位信息加载中…</view>
@@ -221,7 +222,7 @@
 	.current-seat {
 		font-size: 44rpx;
 		font-weight: 700;
-		color: #3A8A7E;
+		color: var(--primary);
 		display: block;
 		margin-bottom: 8rpx;
 	}
@@ -232,7 +233,7 @@
 		margin-bottom: 6rpx;
 	}
 	.loc-sub {
-		color: #3A8A7E;
+		color: var(--primary);
 	}
 	.warn-text {
 		display: block;
@@ -259,9 +260,9 @@
 		border: 2rpx solid transparent;
 	}
 	.duration-chip.active {
-		background: #EAF3F0;
-		border-color: #3A8A7E;
-		color: #3A8A7E;
+		background: var(--primary-bg);
+		border-color: var(--primary);
+		color: var(--primary);
 		font-weight: 600;
 	}
 	.duration-chip.disabled {
@@ -291,12 +292,12 @@
 		border: 2rpx solid transparent;
 	}
 	.custom-chip.active {
-		border-color: #3A8A7E;
-		color: #3A8A7E;
+		border-color: var(--primary);
+		color: var(--primary);
 	}
 	.custom-value {
 		font-size: 26rpx;
-		color: #3A8A7E;
+		color: var(--primary);
 		font-weight: 600;
 	}
 	.share-summary {
@@ -310,7 +311,7 @@
 	}
 	.share-summary.sub {
 		margin-top: 10rpx;
-		background: #EAF3F0;
+		background: var(--primary-bg);
 	}
 	.summary-label {
 		font-size: 24rpx;
@@ -318,7 +319,7 @@
 	}
 	.summary-value {
 		font-size: 26rpx;
-		color: #3A8A7E;
+		color: var(--primary);
 		font-weight: 600;
 	}
 	.form-item {
@@ -350,9 +351,9 @@
 		border: 2rpx solid transparent;
 	}
 	.note-tag.active {
-		background: #EAF3F0;
-		border-color: #3A8A7E;
-		color: #3A8A7E;
+		background: var(--primary-bg);
+		border-color: var(--primary);
+		color: var(--primary);
 	}
 	.switch-row {
 		display: flex;

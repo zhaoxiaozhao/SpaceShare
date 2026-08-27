@@ -1,5 +1,6 @@
 <template>
-	<view>
+	<page-meta :page-style="pageThemeStyle" />
+		<view>
 		<view class="notif-toolbar" v-if="list.length">
 			<view class="tabs">
 				<text class="tab" :class="{ active: filter === '' }" @click="switchFilter('')">全部</text>
@@ -99,13 +100,13 @@
 		border: 1rpx solid #E0DED6;
 	}
 	.tab.active {
-		background: #3A8A7E;
+		background: var(--primary);
 		color: #FFFFFF;
-		border-color: #3A8A7E;
+		border-color: var(--primary);
 	}
 	.read-all {
 		font-size: 24rpx;
-		color: #3A8A7E;
+		color: var(--primary);
 		padding: 8rpx 12rpx;
 	}
 	.notif-card {

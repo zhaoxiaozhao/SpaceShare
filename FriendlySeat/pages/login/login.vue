@@ -1,5 +1,6 @@
 <template>
-	<view class="login-page">
+	<page-meta :page-style="pageThemeStyle" />
+		<view class="login-page">
 		<view class="brand">
 			<text class="brand-name">友邻座</text>
 			<text class="brand-slogan">一席相邻，善意相续</text>
@@ -93,7 +94,7 @@
 	.brand-name {
 		font-size: 64rpx;
 		font-weight: 700;
-		color: #3A8A7E;
+		color: var(--primary);
 		letter-spacing: 10rpx;
 	}
 	.brand-slogan {
@@ -124,7 +125,7 @@
 	}
 	.agreement-link {
 		font-size: 22rpx;
-		color: #3A8A7E;
+		color: var(--primary);
 		text-decoration: underline;
 	}
 </style>

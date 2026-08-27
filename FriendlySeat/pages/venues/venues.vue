@@ -1,5 +1,6 @@
 <template>
-	<view>
+	<page-meta :page-style="pageThemeStyle" />
+		<view>
 		<view class="search-bar">
 			<input class="search-input" v-model="keyword" placeholder="搜索场馆名称" confirm-type="search" @confirm="search" />
 			<text class="search-btn" @click="search">搜索</text>
@@ -186,7 +187,7 @@
 		font-size: 28rpx;
 	}
 	.search-btn {
-		color: #3A8A7E;
+		color: var(--primary);
 		font-size: 28rpx;
 	}
 	.city-scroll {
@@ -203,7 +204,7 @@
 		color: #55554F;
 	}
 	.city-chip.active {
-		background: #3A8A7E;
+		background: var(--primary);
 		color: #FFFFFF;
 	}
 	.venue-card {
@@ -223,7 +224,7 @@
 	}
 	.venue-type {
 		font-size: 22rpx;
-		color: #3A8A7E;
+		color: var(--primary);
 	}
 	.venue-addr {
 		font-size: 24rpx;
@@ -245,7 +246,7 @@
 	}
 	.venue-available {
 		font-size: 24rpx;
-		color: #3A8A7E;
+		color: var(--primary);
 	}
 	.venue-available.none {
 		color: #B85450;

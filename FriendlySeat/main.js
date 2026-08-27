@@ -15,8 +15,17 @@ app.$mount()
 import {
 	createSSRApp
 } from 'vue'
+import { getPageStyle } from './utils/theme.js'
 export function createApp() {
 	const app = createSSRApp(App)
+	// 全局注入四季主题：页面模板用 <page-meta :page-style="pageThemeStyle" /> 挂载 CSS 变量
+	app.mixin({
+		computed: {
+			pageThemeStyle() {
+				return getPageStyle()
+			}
+		}
+	})
 	return {
 		app
 	}

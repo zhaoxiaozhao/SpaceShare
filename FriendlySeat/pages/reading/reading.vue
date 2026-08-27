@@ -1,5 +1,6 @@
 <template>
-	<view>
+	<page-meta :page-style="pageThemeStyle" />
+		<view>
 		<!-- 今日阅读卡片 -->
 		<view class="card today-card" :class="{ active: stats.activeSession }">
 			<text class="today-label">{{stats.activeSession ? '正在阅读' : '今日阅读'}}</text>
@@ -305,7 +306,7 @@
 
 <style scoped>
 	/* 今日阅读卡片 */
-	.today-card { background: linear-gradient(135deg, #3A8A7E 0%, #5BA48D 100%); color: #FFFFFF; }
+	.today-card { background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%); color: #FFFFFF; }
 	.today-label { font-size: 26rpx; opacity: 0.9; display: block; }
 	.today-time { font-size: 64rpx; font-weight: 700; margin: 8rpx 0; display: block; }
 	.today-sub { font-size: 24rpx; opacity: 0.9; display: block; }
@@ -314,13 +315,13 @@
 	/* 正在阅读（计时中） */
 	.active-info { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20rpx; }
 	.active-book { font-size: 30rpx; font-weight: 600; }
-	.active-time { font-size: 32rpx; font-weight: 700; color: #3A8A7E; }
+	.active-time { font-size: 32rpx; font-weight: 700; color: var(--primary); }
 	.end-btn { margin-top: 10rpx; }
 
 	/* 统计概览（无背景卡片，紧凑三列） */
 	.stat-row { display: flex; background: #FFFFFF; border-radius: 20rpx; margin: 20rpx; padding: 24rpx 0; box-shadow: 0 4rpx 16rpx rgba(0,0,0,0.04); }
 	.stat { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4rpx; }
-	.stat-num { font-size: 40rpx; font-weight: 700; color: #3A8A7E; }
+	.stat-num { font-size: 40rpx; font-weight: 700; color: var(--primary); }
 	.stat-label { font-size: 24rpx; color: #8A8A86; }
 
 	/* 快捷入口 */
@@ -331,29 +332,29 @@
 	/* 书籍列表标题 + 添加 */
 	.section-head { display: flex; align-items: center; justify-content: space-between; margin: 30rpx 20rpx 6rpx; }
 	.section-title { font-size: 32rpx; font-weight: 700; color: #2B2B27; }
-	.add-btn { font-size: 26rpx; color: #3A8A7E; font-weight: 500; }
+	.add-btn { font-size: 26rpx; color: var(--primary); font-weight: 500; }
 
 	/* 状态筛选 */
 	.filter-row { display: flex; align-items: center; gap: 12rpx; margin: 10rpx 20rpx 0; }
 	.filter-tab { font-size: 26rpx; color: #8A8A86; padding: 10rpx 24rpx; border-radius: 24rpx; background: #F1EFE9; }
-	.filter-tab.active { background: #3A8A7E; color: #FFFFFF; }
+	.filter-tab.active { background: var(--primary); color: #FFFFFF; }
 
 	/* 书籍卡片 */
 	.book-card { display: flex; gap: 24rpx; align-items: stretch; }
-	.book-cover { width: 110rpx; height: 150rpx; border-radius: 10rpx; background: #EAF3F0; flex-shrink: 0; }
+	.book-cover { width: 110rpx; height: 150rpx; border-radius: 10rpx; background: var(--primary-bg); flex-shrink: 0; }
 	.book-info { flex: 1; display: flex; flex-direction: column; justify-content: center; gap: 8rpx; min-width: 0; }
 	.book-top { display: flex; align-items: center; justify-content: space-between; gap: 12rpx; }
 	.book-title { font-size: 30rpx; font-weight: 600; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 	.book-author { font-size: 24rpx; color: #8A8A86; }
 	.book-status { font-size: 20rpx; flex-shrink: 0; padding: 4rpx 16rpx; border-radius: 8rpx; }
 	.st-WantToRead { background: #F1EFE9; color: #8A8A86; }
-	.st-Reading { background: #EAF3F0; color: #3A8A7E; }
+	.st-Reading { background: var(--primary-bg); color: var(--primary); }
 	.st-Finished { background: #E8F1E8; color: #4A7A4A; }
 	.progress-bar { height: 8rpx; background: #F1EFE9; border-radius: 4rpx; overflow: hidden; }
-	.progress-fill { height: 100%; background: #3A8A7E; border-radius: 4rpx; }
+	.progress-fill { height: 100%; background: var(--primary); border-radius: 4rpx; }
 	.book-meta-row { display: flex; justify-content: space-between; align-items: center; }
 	.book-progress { font-size: 22rpx; color: #8A8A86; }
-	.book-minutes { font-size: 22rpx; color: #3A8A7E; }
+	.book-minutes { font-size: 22rpx; color: var(--primary); }
 
 	/* 弹窗 */
 	.modal-mask { position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 999; display: flex; align-items: center; justify-content: center; }
@@ -361,11 +362,11 @@
 	.modal-title { font-size: 32rpx; font-weight: 700; margin-bottom: 20rpx; display: block; }
 	.modal-input { background: #F7F5EF; border-radius: 12rpx; padding: 16rpx 20rpx; font-size: 28rpx; margin-bottom: 16rpx; }
 	.cover-row { display: flex; align-items: center; gap: 20rpx; margin-bottom: 16rpx; }
-	.cover-preview { width: 100rpx; height: 130rpx; border-radius: 8rpx; background: #EAF3F0; }
-	.cover-btn { font-size: 26rpx; color: #3A8A7E; }
+	.cover-preview { width: 100rpx; height: 130rpx; border-radius: 8rpx; background: var(--primary-bg); }
+	.cover-btn { font-size: 26rpx; color: var(--primary); }
 	.status-row { display: flex; gap: 12rpx; margin-bottom: 16rpx; }
 	.status-chip { padding: 8rpx 20rpx; border-radius: 20rpx; font-size: 24rpx; background: #F1EFE9; color: #8A8A86; }
-	.status-chip.active { background: #3A8A7E; color: #FFFFFF; }
+	.status-chip.active { background: var(--primary); color: #FFFFFF; }
 	.num-row { display: flex; align-items: center; gap: 12rpx; margin-bottom: 16rpx; }
 	.num-label { font-size: 24rpx; color: #8A8A86; }
 	.num-input { width: 110rpx; background: #F7F5EF; border-radius: 8rpx; padding: 10rpx; text-align: center; font-size: 26rpx; }
@@ -373,7 +374,7 @@
 	.venue-picker { margin-bottom: 16rpx; }
 	.venue-picker-box { background: #F7F5EF; border-radius: 12rpx; padding: 16rpx 20rpx; display: flex; align-items: center; gap: 12rpx; }
 	.venue-picker-label { font-size: 26rpx; color: #55554F; }
-	.venue-picker-value { flex: 1; font-size: 26rpx; color: #3A8A7E; text-align: right; }
+	.venue-picker-value { flex: 1; font-size: 26rpx; color: var(--primary); text-align: right; }
 	.venue-picker-value.none { color: #B0B0AB; }
 	.venue-picker-clear { font-size: 22rpx; color: #B85450; }
 </style>

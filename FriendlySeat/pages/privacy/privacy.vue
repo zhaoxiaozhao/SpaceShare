@@ -1,5 +1,6 @@
 <template>
-	<view class="doc-page">
+	<page-meta :page-style="pageThemeStyle" />
+		<view class="doc-page">
 		<view class="doc-section">
 			<text class="doc-title">友邻座《隐私保护指引》</text>
 			<text class="doc-sub">版本日期：2026年8月</text>
@@ -105,7 +106,7 @@
 		display: block;
 		font-size: 30rpx;
 		font-weight: 600;
-		color: #3A8A7E;
+		color: var(--primary);
 		margin-bottom: 12rpx;
 	}
 	.doc-p {

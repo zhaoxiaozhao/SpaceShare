@@ -1,5 +1,6 @@
 <template>
-	<view v-if="seat">
+	<page-meta :page-style="pageThemeStyle" />
+		<view v-if="seat">
 		<view class="card seat-header">
 			<view class="seat-top">
 				<text class="seat-code">{{seat.displayCode || seat.code}}</text>
@@ -210,8 +211,8 @@
 	}
 	.loc-floor {
 		font-size: 24rpx;
-		color: #3A8A7E;
-		background: #EAF3F0;
+		color: var(--primary);
+		background: var(--primary-bg);
 		padding: 2rpx 14rpx;
 		border-radius: 8rpx;
 	}

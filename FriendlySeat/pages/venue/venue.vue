@@ -1,5 +1,6 @@
 <template>
-	<view v-if="venue">
+	<page-meta :page-style="pageThemeStyle" />
+		<view v-if="venue">
 		<view class="card venue-header">
 			<text class="venue-name">{{venue.name}}</text>
 			<text class="venue-type">{{venue.type}} · {{venue.openingTime}} - {{venue.closingTime}}</text>
@@ -751,7 +752,7 @@
 	}
 	.venue-type {
 		font-size: 24rpx;
-		color: #3A8A7E;
+		color: var(--primary);
 	}
 	.venue-addr, .venue-desc {
 		font-size: 24rpx;
@@ -773,7 +774,7 @@
 		color: #33332E;
 	}
 	.stat-num.green {
-		color: #3A8A7E;
+		color: var(--primary);
 	}
 	.stat-label {
 		font-size: 22rpx;
@@ -782,9 +783,9 @@
 	.fs-btn {
 		font-size: 28rpx;
 		font-weight: 600;
-		color: #3A8A7E;
+		color: var(--primary);
 		padding: 8rpx 20rpx;
-		background: #EAF3F0;
+		background: var(--primary-bg);
 		border-radius: 30rpx;
 	}
 	/* 全屏地图 */
@@ -820,7 +821,7 @@
 		height: 56rpx;
 		line-height: 52rpx;
 		text-align: center;
-		background: #3A8A7E;
+		background: var(--primary);
 		color: #FFFFFF;
 		border-radius: 50%;
 		font-size: 32rpx;
@@ -867,10 +868,10 @@
 		height: 20rpx;
 		border-radius: 6rpx;
 	}
-	.dot.avail { background: #3A8A7E; }
+	.dot.avail { background: var(--primary); }
 	.dot.reserved { background: #D9822B; }
 	.dot.off { background: #B85450; }
-	.dot.unknown { background: #EAF3F0; border: 2rpx dashed #A9C7C1; }
+	.dot.unknown { background: var(--primary-bg); border: 2rpx dashed var(--primary-disabled); }
 	.dot-poi {
 		width: 20rpx;
 		height: 20rpx;
@@ -908,12 +909,12 @@
 		border: 1rpx solid #E0DED6;
 	}
 	.area-tab.active {
-		background: #3A8A7E;
+		background: var(--primary);
 		color: #FFFFFF;
-		border-color: #3A8A7E;
+		border-color: var(--primary);
 	}
 	.floor-tab.active {
-		background: #3A8A7E;
+		background: var(--primary);
 		color: #FFFFFF;
 	}
 	.floor-count {
@@ -1003,15 +1004,15 @@
 		min-height: 0;
 	}
 	.map-cell.avail {
-		background: #3A8A7E;
+		background: var(--primary);
 	}
 	.map-cell.reserved {
 		background: #FBEEDD;
 		border: 1px solid #D9822B;
 	}
 	.map-cell.unknown {
-		background: #EAF3F0;
-		border: 1px dashed #A9C7C1;
+		background: var(--primary-bg);
+		border: 1px dashed var(--primary-disabled);
 	}
 	.map-cell.off {
 		background: #F6DEDE;
@@ -1027,7 +1028,7 @@
 	}
 	.zone-label {
 		font-size: 10px;
-		color: #3A8A7E;
+		color: var(--primary);
 		font-weight: 600;
 		position: absolute;
 		left: 0;
@@ -1043,7 +1044,7 @@
 	}
 	.zone-letter {
 		font-weight: 700;
-		color: #3A8A7E;
+		color: var(--primary);
 	}
 	/* 标志物 */
 	.poi-rect {
@@ -1111,7 +1112,7 @@
 	.share-seat {
 		font-size: 30rpx;
 		font-weight: 600;
-		color: #3A8A7E;
+		color: var(--primary);
 	}
 	.share-loc {
 		display: flex;
@@ -1120,8 +1121,8 @@
 	}
 	.share-floor {
 		font-size: 24rpx;
-		color: #3A8A7E;
-		background: #EAF3F0;
+		color: var(--primary);
+		background: var(--primary-bg);
 		padding: 2rpx 14rpx;
 		border-radius: 8rpx;
 	}

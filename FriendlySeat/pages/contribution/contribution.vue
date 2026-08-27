@@ -1,5 +1,6 @@
 <template>
-	<view>
+	<page-meta :page-style="pageThemeStyle" />
+		<view>
 		<view class="card hero">
 			<text class="hero-title">友邻贡献</text>
 			<text class="hero-desc">你每一次分享，都在让善意相续</text>
@@ -77,7 +78,7 @@
 
 <style scoped>
 	.hero {
-		background: linear-gradient(160deg, #3A8A7E, #5BA48D);
+		background: linear-gradient(160deg, var(--primary), var(--primary-light));
 		display: flex;
 		flex-direction: column;
 		align-items: center;
@@ -109,7 +110,7 @@
 	.stat-num {
 		font-size: 44rpx;
 		font-weight: 700;
-		color: #3A8A7E;
+		color: var(--primary);
 	}
 	.stat-label {
 		font-size: 24rpx;

@@ -1,5 +1,6 @@
 <template>
-	<view>
+	<page-meta :page-style="pageThemeStyle" />
+		<view>
 		<view class="card summary-card">
 			<text class="summary-num">{{earnedCount}} / {{achievements.length}}</text>
 			<text class="summary-label">已获得成就</text>
@@ -55,7 +56,7 @@
 
 <style scoped>
 	.summary-card {
-		background: linear-gradient(160deg, #3A8A7E, #5BA48D);
+		background: linear-gradient(160deg, var(--primary), var(--primary-light));
 		color: #FFFFFF;
 		display: flex;
 		flex-direction: column;
@@ -98,7 +99,7 @@
 	}
 	.ach-status {
 		font-size: 22rpx;
-		color: #3A8A7E;
+		color: var(--primary);
 	}
 	.achievement.locked .ach-status {
 		color: #B0B0AB;

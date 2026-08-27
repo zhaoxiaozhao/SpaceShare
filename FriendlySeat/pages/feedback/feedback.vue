@@ -1,5 +1,6 @@
 <template>
-	<view>
+	<page-meta :page-style="pageThemeStyle" />
+		<view>
 		<view class="card">
 			<text class="section-label">意见反馈</text>
 			<textarea

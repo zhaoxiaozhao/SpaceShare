@@ -1,5 +1,6 @@
 <template>
-	<view>
+	<page-meta :page-style="pageThemeStyle" />
+		<view>
 		<view class="card group" v-for="(group, gk) in grouped" :key="gk">
 			<text class="group-date">{{gk}}</text>
 			<view class="session-row" v-for="s in group" :key="s.id">
@@ -76,7 +77,7 @@
 	.group-date {
 		font-size: 26rpx;
 		font-weight: 600;
-		color: #3A8A7E;
+		color: var(--primary);
 		display: block;
 		margin-bottom: 16rpx;
 	}
@@ -101,7 +102,7 @@
 	}
 	.session-duration {
 		font-size: 26rpx;
-		color: #3A8A7E;
+		color: var(--primary);
 		font-weight: 600;
 	}
 </style>

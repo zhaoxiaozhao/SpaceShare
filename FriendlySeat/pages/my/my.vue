@@ -1,5 +1,6 @@
 <template>
-	<view>
+	<page-meta :page-style="pageThemeStyle" />
+		<view>
 		<view class="card profile-card">
 			<view class="avatar-btn" @click="chooseAvatar">
 				<image class="avatar" :src="previewAvatar || user.avatarUrl || '/static/logo.png'" mode="aspectFill" />
@@ -234,7 +235,7 @@
 		width: 120rpx;
 		height: 120rpx;
 		border-radius: 50%;
-		background: #EAF3F0;
+		background: var(--primary-bg);
 	}
 	.profile-info {
 		flex: 1;
@@ -252,16 +253,16 @@
 	}
 	.random-btn {
 		font-size: 26rpx;
-		color: #3A8A7E;
+		color: var(--primary);
 		padding: 6rpx 16rpx;
-		background: #EAF3F0;
+		background: var(--primary-bg);
 		border-radius: 24rpx;
 	}
 	.save-btn {
 		margin-top: 12rpx;
 		font-size: 24rpx;
 		line-height: 2;
-		background: #3A8A7E;
+		background: var(--primary);
 		color: #FFFFFF;
 		border-radius: 32rpx;
 		padding: 0 40rpx;
@@ -282,13 +283,13 @@
 	.credit-score {
 		font-size: 28rpx;
 		font-weight: 600;
-		color: #3A8A7E;
+		color: var(--primary);
 	}
 	.credit-level {
 		font-size: 22rpx;
 		padding: 4rpx 12rpx;
-		background: #EAF3F0;
-		color: #3A8A7E;
+		background: var(--primary-bg);
+		color: var(--primary);
 		border-radius: 8rpx;
 	}
 	.menu {
@@ -333,7 +334,7 @@
 	}
 	.about-line {
 		font-size: 26rpx;
-		color: #3A8A7E;
+		color: var(--primary);
 	}
 	.about-line.small {
 		font-size: 22rpx;

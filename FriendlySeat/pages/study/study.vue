@@ -1,5 +1,6 @@
 <template>
-	<view>
+	<page-meta :page-style="pageThemeStyle" />
+		<view>
 		<!-- 今日学习卡片 -->
 		<view class="card today-card" :class="{ active: today.activeSession }">
 			<text class="today-label">{{today.activeSession ? '正在学习' : '今日学习'}}</text>
@@ -246,7 +247,7 @@
 
 <style scoped>
 	.today-card {
-		background: linear-gradient(160deg, #3A8A7E, #5BA48D);
+		background: linear-gradient(160deg, var(--primary), var(--primary-light));
 		color: #FFFFFF;
 		display: flex;
 		flex-direction: column;
@@ -255,7 +256,7 @@
 		gap: 8rpx;
 	}
 	.today-card.active {
-		background: linear-gradient(160deg, #2F6F65, #4A9183);
+		background: var(--primary-gradient);
 	}
 	.today-label {
 		font-size: 26rpx;
@@ -288,7 +289,7 @@
 		color: #55554F;
 	}
 	.type-chip.active {
-		background: #3A8A7E;
+		background: var(--primary);
 		color: #FFFFFF;
 	}
 	.start-btn {
@@ -306,7 +307,7 @@
 	.active-time {
 		font-size: 44rpx;
 		font-weight: 700;
-		color: #3A8A7E;
+		color: var(--primary);
 	}
 	.end-btn {
 		margin-top: 30rpx;
@@ -318,7 +319,7 @@
 	}
 	.goal-edit {
 		font-size: 26rpx;
-		color: #3A8A7E;
+		color: var(--primary);
 	}
 	.progress-bar {
 		height: 20rpx;
@@ -329,7 +330,7 @@
 	}
 	.progress-fill {
 		height: 100%;
-		background: linear-gradient(90deg, #3A8A7E, #5BA48D);
+		background: linear-gradient(90deg, var(--primary), var(--primary-light));
 		border-radius: 10rpx;
 		transition: width 0.3s;
 	}
@@ -375,7 +376,7 @@
 	}
 	.record-duration {
 		font-size: 28rpx;
-		color: #3A8A7E;
+		color: var(--primary);
 		font-weight: 600;
 	}
 	.record-time {
@@ -416,7 +417,7 @@
 		font-size: 28rpx;
 	}
 	.goal-opt.active {
-		background: #3A8A7E;
+		background: var(--primary);
 		color: #FFFFFF;
 	}
 	.modal-btn {

@@ -1,5 +1,6 @@
 <template>
-	<view>
+	<page-meta :page-style="pageThemeStyle" />
+		<view>
 		<view v-if="targetType">
 			<!-- 被举报人 -->
 			<view class="card" v-if="targetNickname || targetUserId">
@@ -12,7 +13,7 @@
 				<text class="form-label">举报原因</text>
 				<radio-group @change="onReason">
 					<label class="radio-row" v-for="r in reasons" :key="r">
-						<radio :value="r" :checked="reason === r" color="#3A8A7E" />
+						<radio :value="r" :checked="reason === r" color="var(--primary)" />
 						<text class="radio-text">{{r}}</text>
 					</label>
 				</radio-group>

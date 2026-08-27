@@ -1,5 +1,6 @@
 <template>
-	<view>
+	<page-meta :page-style="pageThemeStyle" />
+		<view>
 		<view class="report-header">
 			<view class="period-tabs">
 				<view class="period-tab" :class="{ active: period === 'weekly' }" @click="switchPeriod('weekly')">周报</view>
@@ -159,7 +160,7 @@
 					const H = 800
 					const r = this.report
 					const periodName = this.period === 'monthly' ? '月报' : '周报'
-					const primary = '#3A8A7E'
+					const primary = 'var(--primary)'
 					const dark = '#2B2B27'
 					const gray = '#8A8A86'
 
@@ -241,7 +242,7 @@
 							ctx.setTextAlign('left')
 
 							// 进度条
-							ctx.setFillStyle('#EAF3F0')
+							ctx.setFillStyle('var(--primary-bg)')
 							ctx.fillRect(40, y + 20, W - 80, 10)
 							ctx.setFillStyle(primary)
 							ctx.fillRect(40, y + 20, Math.max(4, (W - 80) * pct / 100), 10)
@@ -314,12 +315,12 @@
 	}
 	.period-tab.active {
 		background: #FFFFFF;
-		color: #3A8A7E;
+		color: var(--primary);
 		font-weight: 600;
 		box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.06);
 	}
 	.hero-card {
-		background: linear-gradient(160deg, #3A8A7E, #5BA48D);
+		background: linear-gradient(160deg, var(--primary), var(--primary-light));
 		color: #FFFFFF;
 		display: flex;
 		flex-direction: column;
@@ -358,7 +359,7 @@
 	.stat-num {
 		font-size: 40rpx;
 		font-weight: 700;
-		color: #3A8A7E;
+		color: var(--primary);
 	}
 	.stat-label {
 		font-size: 22rpx;
@@ -381,7 +382,7 @@
 	}
 	.bar {
 		width: 100%;
-		background: linear-gradient(180deg, #5BA48D, #3A8A7E);
+		background: linear-gradient(180deg, var(--primary-light), var(--primary));
 		border-radius: 6rpx 6rpx 0 0;
 		min-height: 4rpx;
 	}
@@ -405,7 +406,7 @@
 	}
 	.type-min {
 		font-size: 26rpx;
-		color: #3A8A7E;
+		color: var(--primary);
 		font-weight: 600;
 	}
 	.share-bar {

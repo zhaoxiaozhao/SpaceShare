@@ -1,5 +1,6 @@
 <template>
-	<view>
+	<page-meta :page-style="pageThemeStyle" />
+		<view>
 		<view class="card score-card">
 			<text class="score-label">友邻信用</text>
 			<text class="score-num">{{summary.score || 100}}</text>
@@ -70,7 +71,7 @@
 	.score-num {
 		font-size: 90rpx;
 		font-weight: 700;
-		color: #3A8A7E;
+		color: var(--primary);
 	}
 	.score-level {
 		font-size: 28rpx;
@@ -103,7 +104,7 @@
 		font-size: 30rpx;
 		font-weight: 700;
 	}
-	.tx-change.plus { color: #3A8A7E; }
+	.tx-change.plus { color: var(--primary); }
 	.tx-change.minus { color: #B85450; }
 	.tx-time {
 		font-size: 22rpx;

@@ -1,5 +1,6 @@
 <template>
-	<view>
+	<page-meta :page-style="pageThemeStyle" />
+		<view>
 		<view class="card stat-summary">
 			<view class="s-item">
 				<text class="s-num">{{stats.totalMinutes}}</text>
@@ -32,7 +33,7 @@
 				<view class="hl-box" style="background:#F1EFE9"></view>
 				<view class="hl-box" style="background:#D8E8E4"></view>
 				<view class="hl-box" style="background:#9CC5BC"></view>
-				<view class="hl-box" style="background:#3A8A7E"></view>
+				<view class="hl-box" style="background:var(--primary)"></view>
 				<text class="hl-item">多</text>
 			</view>
 			<text class="heat-note">有阅读的 {{readingDays}} 天 · 本月 {{currentMonthMinutes}} 分钟</text>
@@ -107,7 +108,7 @@
 				if (min <= 0) return '#F1EFE9'
 				if (min < 30) return '#D8E8E4'
 				if (min < 60) return '#9CC5BC'
-				return '#3A8A7E'
+				return 'var(--primary)'
 			}
 		}
 	}
@@ -116,7 +117,7 @@
 <style scoped>
 	.stat-summary { display: flex; }
 	.s-item { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 6rpx; }
-	.s-num { font-size: 44rpx; font-weight: 700; color: #3A8A7E; }
+	.s-num { font-size: 44rpx; font-weight: 700; color: var(--primary); }
 	.s-label { font-size: 22rpx; color: #8A8A86; }
 	.heatmap { display: flex; flex-wrap: wrap; gap: 6rpx; margin: 20rpx 0; }
 	.hm-cell { width: 30rpx; height: 30rpx; border-radius: 4rpx; display: flex; align-items: center; justify-content: center; font-size: 16rpx; color: #FFFFFF; }
@@ -127,5 +128,5 @@
 	.heat-note { display: block; font-size: 22rpx; color: #8A8A86; }
 	.year-row { display: flex; gap: 16rpx; }
 	.year-btn { padding: 10rpx 30rpx; border-radius: 24rpx; font-size: 26rpx; background: #F1EFE9; color: #55554F; }
-	.year-btn.active { background: #3A8A7E; color: #FFFFFF; }
+	.year-btn.active { background: var(--primary); color: #FFFFFF; }
 </style>

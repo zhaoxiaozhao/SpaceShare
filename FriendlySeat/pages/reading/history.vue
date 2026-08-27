@@ -1,5 +1,6 @@
 <template>
-	<view>
+	<page-meta :page-style="pageThemeStyle" />
+		<view>
 		<view v-if="sessions.length">
 			<view class="card session-item" v-for="s in sessions" :key="s.id" @click="goBook(s.bookId)">
 				<view class="s-top">
@@ -42,6 +43,6 @@
 	.session-item { display: flex; flex-direction: column; gap: 8rpx; }
 	.s-top { display: flex; justify-content: space-between; align-items: center; }
 	.s-book { font-size: 30rpx; font-weight: 600; }
-	.s-time { font-size: 28rpx; color: #3A8A7E; font-weight: 600; }
+	.s-time { font-size: 28rpx; color: var(--primary); font-weight: 600; }
 	.s-date { font-size: 24rpx; color: #8A8A86; }
 </style>
