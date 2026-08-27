@@ -54,10 +54,22 @@ public class ReservationsController : ControllerBase
         return Ok(await _reservations.ArriveAsync(id, _currentUser.UserId!.Value, lat, lng, ct));
     }
 
+    /// <summary>扫码/输码核销到座（输入分享者出示的核销码，无需 GPS）</summary>
+    [HttpPost("{id:long}/check-in")]
+    public async Task<ActionResult<ArrivalResultDto>> CheckInByCode(long id, [FromBody] CheckInCodeRequest request, CancellationToken ct)
+    {
+        return Ok(await _reservations.CheckInByCodeAsync(id, _currentUser.UserId!.Value, request.Code, ct));
+    }
+
     [HttpPost("{id:long}/complete")]
     public async Task<IActionResult> Complete(long id, CancellationToken ct)
     {
         await _reservations.CompleteAsync(id, _currentUser.UserId!.Value, ct);
         return Ok();
     }
+}
+
+public class CheckInCodeRequest
+{
+    public string Code { get; set; } = string.Empty;
 }

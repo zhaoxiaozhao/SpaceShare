@@ -44,10 +44,13 @@ public class AutoReleaseJob : IAutoReleaseJob
         var now = DateTime.UtcNow;
         var grace = TimeSpan.FromMinutes(rules.ArrivalGraceMinutes);
 
-        // 1. 处理到座超时：reserved 且超过 start + grace → no_show
+        // 1. 处理到座超时：reserved 且超过宽限 → no_show
+        //    宽限从「预约开始时间」与「预约生效时间」中较晚者起算，避免临近分享结束的预约刚生成就被误判爽约
         var overdueReservations = await _db.Reservations
             .Include(r => r.Seat)
-            .Where(r => r.Status == ReservationStatus.Reserved && r.StartAt.AddMinutes(rules.ArrivalGraceMinutes) < now)
+            .Where(r => r.Status == ReservationStatus.Reserved && (
+                (r.ReservedAt <= r.StartAt && r.StartAt.AddMinutes(rules.ArrivalGraceMinutes) < now) ||
+                (r.ReservedAt > r.StartAt && r.ReservedAt.AddMinutes(rules.ArrivalGraceMinutes) < now)))
             .ToListAsync(ct);
 
         foreach (var reservation in overdueReservations)
@@ -81,6 +84,29 @@ public class AutoReleaseJob : IAutoReleaseJob
 
             await _notifications.SendAsync(reservation.UserId, NotificationType.ReservationExpired,
                 "预约已超时释放", "你未在到座时间内确认到达，预约已自动释放。", null, ct);
+        }
+
+        // 1.5 到座提醒：宽限剩余 ≤10 分钟仍未确认的预约，提醒用户尽快确认（每单只提醒一次）
+        var remindDeadline = now.AddMinutes(10);
+        var toRemind = await _db.Reservations
+            .Where(r => r.Status == ReservationStatus.Reserved && (
+                (r.ReservedAt <= r.StartAt && r.StartAt.AddMinutes(rules.ArrivalGraceMinutes) < remindDeadline) ||
+                (r.ReservedAt > r.StartAt && r.ReservedAt.AddMinutes(rules.ArrivalGraceMinutes) < remindDeadline)))
+            .ToListAsync(ct);
+
+        foreach (var reservation in toRemind)
+        {
+            // 防重：该预约已发过到座提醒则跳过（Data 存预约Id）
+            var dataTag = $"arrival_reminder:{reservation.Id}";
+            var alreadyReminded = await _db.Notifications
+                .AnyAsync(n => n.UserId == reservation.UserId && n.Data == dataTag, ct);
+            if (alreadyReminded) continue;
+
+            var minutesLeft = reservation.ReservedAt > reservation.StartAt
+                ? (int)Math.Max(0, (reservation.ReservedAt.AddMinutes(rules.ArrivalGraceMinutes) - now).TotalMinutes)
+                : (int)Math.Max(0, (reservation.StartAt.AddMinutes(rules.ArrivalGraceMinutes) - now).TotalMinutes);
+            await _notifications.SendAsync(reservation.UserId, NotificationType.ArrivalRequired,
+                "到座提醒", $"你预约的座位将在 {minutesLeft} 分钟后超时释放，如已到座请尽快在小程序确认。", dataTag, ct);
         }
 
         // 2. 处理到座后未结束但超时：arrived 且超过 end → completed

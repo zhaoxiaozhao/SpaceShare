@@ -11,6 +11,10 @@ public class SeatShare
     public SeatShareStatus Status { get; set; } = SeatShareStatus.Available;
     public string? Note { get; set; }
     public bool AllowContact { get; set; }
+
+    /// <summary>到座核销码（6 位数字，分享者出示给预约者核销到座）</summary>
+    public string CheckInCode { get; set; } = string.Empty;
+
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime? CancelledAt { get; set; }
 

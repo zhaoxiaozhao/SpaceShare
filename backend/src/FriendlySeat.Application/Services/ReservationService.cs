@@ -14,6 +14,7 @@ public class ReservationService
     private readonly INotificationService _notifications;
     private readonly IRedisCache _cache;
     private readonly RiskService _risk;
+    private readonly CreditService _credit;
     private readonly ILogger _logger;
 
     public ReservationService(
@@ -23,6 +24,7 @@ public class ReservationService
         INotificationService notifications,
         IRedisCache cache,
         RiskService risk,
+        CreditService credit,
         ILogger<ReservationService> logger)
     {
         _db = db;
@@ -30,6 +32,8 @@ public class ReservationService
         _config = config;
         _notifications = notifications;
         _cache = cache;
+        _risk = risk;
+        _credit = credit;
         _logger = logger;
     }
 
@@ -241,7 +245,59 @@ public class ReservationService
         // 信用加分
         await AwardCreditAsync(userId, "arrival", "到座确认", reservation.Id, ct);
 
+        // 友邻贡献：预约者准时到座 +1；分享者的分享被真实使用，帮助人数 +1
+        await _credit.TrackContributionAsync(userId, "on_time", 0, ct);
+        if (reservation.ShareId.HasValue)
+        {
+            var shareOwner = await _db.SeatShares
+                .Where(s => s.Id == reservation.ShareId.Value)
+                .Select(s => (long?)s.OwnerUserId)
+                .FirstOrDefaultAsync(ct);
+            if (shareOwner.HasValue)
+            {
+                await _credit.TrackContributionAsync(shareOwner.Value, "helped", 0, ct);
+            }
+        }
+
         return new ArrivalResultDto { ReservationId = reservation.Id, Confirmed = true, Message = "欢迎到座" };
+    }
+
+    /// <summary>
+    /// 扫码/输码核销到座：预约者输入分享者出示的核销码完成到座确认（无需 GPS）
+    /// </summary>
+    public async Task<ArrivalResultDto> CheckInByCodeAsync(long reservationId, long userId, string code, CancellationToken ct = default)
+    {
+        if (string.IsNullOrWhiteSpace(code))
+            throw AppException.BadRequest("code_required", "请输入核销码");
+
+        var reservation = await _db.Reservations
+            .Include(r => r.Seat)
+            .FirstOrDefaultAsync(r => r.Id == reservationId, ct)
+            ?? throw AppException.NotFound("预约不存在");
+        if (reservation.UserId != userId)
+            throw AppException.Forbidden("只能核销自己的预约");
+
+        // 防暴力猜测：错误 ≥5 次锁定 30 分钟
+        var failKey = $"checkin:fail:{reservationId}:{userId}";
+        var failCount = await _cache.GetAsync<int>(failKey, ct);
+        if (failCount >= 5)
+            throw AppException.BadRequest("checkin_locked", "错误次数过多，请30分钟后再试");
+
+        var share = reservation.ShareId.HasValue
+            ? await _db.SeatShares.FirstOrDefaultAsync(s => s.Id == reservation.ShareId.Value, ct)
+            : null;
+        if (share is null || string.IsNullOrEmpty(share.CheckInCode))
+            throw AppException.BadRequest("checkin_code_missing", "该预约不支持核销码确认，请使用定位确认到座");
+
+        if (share.CheckInCode != code.Trim())
+        {
+            await _cache.SetAsync(failKey, failCount + 1, TimeSpan.FromMinutes(30), ct);
+            throw AppException.BadRequest("checkin_code_wrong", $"核销码不正确（还可尝试 {4 - failCount} 次）");
+        }
+
+        // 核销成功：清除失败计数，走标准到座流程（无 GPS，核销码即到场凭证）
+        await _cache.RemoveAsync(failKey, ct);
+        return await ArriveAsync(reservationId, userId, null, null, ct);
     }
 
     public async Task CompleteAsync(long reservationId, long userId, CancellationToken ct = default)
@@ -358,6 +414,7 @@ public class ReservationService
                 Status = s.Status.ToString(),
                 Note = s.Note,
                 AllowContact = s.AllowContact,
+                CheckInCode = s.CheckInCode,
                 CreatedAt = s.CreatedAt
             })
             .ToListAsync(ct);

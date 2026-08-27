@@ -11,24 +11,26 @@
 				<text class="loc-area" v-if="seat.areaName">{{seat.areaName}}</text>
 				<text class="loc-venue" v-if="seat.venueName">{{seat.venueName}}</text>
 			</view>
-			<view class="seat-features">
-				<text class="feature" v-if="seat.window">🪟 靠窗</text>
-				<text class="feature" v-if="seat.powerSocket">🔌 插座</text>
-				<text class="feature" v-if="seat.quietLevel">🤫 安静</text>
-				<text class="feature" v-if="seat.lightLevel === 3">💡 明亮</text>
+			<!-- 属性标签：有分享时显示分享标签（与主页/场馆详情一致），无分享时显示座位属性 -->
+			<view class="seat-features" v-if="shares.length">
+				<text class="feature" v-for="(t, i) in shareTags" :key="i">{{t}}</text>
+			</view>
+			<view class="seat-features" v-else>
+				<text class="feature" v-if="seat.window">靠窗</text>
+				<text class="feature" v-if="seat.powerSocket">有插座</text>
+				<text class="feature" v-if="seat.quietLevel">安静</text>
+				<text class="feature" v-if="seat.lightLevel === 3">光线好</text>
 			</view>
 			<text class="seat-desc" v-if="seat.description">{{seat.description}}</text>
 		</view>
 
 		<!-- ============ 有分享：预约者/候补视角 ============ -->
 		<view v-if="shares.length" class="section">
-			<text class="section-title">分享者预计释放时间</text>
 			<view class="card share-card" v-for="s in shares" :key="s.id">
 				<view class="share-row">
 					<view class="share-info">
 						<text class="share-time">预计释放：{{formatTime(s.endAt)}}</text>
 						<text class="share-owner" v-if="s.ownerNickname">分享者：{{s.ownerNickname}}</text>
-						<text class="share-note" v-if="s.note">{{s.note}}</text>
 					</view>
 					<view class="share-actions">
 						<button v-if="s.isReservable" class="btn-primary small" @click="reserve(s)">预约</button>
@@ -38,7 +40,6 @@
 							:disabled="waiting(s)"
 							@click="waitlist(s)"
 						>{{waiting(s) ? '候补中' : '加入候补'}}</button>
-						<text v-else class="share-status-tag">{{s.status === 'Available' ? '即将可约' : '已被预约'}}</text>
 					</view>
 				</view>
 			</view>
@@ -82,6 +83,13 @@
 		},
 		onShow() {
 			this.load()
+		},
+		computed: {
+			// 分享标签（与主页/场馆详情显示的备注一致）：取第一条分享的 note 拆分为标签
+			shareTags() {
+				const note = this.shares.length ? (this.shares[0].note || '') : ''
+				return note ? note.split(/\s+/).filter(Boolean) : []
+			}
 		},
 		methods: {
 			formatTime,
@@ -251,11 +259,6 @@
 		display: flex;
 		flex-direction: column;
 		gap: 12rpx;
-	}
-	.share-status-tag {
-		font-size: 24rpx;
-		color: #8A8A86;
-		text-align: center;
 	}
 	.btn-primary.small, .btn-outline.small {
 		font-size: 26rpx;

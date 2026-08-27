@@ -17,6 +17,17 @@
 					</view>
 					<text class="res-venue">{{r.venueName}}<text v-if="r.floorName" class="res-floor"> · {{r.floorName}}</text><text v-if="r.areaName" class="res-floor"> · {{r.areaName}}</text></text>
 					<text class="res-time">{{formatTime(r.startAt)}} ~ {{formatTime(r.endAt)}}</text>
+					<!-- 核销码到座：输入分享者出示的核销码 -->
+					<view class="code-input-row" v-if="r.status === 'Reserved'">
+						<input
+							class="code-input"
+							type="number"
+							v-model="checkInCodes[r.id]"
+							placeholder="输入核销码"
+							:maxlength="6"
+						/>
+						<button class="btn-primary small" @click="checkIn(r)">扫码核销</button>
+					</view>
 					<view class="res-actions">
 						<button
 							v-if="r.status === 'Reserved'"
@@ -25,9 +36,9 @@
 						>取消预约</button>
 						<button
 							v-if="r.status === 'Reserved'"
-							class="btn-primary small"
+							class="btn-outline small"
 							@click="arrive(r)"
-						>确认到座</button>
+						>定位到座</button>
 						<button
 							v-if="r.status === 'Arrived'"
 							class="btn-primary small"
@@ -48,6 +59,11 @@
 					</view>
 					<text class="res-venue">{{s.venueName}}<text v-if="s.floorName" class="res-floor"> · {{s.floorName}}</text><text v-if="s.areaName" class="res-floor"> · {{s.areaName}}</text></text>
 					<text class="res-time">{{formatTime(s.startAt)}} ~ {{formatTime(s.endAt)}}</text>
+					<!-- 已被预约：出示核销码给预约者，到座核销 -->
+					<view class="checkin-box" v-if="s.status === 'Reserved' && s.checkInCode">
+						<text class="checkin-label">到座核销码（出示给预约者）</text>
+						<text class="checkin-code">{{s.checkInCode}}</text>
+					</view>
 					<view class="res-actions">
 						<button
 							v-if="s.status === 'Available'"
@@ -106,7 +122,8 @@
 			return {
 				tab: 'upcoming',
 				summary: { upcoming: [], history: [], myShares: [] },
-				waitlist: []
+				waitlist: [],
+				checkInCodes: {}
 			}
 		},
 		onShow() {
@@ -157,6 +174,24 @@
 					fail: () => {
 						this.doArrive(r, 31.22, 121.528)
 					}
+				})
+			},
+			// 输入核销码到座（无需 GPS）
+			checkIn(r) {
+				const code = (this.checkInCodes[r.id] || '').trim()
+				if (!code) {
+					uni.showToast({ title: '请输入核销码', icon: 'none' })
+					return
+				}
+				uni.showLoading({ title: '核销中', mask: true })
+				api.checkInByCode(r.id, code).then((res) => {
+					uni.hideLoading()
+					this.checkInCodes[r.id] = ''
+					uni.showToast({ title: res.message || '已到座', icon: 'success' })
+					this.load()
+				}).catch((e) => {
+					uni.hideLoading()
+					uni.showToast({ title: e.message || '核销失败', icon: 'none' })
 				})
 			},
 			async doArrive(r, lat, lng) {
@@ -272,6 +307,41 @@
 	}
 	.res-floor {
 		color: var(--primary);
+	}
+	.checkin-box {
+		background: var(--primary-bg);
+		border-radius: 14rpx;
+		padding: 20rpx;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 8rpx;
+	}
+	.checkin-label {
+		font-size: 22rpx;
+		color: #8A8A86;
+	}
+	.checkin-code {
+		font-size: 56rpx;
+		font-weight: 700;
+		letter-spacing: 12rpx;
+		color: var(--primary);
+	}
+	.code-input-row {
+		display: flex;
+		align-items: center;
+		gap: 12rpx;
+		margin-top: 12rpx;
+	}
+	.code-input {
+		flex: 1;
+		min-width: 0;
+		background: var(--primary-bg);
+		border-radius: 12rpx;
+		padding: 14rpx 20rpx;
+		font-size: 30rpx;
+		letter-spacing: 6rpx;
+		text-align: center;
 	}
 	.res-time {
 		font-size: 26rpx;

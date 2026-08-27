@@ -122,6 +122,7 @@ export const api = {
 	getMyReservations: () => request('/reservations/my'),
 	cancelReservation: (id) => request(`/reservations/${id}/cancel`, { method: 'POST' }),
 	arrive: (id, lat, lng) => request(`/reservations/${id}/arrive?lat=${lat}&lng=${lng}`, { method: 'POST' }),
+	checkInByCode: (id, code) => request(`/reservations/${id}/check-in`, { method: 'POST', data: { code } }),
 	complete: (id) => request(`/reservations/${id}/complete`, { method: 'POST' }),
 	joinWaitlist: (shareId) => request(`/shares/${shareId}/waitlist`, { method: 'POST' }),
 	getMyWaitlist: () => request('/waitlist/my'),

@@ -26,7 +26,7 @@
 		</view>
 
 		<view class="card badges">
-			<text class="badges-title">公益勋章</text>
+			<text class="badges-title">勋章</text>
 			<view class="badge-row">
 				<view class="badge" :class="{ locked: c.shareCount < 1 }">
 					<text class="badge-icon">🌱</text>

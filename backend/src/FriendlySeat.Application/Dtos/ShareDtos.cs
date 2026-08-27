@@ -35,6 +35,9 @@ public class SeatShareDto
     public bool AllowContact { get; set; }
     public DateTime CreatedAt { get; set; }
 
+    /// <summary>到座核销码（仅分享者本人可见，公开接口不返回）</summary>
+    public string? CheckInCode { get; set; }
+
     /// <summary>当前是否可预约（Available 且尚未开始）</summary>
     public bool IsReservable { get; set; }
 }

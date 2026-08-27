@@ -36,9 +36,10 @@
 			<view class="card share-card" v-for="s in shares" :key="s.id" @click="goSeat(s.seatId)">
 				<view class="share-top">
 					<text class="share-seat">{{s.displayCode || s.seatCode}}</text>
-					<text class="share-venue">{{s.venueName}}<text v-if="s.floorName" class="share-floor"> · {{s.floorName}}</text><text v-if="s.areaName" class="share-floor"> · {{s.areaName}}</text></text>
+					<text class="tag">可预约</text>
 				</view>
-				<view class="share-time">{{formatTime(s.startAt)}} ~ {{formatTime(s.endAt)}}</view>
+				<text class="share-venue">{{s.venueName}}<text v-if="s.floorName" class="share-floor"> · {{s.floorName}}</text><text v-if="s.areaName" class="share-floor"> · {{s.areaName}}</text></text>
+				<view class="share-time">预计释放：{{formatTime(s.endAt)}}</view>
 				<view class="share-note" v-if="s.note">{{s.note}}</view>
 			</view>
 		</view>

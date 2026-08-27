@@ -229,5 +229,31 @@ CREATE TABLE `ReadingSessions` (
   CONSTRAINT `FK_ReadingSessions_Venues_VenueId` FOREIGN KEY (`VenueId`) REFERENCES `Venues` (`Id`) ON DELETE RESTRICT
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
         }
+
+        // SeatShares.CheckInCode 列（到座核销码）：已有表补列
+        if (await tableExists("SeatShares") && !await ColumnExistsAsync(db, "SeatShares", "CheckInCode"))
+        {
+            logger.LogInformation("MySQL 补充 SeatShares.CheckInCode 列（到座核销码）");
+            await db.Database.ExecuteSqlRawAsync("ALTER TABLE `SeatShares` ADD COLUMN `CheckInCode` longtext NOT NULL DEFAULT '';");
+        }
+    }
+
+    // 检测某表中是否存在某列
+    private static async Task<bool> ColumnExistsAsync(FriendlySeatDbContext db, string table, string column)
+    {
+        var conn = db.Database.GetDbConnection();
+        var open = conn.State != System.Data.ConnectionState.Open;
+        if (open) await conn.OpenAsync();
+        try
+        {
+            using var cmd = conn.CreateCommand();
+            cmd.CommandText = $"SELECT COUNT(*) FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = '{table}' AND column_name = '{column}'";
+            var result = await cmd.ExecuteScalarAsync();
+            return Convert.ToInt32(result) > 0;
+        }
+        finally
+        {
+            if (open) await conn.CloseAsync();
+        }
     }
 }

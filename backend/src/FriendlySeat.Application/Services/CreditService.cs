@@ -95,6 +95,11 @@ public class CreditService
                 row.ShareCount++;
                 row.ShareHours += hours;
                 break;
+            case "share_cancelled":
+                // 取消分享：撤销该次分享贡献（保持贡献数据反映有效分享；下限 0）
+                row.ShareCount = Math.Max(0, row.ShareCount - 1);
+                row.ShareHours = Math.Max(0, row.ShareHours - hours);
+                break;
             case "helped":
                 row.HelpedCount++;
                 break;

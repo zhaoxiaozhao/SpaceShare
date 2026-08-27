@@ -13,15 +13,17 @@ public class ShareService
     private readonly INotificationService _notifications;
     private readonly IRedisCache _cache;
     private readonly RiskService _risk;
+    private readonly CreditService _credit;
     private readonly ILogger _logger;
 
-    public ShareService(IAppDbContext db, ConfigService config, INotificationService notifications, IRedisCache cache, RiskService risk, ILogger<ShareService> logger)
+    public ShareService(IAppDbContext db, ConfigService config, INotificationService notifications, IRedisCache cache, RiskService risk, CreditService credit, ILogger<ShareService> logger)
     {
         _db = db;
         _config = config;
         _notifications = notifications;
         _cache = cache;
         _risk = risk;
+        _credit = credit;
         _logger = logger;
     }
 
@@ -80,11 +82,16 @@ public class ShareService
             Status = SeatShareStatus.Available,
             Note = request.Note,
             AllowContact = request.AllowContact,
+            CheckInCode = GenerateCheckInCode(),
             CreatedAt = now
         };
 
         _db.SeatShares.Add(share);
         await _db.SaveChangesAsync(ct);
+
+        // 友邻贡献：累计分享次数与分享时长
+        var shareHours = Math.Round((request.EndAt - request.StartAt).TotalHours, 1);
+        await _credit.TrackContributionAsync(userId, "share_created", shareHours, ct);
 
         await InvalidateSeatCacheAsync(request.SeatId, ct);
 
@@ -220,6 +227,7 @@ public class ShareService
                 Status = s.Status.ToString(),
                 Note = s.Note,
                 AllowContact = s.AllowContact,
+                CheckInCode = s.CheckInCode,
                 CreatedAt = s.CreatedAt
             })
             .ToListAsync(ct);
@@ -269,6 +277,12 @@ public class ShareService
             IsMine = share.OwnerUserId == userId,
             IsReservable = isReservable
         };
+
+        // 核销码仅分享者本人可见（防止他人代打卡）
+        if (dto.IsMine)
+        {
+            dto.CheckInCode = share.CheckInCode;
+        }
 
         // 展示编号（B区-002）
         var letter = await GetZoneLetterAsync(share.SeatId, ct);
@@ -332,6 +346,11 @@ public class ShareService
         share.Status = SeatShareStatus.Cancelled;
         share.CancelledAt = DateTime.UtcNow;
         await _db.SaveChangesAsync(ct);
+
+        // 友邻贡献：取消分享撤销该次贡献（次数/时长），保持贡献反映有效分享
+        var cancelledHours = Math.Round((share.EndAt - share.StartAt).TotalHours, 1);
+        await _credit.TrackContributionAsync(userId, "share_cancelled", cancelledHours, ct);
+
         await InvalidateSeatCacheAsync(share.SeatId, ct);
     }
 
@@ -386,6 +405,10 @@ public class ShareService
         }
         return dto;
     }
+
+    // 生成 6 位到座核销码（数字，供预约者输入核销）
+    private static string GenerateCheckInCode()
+        => Random.Shared.Next(100000, 1000000).ToString();
 
     // 备注中检测联系方式：手机号、微信号、QQ、网址等，防止备注演变为社交/交易入口
     private static bool ContainsContactInfo(string text)
