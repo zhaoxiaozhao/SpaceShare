@@ -55,6 +55,12 @@ public class AdminReportService
         var report = await _db.Reports.FirstOrDefaultAsync(r => r.Id == reportId, ct)
             ?? throw AppException.NotFound("举报不存在");
 
+        // 意见反馈不是举报，不参与处罚联动（只允许已解决/忽略）
+        if (report.TargetType == ReportTargetType.Feedback && status != ReportStatus.Ignored && status != ReportStatus.Resolved)
+        {
+            throw AppException.BadRequest("feedback_no_penalty", "意见反馈不参与处罚，请标记为已解决或忽略");
+        }
+
         report.Status = status;
         report.HandledBy = operatorId;
         report.HandledAt = DateTime.UtcNow;

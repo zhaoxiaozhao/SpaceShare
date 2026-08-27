@@ -23,7 +23,9 @@ public record CreditRuleConfig(
     int MaliciousHoldPenalty = -10,
     int TransactionPenalty = -20,
     int MaliciousReportPenalty = -10,
-    int MaxScore = 100);
+    int MaxScore = 100,
+    int StreakBonusInterval = 5,
+    int StreakBonus = 2);
 
 public class ConfigService
 {
@@ -99,7 +101,9 @@ public class ConfigService
             MaliciousHoldPenalty: I("malicious_hold_penalty", -10),
             TransactionPenalty: I("transaction_penalty", -20),
             MaliciousReportPenalty: I("malicious_report_penalty", -10),
-            MaxScore: I("max_score", 100));
+            MaxScore: I("max_score", 100),
+            StreakBonusInterval: I("streak_bonus_interval", 5),
+            StreakBonus: I("streak_bonus", 2));
     }
 
     public async Task SetValueAsync(ConfigCategory category, string key, string? value, CancellationToken ct = default)

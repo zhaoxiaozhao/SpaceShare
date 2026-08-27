@@ -144,6 +144,30 @@ public class AutoReleaseJob : IAutoReleaseJob
         }
 
         await _db.SaveChangesAsync(ct);
+
+        // 6. 风险晋升检查：风险分达到阈值自动升级处罚（可配置）
+        await AutoBanHighRiskUsersAsync(now, ct);
+    }
+
+    // 风险分 ≥ 阈值自动封禁（重复爽约/频繁取消等累积导致），封禁并通知用户
+    private async Task AutoBanHighRiskUsersAsync(DateTime now, CancellationToken ct)
+    {
+        var banThreshold = await _config.GetIntAsync(ConfigCategory.RiskRules, "auto_ban_threshold", 80, ct);
+        if (banThreshold <= 0) return; // 配置为 0 或负数表示关闭自动封禁
+
+        var highRiskUsers = await _db.Users
+            .Where(u => u.Status == UserStatus.Active && u.RiskScore >= banThreshold)
+            .ToListAsync(ct);
+
+        foreach (var user in highRiskUsers)
+        {
+            user.Status = UserStatus.Banned;
+            user.UpdatedAt = now;
+            await _db.SaveChangesAsync(ct);
+            _logger.LogWarning("风险分达到 {Threshold}，自动封禁用户 {UserId}", banThreshold, user.Id);
+            await _notifications.SendAsync(user.Id, NotificationType.CreditChanged,
+                "账号已被封禁", "你的账号因多次违规被系统封禁，如有疑问请联系管理员申诉。", null, ct);
+        }
     }
 
     // 候补链条：通知分享当前队首候补（若有空位）

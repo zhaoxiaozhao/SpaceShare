@@ -63,6 +63,8 @@ public class ReservationService
             throw AppException.Forbidden("账号已被封禁");
         if (user.CreditScore < 30)
             throw AppException.Forbidden("信用分过低，暂时无法预约");
+        if (await _risk.IsRestrictedAsync(userId, ct))
+            throw AppException.Forbidden("账号存在风险记录，暂时无法预约");
 
         // 关键并发控制：分布式锁 + 事务
         var lockKey = $"seat:reservation:{share.SeatId}:{share.StartAt:yyyyMMdd}";
@@ -426,14 +428,34 @@ public class ReservationService
         };
         if (change == 0) return;
 
+        // 信用修复机制：连续守约达到阈值额外加分（如每连续 5 次到座 +2），帮助低分用户恢复
+        var bonusReasons = new List<string>();
+        if (referenceType == "arrival" && rules.StreakBonusInterval > 0 && rules.StreakBonus != 0)
+        {
+            var recent = await _db.Reservations
+                .Where(r => r.UserId == userId)
+                .OrderByDescending(r => r.StartAt)
+                .Take(rules.StreakBonusInterval)
+                .Select(r => r.Status)
+                .ToListAsync(ct);
+            // 最近 N 次预约全部守约（到座/使用/完成）且数量足够 → 触发奖励
+            var goodStatuses = new[] { ReservationStatus.Arrived, ReservationStatus.Using, ReservationStatus.Completed };
+            if (recent.Count >= rules.StreakBonusInterval && recent.All(s => goodStatuses.Contains(s)))
+            {
+                change += rules.StreakBonus;
+                bonusReasons.Add($"连续守约{recent.Count}次奖励 +{rules.StreakBonus}");
+            }
+        }
+
         var user = await _db.Users.FirstAsync(u => u.Id == userId, ct);
         var newScore = Math.Clamp(user.CreditScore + change, 0, rules.MaxScore);
 
+        var fullReason = bonusReasons.Count > 0 ? $"{reason}（{string.Join("，", bonusReasons)}）" : reason;
         _db.CreditTransactions.Add(new CreditTransaction
         {
             UserId = userId,
             Change = change,
-            Reason = reason,
+            Reason = fullReason,
             ReferenceType = referenceType,
             ReferenceId = referenceId,
             CreatedAt = DateTime.UtcNow

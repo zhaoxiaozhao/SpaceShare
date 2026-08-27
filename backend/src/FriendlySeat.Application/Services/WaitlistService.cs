@@ -9,11 +9,13 @@ public class WaitlistService
 {
     private readonly IAppDbContext _db;
     private readonly ConfigService _config;
+    private readonly RiskService _risk;
 
-    public WaitlistService(IAppDbContext db, ConfigService config)
+    public WaitlistService(IAppDbContext db, ConfigService config, RiskService risk)
     {
         _db = db;
         _config = config;
+        _risk = risk;
     }
 
     public async Task<WaitlistDto> JoinAsync(long userId, long shareId, CancellationToken ct = default)
@@ -23,6 +25,15 @@ public class WaitlistService
 
         if (share.OwnerUserId == userId)
             throw AppException.BadRequest("cannot_wait_own", "不能候补自己分享的座位");
+
+        // 信用与风控拦截：低信用/高风险/封禁用户不能加入候补
+        var user = await _db.Users.FirstAsync(u => u.Id == userId, ct);
+        if (user.Status == UserStatus.Banned)
+            throw AppException.Forbidden("账号已被封禁，无法加入候补");
+        if (user.CreditScore < 30)
+            throw AppException.Forbidden("信用分过低，暂时无法加入候补");
+        if (await _risk.IsRestrictedAsync(userId, ct))
+            throw AppException.Forbidden("账号存在风险记录，暂时无法加入候补");
 
         if (share.Status != SeatShareStatus.Available && share.Status != SeatShareStatus.Reserved)
             throw AppException.BadRequest("share_not_waitable", "该分享已结束");

@@ -12,14 +12,16 @@ public class ShareService
     private readonly ConfigService _config;
     private readonly INotificationService _notifications;
     private readonly IRedisCache _cache;
+    private readonly RiskService _risk;
     private readonly ILogger _logger;
 
-    public ShareService(IAppDbContext db, ConfigService config, INotificationService notifications, IRedisCache cache, ILogger<ShareService> logger)
+    public ShareService(IAppDbContext db, ConfigService config, INotificationService notifications, IRedisCache cache, RiskService risk, ILogger<ShareService> logger)
     {
         _db = db;
         _config = config;
         _notifications = notifications;
         _cache = cache;
+        _risk = risk;
         _logger = logger;
     }
 
@@ -27,6 +29,15 @@ public class ShareService
     {
         var rules = await _config.GetReservationRulesAsync(ct);
         var now = DateTime.UtcNow;
+
+        // 信用与风控拦截：低信用/高风险/封禁用户不能分享座位
+        var user = await _db.Users.FirstAsync(u => u.Id == userId, ct);
+        if (user.Status == UserStatus.Banned)
+            throw AppException.Forbidden("账号已被封禁，无法分享座位");
+        if (user.CreditScore < 30)
+            throw AppException.Forbidden("信用分过低，暂时无法分享座位");
+        if (await _risk.IsRestrictedAsync(userId, ct))
+            throw AppException.Forbidden("账号存在风险记录，暂时无法分享座位");
 
         if (request.EndAt <= request.StartAt)
             throw AppException.BadRequest("share_time_invalid", "共享结束时间必须晚于开始时间");
