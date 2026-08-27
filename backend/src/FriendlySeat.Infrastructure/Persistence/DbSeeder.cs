@@ -231,10 +231,11 @@ CREATE TABLE `ReadingSessions` (
         }
 
         // SeatShares.CheckInCode 列（到座核销码）：已有表补列
+        // 注意：MySQL 的 TEXT 列不允许 DEFAULT 值，非空约束由应用层保证
         if (await tableExists("SeatShares") && !await ColumnExistsAsync(db, "SeatShares", "CheckInCode"))
         {
             logger.LogInformation("MySQL 补充 SeatShares.CheckInCode 列（到座核销码）");
-            await db.Database.ExecuteSqlRawAsync("ALTER TABLE `SeatShares` ADD COLUMN `CheckInCode` longtext NOT NULL DEFAULT '';");
+            await db.Database.ExecuteSqlRawAsync("ALTER TABLE `SeatShares` ADD COLUMN `CheckInCode` longtext NOT NULL;");
         }
     }
 
