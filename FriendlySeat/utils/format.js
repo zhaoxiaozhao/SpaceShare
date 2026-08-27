@@ -1,13 +1,24 @@
+// 后端时间以 UTC 存储，部分接口返回的 ISO 字符串无时区后缀（如 2026-08-24T08:47:29.852）
+// 无后缀时 JS 会按本地时区解析导致显示为 UTC 数值，此处统一补 Z 按 UTC 解析
+export function parseDate(iso) {
+	if (!iso) return null
+	if (typeof iso === 'string' && !/(Z|[+-]\d{2}:?\d{2})$/i.test(iso)) {
+		iso = iso + 'Z'
+	}
+	const d = new Date(iso)
+	return isNaN(d.getTime()) ? null : d
+}
+
 export function formatTime(iso) {
-	if (!iso) return ''
-	const date = new Date(iso)
+	const date = parseDate(iso)
+	if (!date) return ''
 	const pad = (n) => (n < 10 ? '0' + n : n)
 	return `${date.getMonth() + 1}月${date.getDate()}日 ${pad(date.getHours())}:${pad(date.getMinutes())}`
 }
 
 export function formatDate(iso) {
-	if (!iso) return ''
-	const date = new Date(iso)
+	const date = parseDate(iso)
+	if (!date) return ''
 	const pad = (n) => (n < 10 ? '0' + n : n)
 	return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`
 }

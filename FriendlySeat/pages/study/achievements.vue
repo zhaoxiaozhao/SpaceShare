@@ -24,6 +24,7 @@
 
 <script>
 	import { api } from '../../utils/request.js'
+	import { parseDate } from '../../utils/format.js'
 
 	export default {
 		data() {
@@ -46,8 +47,8 @@
 				} catch (e) {}
 			},
 			formatDate(s) {
-				if (!s) return ''
-				const d = new Date(s)
+				const d = parseDate(s)
+				if (!d) return ''
 				return `${d.getMonth() + 1}.${d.getDate()}`
 			}
 		}

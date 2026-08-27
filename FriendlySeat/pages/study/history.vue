@@ -18,6 +18,7 @@
 
 <script>
 	import { api } from '../../utils/request.js'
+	import { parseDate } from '../../utils/format.js'
 
 	const TYPE_LABELS = {
 		Reading: '阅读', Programming: '编程', English: '英语', Exam: '考研',
@@ -34,7 +35,8 @@
 			grouped() {
 				const groups = {}
 				for (const s of this.sessions) {
-					const d = new Date(s.startedAt)
+					const d = parseDate(s.startedAt)
+					if (!d) continue
 					const key = `${d.getFullYear()}年${d.getMonth() + 1}月${d.getDate()}日`
 					if (!groups[key]) groups[key] = []
 					groups[key].push(s)
@@ -63,7 +65,8 @@
 				return `${min}分钟`
 			},
 			formatTime(s) {
-				const d = new Date(s)
+				const d = parseDate(s)
+				if (!d) return ''
 				return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
 			}
 		}

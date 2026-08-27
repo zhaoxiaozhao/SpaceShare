@@ -105,6 +105,7 @@
 
 <script>
 	import { api } from '../../utils/request.js'
+	import { parseDate } from '../../utils/format.js'
 
 	const STUDY_TYPES = [
 		{ label: '编程', value: 'Programming' },
@@ -160,7 +161,8 @@
 			},
 			tick() {
 				if (!this.today || !this.today.activeSession) return
-				const started = new Date(this.today.activeSession.startedAt)
+				const started = parseDate(this.today.activeSession.startedAt)
+				if (!started) return
 				const now = Date.now()
 				const ms = Math.max(0, now - started.getTime())
 				this.activeElapsed = Math.floor(ms / 60000)
@@ -237,8 +239,8 @@
 				return `${min} 分钟`
 			},
 			formatDateTime(s) {
-				if (!s) return ''
-				const d = new Date(s)
+				const d = parseDate(s)
+				if (!d) return ''
 				return `${d.getMonth() + 1}月${d.getDate()}日 ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
 			}
 		}

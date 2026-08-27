@@ -26,6 +26,8 @@ builder.Services.AddControllers()
     {
         o.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
         o.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
+        // 时间统一输出 UTC（带 Z 后缀），避免前端按本地时区解析产生 8 小时偏差
+        o.JsonSerializerOptions.Converters.Add(new UtcDateTimeConverter());
     });
 
 builder.Services.AddFriendlySeatInfrastructure(builder.Configuration);
@@ -98,3 +100,16 @@ app.UseAuthorization();
 app.MapControllers();
 
 app.Run();
+
+/// <summary>DateTime 序列化统一按 UTC 输出（无 Kind 标记的值视为 UTC），避免前端歧义解析</summary>
+public class UtcDateTimeConverter : System.Text.Json.Serialization.JsonConverter<DateTime>
+{
+    public override DateTime Read(ref System.Text.Json.Utf8JsonReader reader, Type typeToConvert, System.Text.Json.JsonSerializerOptions options)
+        => reader.GetDateTime();
+
+    public override void Write(System.Text.Json.Utf8JsonWriter writer, DateTime value, System.Text.Json.JsonSerializerOptions options)
+    {
+        var utc = value.Kind == DateTimeKind.Utc ? value : DateTime.SpecifyKind(value, DateTimeKind.Utc);
+        writer.WriteStringValue(utc.ToString("yyyy-MM-ddTHH:mm:ss.fffZ"));
+    }
+}

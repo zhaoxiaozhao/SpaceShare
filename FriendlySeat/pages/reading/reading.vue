@@ -135,6 +135,7 @@
 <script>
 	import { api } from '../../utils/request.js'
 	import { uploadAvatar } from '../../utils/profile.js'
+	import { parseDate } from '../../utils/format.js'
 
 	export default {
 		data() {
@@ -180,7 +181,7 @@
 					this.list = listRes
 					this.stats = statsRes
 					if (statsRes.activeSession) {
-						this.activeStartedAt = new Date(statsRes.activeSession.startedAt)
+						this.activeStartedAt = parseDate(statsRes.activeSession.startedAt) || new Date()
 						this.startTimer()
 					} else {
 						this.stopTimer()
