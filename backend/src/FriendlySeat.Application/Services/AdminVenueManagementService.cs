@@ -33,6 +33,26 @@ public class AdminFloorRequest
     public int SortOrder { get; set; }
 }
 
+public class AdminVenueUpdateRequest
+{
+    public string Name { get; set; } = string.Empty;
+    public string Type { get; set; } = "Library";
+    public string Address { get; set; } = string.Empty;
+    public double? Longitude { get; set; }
+    public double? Latitude { get; set; }
+    public string? Description { get; set; }
+    public string OpeningTime { get; set; } = "09:00";
+    public string ClosingTime { get; set; } = "22:00";
+}
+
+public class AdminCityUpdateRequest
+{
+    public string Name { get; set; } = string.Empty;
+    public string Province { get; set; } = string.Empty;
+    public double? Longitude { get; set; }
+    public double? Latitude { get; set; }
+}
+
 public class AdminZoneRequest
 {
     public long FloorId { get; set; }
@@ -175,7 +195,8 @@ public class AdminVenueManagementService
                 Longitude = v.Longitude,
                 Latitude = v.Latitude,
                 OpeningTime = v.OpeningTime.ToString(@"hh\:mm"),
-                ClosingTime = v.ClosingTime.ToString(@"hh\:mm")
+                ClosingTime = v.ClosingTime.ToString(@"hh\:mm"),
+                Status = v.Status.ToString()
             })
             .ToListAsync(ct);
     }
@@ -206,6 +227,140 @@ public class AdminVenueManagementService
         await _audit.LogAsync(operatorId, "venue.create", "Venue", venue.Id.ToString(), $"创建场馆 {venue.Name}", null, ct);
 
         return ToDto(venue);
+    }
+
+    public async Task<VenueDto> UpdateVenueAsync(long venueId, AdminVenueUpdateRequest request, long operatorId, CancellationToken ct = default)
+    {
+        var venue = await _db.Venues.FirstOrDefaultAsync(v => v.Id == venueId, ct)
+            ?? throw AppException.NotFound("场馆不存在");
+        if (string.IsNullOrWhiteSpace(request.Name))
+            throw AppException.BadRequest("name_required", "场馆名称不能为空");
+
+        venue.Name = request.Name.Trim();
+        if (Enum.TryParse<VenueType>(request.Type, true, out var type)) venue.Type = type;
+        venue.Address = request.Address ?? string.Empty;
+        venue.Longitude = request.Longitude;
+        venue.Latitude = request.Latitude;
+        venue.Description = request.Description;
+        venue.OpeningTime = TimeSpan.TryParse(request.OpeningTime, out var ot) ? ot : venue.OpeningTime;
+        venue.ClosingTime = TimeSpan.TryParse(request.ClosingTime, out var ct2) ? ct2 : venue.ClosingTime;
+
+        await _db.SaveChangesAsync(ct);
+        await _audit.LogAsync(operatorId, "venue.update", "Venue", venue.Id.ToString(), $"更新场馆 {venue.Name}", null, ct);
+        await _cache.RemoveAsync($"venue:{venueId}", ct);
+
+        return ToDto(venue);
+    }
+
+    /// <summary>场馆显示/隐藏（Hidden = 下架，用户端不可见）</summary>
+    public async Task SetVenueStatusAsync(long venueId, bool visible, long operatorId, CancellationToken ct = default)
+    {
+        var venue = await _db.Venues.FirstOrDefaultAsync(v => v.Id == venueId, ct)
+            ?? throw AppException.NotFound("场馆不存在");
+
+        venue.Status = visible ? EntityStatus.Active : EntityStatus.Disabled;
+        await _db.SaveChangesAsync(ct);
+        await _audit.LogAsync(operatorId, "venue.status", "Venue", venueId.ToString(), $"设置场馆 {venue.Name} 为 {(visible ? "显示" : "隐藏")}", null, ct);
+        await _cache.RemoveAsync($"venue:{venueId}", ct);
+    }
+
+    /// <summary>删除场馆（级联楼层/区域/区块/座位/预约/分享等，存在进行中预约时拒绝）</summary>
+    public async Task DeleteVenueAsync(long venueId, long operatorId, CancellationToken ct = default)
+    {
+        var venue = await _db.Venues.FirstOrDefaultAsync(v => v.Id == venueId, ct)
+            ?? throw AppException.NotFound("场馆不存在");
+
+        var now = DateTime.UtcNow;
+        var hasActiveReservation = await _db.Reservations
+            .AnyAsync(r => r.EndAt > now && (r.Status == ReservationStatus.Reserved || r.Status == ReservationStatus.Arrived || r.Status == ReservationStatus.Using)
+                && _db.Zones.Any(z => z.Floor!.VenueId == venueId && z.Seats.Any(s => s.Id == r.SeatId)), ct);
+        if (hasActiveReservation)
+            throw AppException.Conflict("venue_has_active_reservation", "该场馆存在进行中的预约，无法删除");
+
+        // 收集场馆下所有楼层/座位
+        var floorIds = await _db.Floors.Where(f => f.VenueId == venueId).Select(f => f.Id).ToListAsync(ct);
+        var seatIds = await _db.Seats.Where(s => floorIds.Contains(s.Zone!.FloorId)).Select(s => s.Id).ToListAsync(ct);
+
+        // 级联清理（按外键依赖顺序）
+        if (seatIds.Any())
+        {
+            await DeleteRelatedAsync(seatIds, ct);
+            _db.Seats.RemoveRange(_db.Seats.Where(s => floorIds.Contains(s.Zone!.FloorId)));
+        }
+        _db.Zones.RemoveRange(_db.Zones.Where(z => floorIds.Contains(z.FloorId)));
+        _db.Areas.RemoveRange(_db.Areas.Where(a => floorIds.Contains(a.FloorId)));
+        _db.FloorPois.RemoveRange(_db.FloorPois.Where(p => floorIds.Contains(p.FloorId)));
+        _db.Floors.RemoveRange(_db.Floors.Where(f => f.VenueId == venueId));
+        _db.Venues.Remove(venue);
+
+        await _db.SaveChangesAsync(ct);
+        await _audit.LogAsync(operatorId, "venue.delete", "Venue", venueId.ToString(), $"删除场馆 {venue.Name}", null, ct);
+        await _cache.RemoveAsync($"venue:{venueId}", ct);
+    }
+
+    /// <summary>删除座位关联的预约/分享/会话/等候（外键依赖清理）</summary>
+    private async Task DeleteRelatedAsync(List<long> seatIds, CancellationToken ct)
+    {
+        _db.Reservations.RemoveRange(_db.Reservations.Where(r => seatIds.Contains(r.SeatId)));
+        _db.SeatShares.RemoveRange(_db.SeatShares.Where(s => seatIds.Contains(s.SeatId)));
+        _db.SeatSessions.RemoveRange(_db.SeatSessions.Where(s => seatIds.Contains(s.SeatId)));
+        _db.ReservationWaitlists.RemoveRange(_db.ReservationWaitlists.Where(w => w.Share != null && seatIds.Contains(w.Share.SeatId)));
+    }
+
+    public async Task UpdateFloorAsync(long floorId, AdminFloorRequest request, long operatorId, CancellationToken ct = default)
+    {
+        var floor = await _db.Floors.FirstOrDefaultAsync(f => f.Id == floorId, ct)
+            ?? throw AppException.NotFound("楼层不存在");
+        if (string.IsNullOrWhiteSpace(request.Name))
+            throw AppException.BadRequest("name_required", "楼层名称不能为空");
+
+        floor.Name = request.Name.Trim();
+        floor.SortOrder = request.SortOrder;
+        await _db.SaveChangesAsync(ct);
+        await _audit.LogAsync(operatorId, "floor.update", "Floor", floorId.ToString(), $"更新楼层 {floor.Name}", null, ct);
+
+        var venueId = await _db.Floors.Where(f => f.Id == floorId).Select(f => f.VenueId).FirstOrDefaultAsync(ct);
+        if (venueId > 0) await _cache.RemoveAsync($"venue:{venueId}", ct);
+    }
+
+    /// <summary>删除楼层（级联区域/区块/座位；存在座位时先确认）</summary>
+    public async Task DeleteFloorAsync(long floorId, long operatorId, CancellationToken ct = default)
+    {
+        var floor = await _db.Floors
+            .Include(f => f.Zones)
+            .ThenInclude(z => z.Seats)
+            .FirstOrDefaultAsync(f => f.Id == floorId, ct)
+            ?? throw AppException.NotFound("楼层不存在");
+
+        var hasSeats = floor.Zones.Any(z => z.Seats.Count > 0);
+        if (hasSeats)
+            throw AppException.Conflict("floor_has_seats", "该楼层下存在座位，请先删除座位或确认后再试");
+
+        var venueId = floor.VenueId;
+        _db.Areas.RemoveRange(_db.Areas.Where(a => a.FloorId == floorId));
+        _db.FloorPois.RemoveRange(_db.FloorPois.Where(p => p.FloorId == floorId));
+        _db.Zones.RemoveRange(floor.Zones);
+        _db.Floors.Remove(floor);
+        await _db.SaveChangesAsync(ct);
+        await _audit.LogAsync(operatorId, "floor.delete", "Floor", floorId.ToString(), $"删除楼层 {floor.Name}", null, ct);
+        await _cache.RemoveAsync($"venue:{venueId}", ct);
+    }
+
+    public async Task<CityDto> UpdateCityAsync(long cityId, AdminCityUpdateRequest request, long operatorId, CancellationToken ct = default)
+    {
+        var city = await _db.Cities.FirstOrDefaultAsync(c => c.Id == cityId, ct)
+            ?? throw AppException.NotFound("城市不存在");
+        if (string.IsNullOrWhiteSpace(request.Name))
+            throw AppException.BadRequest("name_required", "城市名称不能为空");
+
+        city.Name = request.Name.Trim();
+        city.Province = request.Province ?? string.Empty;
+        city.Longitude = request.Longitude;
+        city.Latitude = request.Latitude;
+        await _db.SaveChangesAsync(ct);
+        await _audit.LogAsync(operatorId, "city.update", "City", cityId.ToString(), $"更新城市 {city.Name}", null, ct);
+
+        return new CityDto { Id = city.Id, Name = city.Name, Province = city.Province, CountryCode = city.CountryCode, Longitude = city.Longitude, Latitude = city.Latitude };
     }
 
     public async Task AddFloorAsync(AdminFloorRequest request, long operatorId, CancellationToken ct = default)

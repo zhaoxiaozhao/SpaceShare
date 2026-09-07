@@ -23,6 +23,9 @@ public class VenueListItemDto
     public int SeatCount { get; set; }
     public int AvailableCount { get; set; }
     public double? DistanceKm { get; set; }
+
+    /// <summary>状态（Active=显示 Disabled=隐藏），管理端用</summary>
+    public string? Status { get; set; }
 }
 
 public class VenueDetailDto

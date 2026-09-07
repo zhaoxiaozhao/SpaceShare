@@ -34,6 +34,43 @@ public class AdminVenuesController : AdminControllerBase
     public async Task<ActionResult<VenueDto>> CreateVenue([FromBody] AdminVenueCreateRequest request, CancellationToken ct)
         => Ok(await _venues.CreateVenueAsync(request, _currentAdmin.AdminId!.Value, ct));
 
+    [HttpPut("venues/{id:long}")]
+    public async Task<ActionResult<VenueDto>> UpdateVenue(long id, [FromBody] AdminVenueUpdateRequest request, CancellationToken ct)
+        => Ok(await _venues.UpdateVenueAsync(id, request, _currentAdmin.AdminId!.Value, ct));
+
+    /// <summary>场馆显示/隐藏</summary>
+    [HttpPost("venues/{id:long}/status")]
+    public async Task<IActionResult> SetVenueStatus(long id, [FromQuery] bool visible, CancellationToken ct)
+    {
+        await _venues.SetVenueStatusAsync(id, visible, _currentAdmin.AdminId!.Value, ct);
+        return Ok();
+    }
+
+    [HttpDelete("venues/{id:long}")]
+    public async Task<IActionResult> DeleteVenue(long id, CancellationToken ct)
+    {
+        await _venues.DeleteVenueAsync(id, _currentAdmin.AdminId!.Value, ct);
+        return Ok();
+    }
+
+    [HttpPut("floors/{id:long}")]
+    public async Task<IActionResult> UpdateFloor(long id, [FromBody] AdminFloorRequest request, CancellationToken ct)
+    {
+        await _venues.UpdateFloorAsync(id, request, _currentAdmin.AdminId!.Value, ct);
+        return Ok();
+    }
+
+    [HttpDelete("floors/{id:long}")]
+    public async Task<IActionResult> DeleteFloor(long id, CancellationToken ct)
+    {
+        await _venues.DeleteFloorAsync(id, _currentAdmin.AdminId!.Value, ct);
+        return Ok();
+    }
+
+    [HttpPut("cities/{id:long}")]
+    public async Task<ActionResult<CityDto>> UpdateCity(long id, [FromBody] AdminCityUpdateRequest request, CancellationToken ct)
+        => Ok(await _venues.UpdateCityAsync(id, request, _currentAdmin.AdminId!.Value, ct));
+
     [HttpPost("floors")]
     public async Task<IActionResult> AddFloor([FromBody] AdminFloorRequest request, CancellationToken ct)
     {
