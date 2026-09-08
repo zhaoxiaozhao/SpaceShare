@@ -35,7 +35,14 @@ public static class DependencyInjection
         {
             if (dbOptions.Provider == DbProvider.MySql)
             {
-                options.UseMySQL(connectionString);
+                // 兼容 MySQL 零日期（0000-00-00）值：ConvertZeroDateTime 使驱动把零日期读为
+                // DateTime.MinValue 而非抛 "Unable to serialize date/time value"，避免脏数据导致 500。
+                var mysqlConn = connectionString;
+                if (!mysqlConn.Contains("ConvertZeroDateTime", StringComparison.OrdinalIgnoreCase))
+                {
+                    mysqlConn = mysqlConn.TrimEnd(';') + ";ConvertZeroDateTime=True;AllowZeroDateTime=True;";
+                }
+                options.UseMySQL(mysqlConn);
             }
             else
             {
