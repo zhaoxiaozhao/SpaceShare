@@ -129,6 +129,9 @@ public class FriendlySeatDbContext : DbContext, IAppDbContext
         modelBuilder.Entity<FloorPoi>()
             .HasIndex(p => new { p.FloorId, p.Type });
 
+        modelBuilder.Entity<FloorPoi>()
+            .HasIndex(p => p.AreaId);
+
         modelBuilder.Entity<Area>()
             .HasIndex(a => new { a.FloorId, a.SortOrder });
 

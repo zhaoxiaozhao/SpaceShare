@@ -167,7 +167,7 @@
 
           <!-- 标志物 POI（文本/线条特殊渲染，可旋转） -->
           <div
-            v-for="p in floorPois"
+            v-for="p in visiblePois"
             :key="p._key"
             class="comp comp-poi"
             :class="{ selected: selectedKey === p._key, 'comp-text': p.type === 'Text', 'comp-line': p.type === 'Line' }"
@@ -473,6 +473,10 @@ let interaction = null // { type: 'move'|'resize'|'curve-point', item, kind, han
 
 const floorZones = computed(() => floor().zones)
 const floorPois = computed(() => floor().pois)
+// 画布显示的标志物：按当前区域过滤（与区块一致）
+const visiblePois = computed(() =>
+  currentAreaId.value ? floorPois.value.filter(p => p.areaId === currentAreaId.value) : floorPois.value
+)
 
 // 空间区域相关
 const currentFloorAreas = computed(() => floor().areas || [])
@@ -535,6 +539,8 @@ async function load(preserveFloor = false) {
         p.kind = 'poi'
         p._new = false
         if (!p._key) p._key = 'p' + (seq++)
+        // 历史数据无区域归属：默认归入本楼层第一个区域（避免在按区域过滤后丢失）
+        if (p.areaId == null && f.areas && f.areas.length) p.areaId = f.areas[0].id
       }
     }
     if (detail.value.floors.length) {
@@ -789,7 +795,7 @@ function addComponent(item, x, y) {
     const isText = item.type === 'Text'
     const isLine = item.type === 'Line'
     f.pois.push({
-      _key: key, kind: 'poi', _new: true, id: null, floorId: currentFloor.value,
+      _key: key, kind: 'poi', _new: true, id: null, floorId: currentFloor.value, areaId: currentAreaId.value,
       type: item.type, name: poiTypes[item.type] || item.type,
       positionX: x, positionY: y, width: item.w || 2, height: item.h || 2,
       direction: '', rotation: 0,
@@ -1593,41 +1599,43 @@ async function saveAll() {
     }
     // 保存区块
     for (const z of f.zones) {
+      const toInt = (v, dft = 1) => { const n = Math.round(Number(v)); return Number.isFinite(n) && n > 0 ? n : dft }
       const payload = {
         floorId: currentFloor.value,
         areaId: z.areaId || null,
         name: z.name,
         sortOrder: 0,
-        gridRows: z.gridRows,
-        gridCols: z.gridCols,
-        offsetX: z.offsetX,
-        offsetY: z.offsetY,
+        gridRows: toInt(z.gridRows),
+        gridCols: toInt(z.gridCols),
+        offsetX: Math.round(Number(z.offsetX) || 0),
+        offsetY: Math.round(Number(z.offsetY) || 0),
         layoutMode: z.layoutMode || 'grid',
-        tableSeatCols: z.tableSeatCols ?? 2,
-        tableSeatRows: z.tableSeatRows ?? 2,
-        tableGapX: z.tableGapX ?? 1,
-        tableGapY: z.tableGapY ?? 1,
-        tablesX: z.tablesX ?? 1,
-        tablesY: z.tablesY ?? 1,
-        arcRadius: z.arcRadius ?? 8,
-        arcRadiusStep: z.arcRadiusStep ?? 1.5,
-        arcStartAngle: z.arcStartAngle ?? 180,
-        arcEndAngle: z.arcEndAngle ?? 360,
-        arcRows: z.arcRows ?? 3,
-        arcSeatsPerRow: z.arcSeatsPerRow ?? 8,
-        arcAxisB: z.arcAxisB ?? 8,
-        curveAmplitude: z.curveAmplitude ?? 2,
-        curveWavelength: z.curveWavelength ?? 6,
-        curvePhase: z.curvePhase ?? 0,
-        curveRowGap: z.curveRowGap ?? 2,
-        curveAngle: z.curveAngle ?? 30,
-        curveSlantGap: z.curveSlantGap ?? 2,
+        tableSeatCols: toInt(z.tableSeatCols, 2),
+        tableSeatRows: toInt(z.tableSeatRows, 2),
+        tableGapX: Number(z.tableGapX ?? 1) || 1,
+        tableGapY: Number(z.tableGapY ?? 1) || 1,
+        tablesX: toInt(z.tablesX),
+        tablesY: toInt(z.tablesY),
+        arcRadius: Number(z.arcRadius ?? 8) || 8,
+        arcRadiusStep: Number(z.arcRadiusStep ?? 1.5) || 1.5,
+        arcStartAngle: Math.round(Number(z.arcStartAngle ?? 180) || 180),
+        arcEndAngle: Math.round(Number(z.arcEndAngle ?? 360) || 360),
+        arcRows: toInt(z.arcRows, 3),
+        arcSeatsPerRow: toInt(z.arcSeatsPerRow, 8),
+        arcAxisB: Number(z.arcAxisB ?? 8) || 8,
+        curveAmplitude: Number(z.curveAmplitude ?? 2) || 2,
+        curveWavelength: Number(z.curveWavelength ?? 6) || 6,
+        curvePhase: Math.round(Number(z.curvePhase ?? 0) || 0),
+        curveRowGap: Number(z.curveRowGap ?? 2) || 2,
+        curveAngle: Math.round(Number(z.curveAngle ?? 30) || 30),
+        curveSlantGap: Number(z.curveSlantGap ?? 2) || 2,
         pathPoints: z.pathPoints && z.pathPoints.length ? JSON.stringify(z.pathPoints) : null
       }
       let zoneId = z.id
       if (z._new) {
         const created = await venueApi.addZone(payload)
         zoneId = created?.id || created
+        z.id = zoneId
         z._new = false
       } else {
         await venueApi.updateZone(z.id, payload)
@@ -1656,6 +1664,7 @@ async function saveAll() {
     for (const p of f.pois) {
       const payload = {
         floorId: currentFloor.value,
+        areaId: p.areaId || null,
         type: p.type,
         name: p.name,
         positionX: p.positionX,

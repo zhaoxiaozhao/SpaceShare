@@ -65,6 +65,7 @@ public class AreaDto
 public class PoiDto
 {
     public long Id { get; set; }
+    public long? AreaId { get; set; }
     public string Type { get; set; } = string.Empty;
     public string Name { get; set; } = string.Empty;
     public int PositionX { get; set; }

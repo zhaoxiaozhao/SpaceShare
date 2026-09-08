@@ -96,6 +96,7 @@ public class AdminAreaRequest
 public class AdminPoiRequest
 {
     public long FloorId { get; set; }
+    public long? AreaId { get; set; }
     public string Type { get; set; } = "Other";
     public string? Name { get; set; }
     public int PositionX { get; set; }
@@ -371,7 +372,11 @@ public class AdminVenueManagementService
         var floor = new Floor { VenueId = request.VenueId, Name = request.Name, SortOrder = request.SortOrder };
         _db.Floors.Add(floor);
         await _db.SaveChangesAsync(ct);
+        var area = new Area { FloorId = floor.Id, Name = "主空间", SortOrder = 0 };
+        _db.Areas.Add(area);
+        await _db.SaveChangesAsync(ct);
         await _audit.LogAsync(operatorId, "floor.create", "Floor", floor.Id.ToString(), $"创建楼层 {floor.Name}", null, ct);
+        await _audit.LogAsync(operatorId, "area.create", "Area", area.Id.ToString(), $"创建默认空间区域 {area.Name}", null, ct);
         await InvalidateVenueAsync(request.VenueId, ct);
     }
 
@@ -414,6 +419,9 @@ public class AdminVenueManagementService
         // 解除其下区块与区域的关联（区块保留，回到无区域分组）
         var zones = await _db.Zones.Where(z => z.AreaId == areaId).ToListAsync(ct);
         foreach (var z in zones) z.AreaId = null;
+        // 同理解除标志物的区域归属
+        var pois = await _db.FloorPois.Where(p => p.AreaId == areaId).ToListAsync(ct);
+        foreach (var p in pois) p.AreaId = null;
 
         _db.Areas.Remove(area);
         await _db.SaveChangesAsync(ct);
@@ -621,6 +629,7 @@ public class AdminVenueManagementService
         var poi = new FloorPoi
         {
             FloorId = request.FloorId,
+            AreaId = request.AreaId,
             Type = type,
             Name = string.IsNullOrWhiteSpace(request.Name) ? type.ToString() : request.Name,
             PositionX = request.PositionX,
@@ -646,6 +655,7 @@ public class AdminVenueManagementService
             ?? throw AppException.NotFound("标志物不存在");
         if (Enum.TryParse<PoiType>(request.Type, true, out var type)) poi.Type = type;
         if (!string.IsNullOrWhiteSpace(request.Name)) poi.Name = request.Name;
+        poi.AreaId = request.AreaId;
         poi.PositionX = request.PositionX;
         poi.PositionY = request.PositionY;
         poi.Width = request.Width <= 0 ? 1 : request.Width;
@@ -673,6 +683,7 @@ public class AdminVenueManagementService
     private static PoiDto ToPoiDto(FloorPoi p) => new()
     {
         Id = p.Id,
+        AreaId = p.AreaId,
         Type = p.Type.ToString(),
         Name = p.Name,
         PositionX = p.PositionX,
@@ -707,6 +718,17 @@ public class AdminVenueManagementService
         var venue = await _db.Venues.FirstOrDefaultAsync(v => v.Id == venueId, ct)
             ?? throw AppException.NotFound("场馆不存在");
 
+        // 为没有空间区域的楼层自动补建默认"主空间"区域
+        var floorsWithoutArea = await _db.Floors
+            .Where(f => f.VenueId == venueId && !f.Areas.Any())
+            .ToListAsync(ct);
+        if (floorsWithoutArea.Count > 0)
+        {
+            foreach (var floor in floorsWithoutArea)
+                _db.Areas.Add(new Area { FloorId = floor.Id, Name = "主空间", SortOrder = 0 });
+            await _db.SaveChangesAsync(ct);
+        }
+
         var floors = await _db.Floors
             .Where(f => f.VenueId == venueId)
             .OrderBy(f => f.SortOrder)
@@ -724,6 +746,7 @@ public class AdminVenueManagementService
                 Pois = f.Pois.OrderBy(p => p.PositionY).ThenBy(p => p.PositionX).Select(p => new PoiDto
                 {
                     Id = p.Id,
+                    AreaId = p.AreaId,
                     Type = p.Type.ToString(),
                     Name = p.Name,
                     PositionX = p.PositionX,

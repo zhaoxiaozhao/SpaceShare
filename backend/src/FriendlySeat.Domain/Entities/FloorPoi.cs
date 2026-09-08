@@ -21,6 +21,9 @@ public class FloorPoi
 {
     public long Id { get; set; }
     public long FloorId { get; set; }
+
+    /// <summary>所属空间区域（可空：无区域归属时在楼层级）</summary>
+    public long? AreaId { get; set; }
     public PoiType Type { get; set; } = PoiType.Other;
     public string Name { get; set; } = string.Empty;
 
@@ -48,4 +51,5 @@ public class FloorPoi
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
     public Floor? Floor { get; set; }
+    public Area? Area { get; set; }
 }

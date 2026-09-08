@@ -237,6 +237,13 @@ CREATE TABLE `ReadingSessions` (
             logger.LogInformation("MySQL 补充 SeatShares.CheckInCode 列（到座核销码）");
             await db.Database.ExecuteSqlRawAsync("ALTER TABLE `SeatShares` ADD COLUMN `CheckInCode` longtext NOT NULL;");
         }
+
+        // FloorPois.AreaId 列（标志物归属空间区域）：已有表补列
+        if (await tableExists("FloorPois") && !await ColumnExistsAsync(db, "FloorPois", "AreaId"))
+        {
+            logger.LogInformation("MySQL 补充 FloorPois.AreaId 列（标志物区域归属）");
+            await db.Database.ExecuteSqlRawAsync("ALTER TABLE `FloorPois` ADD COLUMN `AreaId` bigint NULL;");
+        }
     }
 
     // 检测某表中是否存在某列
