@@ -2,8 +2,14 @@ import axios from 'axios'
 import { ElMessage } from 'element-plus'
 import router from '../router'
 
+// 优先使用环境变量指定的后台地址（如 .env.prod 中 VITE_ADMIN_API_BASE 指向生产域名），
+// 否则回退到相对路径 /admin-api（docker 内由 nginx 反代；dev 由 vite proxy 转发）
+const apiBase = import.meta.env.VITE_ADMIN_API_BASE
+  ? `${import.meta.env.VITE_ADMIN_API_BASE}/api/v1/admin`
+  : '/admin-api/api/v1/admin'
+
 const request = axios.create({
-  baseURL: '/admin-api/api/v1/admin',
+  baseURL: apiBase,
   timeout: 15000
 })
 
