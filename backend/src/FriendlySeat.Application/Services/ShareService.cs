@@ -131,7 +131,7 @@ public class ShareService
                 CreatedAt = s.CreatedAt,
                 IsReservable = s.Status == SeatShareStatus.Available && s.StartAt > now
                     && s.StartAt <= now.AddHours(rules.MaxAdvanceHours)
-                    && (s.EndAt - now) >= TimeSpan.FromMinutes(rules.MinMinutes)
+                    && s.EndAt >= now.AddMinutes(rules.MinMinutes)
             })
             .ToListAsync(ct);
 
@@ -261,7 +261,7 @@ public class ShareService
 
         var isReservable = share.Status == SeatShareStatus.Available && share.StartAt > now
             && share.StartAt <= now.AddHours(rules.MaxAdvanceHours)
-            && (share.EndAt - now) >= TimeSpan.FromMinutes(rules.MinMinutes);
+            && share.EndAt >= now.AddMinutes(rules.MinMinutes);
 
         var dto = new ShareDetailDto
         {
