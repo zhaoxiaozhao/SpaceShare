@@ -193,13 +193,13 @@
 					</view>
 
 					<!-- 标志物（文本/线条可旋转） -->
-<view
-							v-for="p in visiblePois(f)"
-							:key="'p' + p.id"
-							class="poi-rect"
-							:class="poiClass(p.type)"
-							:style="poiRectStyle(f, p)"
-						>
+					<view
+						v-for="p in visiblePois(f)"
+						:key="'p' + p.id"
+						class="poi-rect"
+						:class="poiClass(p.type)"
+						:style="poiRectStyle(f, p)"
+					>
 							<template v-if="p.type === 'Text'">
 								<text class="poi-text" :style="poiRotateStyle(p)">{{p.text || p.name}}</text>
 							</template>
@@ -211,10 +211,6 @@
 								<text class="poi-name" :style="poiNameStyle()">{{p.name}}</text>
 							</template>
 						</view>
-					</view>
-				</scroll-view>
-			</scroll-view>
-		</view>
 				</view>
 				</scroll-view>
 			</view>

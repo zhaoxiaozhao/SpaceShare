@@ -102,6 +102,7 @@ public class ShareService
     {
         if (seatIds.Count == 0) return new List<SeatShareDto>();
 
+        var rules = await _config.GetReservationRulesAsync(ct);
         var now = DateTime.UtcNow;
         var shares = await _db.SeatShares
             .Where(s => seatIds.Contains(s.SeatId)
@@ -129,6 +130,8 @@ public class ShareService
                 AllowContact = s.AllowContact,
                 CreatedAt = s.CreatedAt,
                 IsReservable = s.Status == SeatShareStatus.Available && s.StartAt > now
+                    && s.StartAt <= now.AddHours(rules.MaxAdvanceHours)
+                    && (s.EndAt - now) >= TimeSpan.FromMinutes(rules.MinMinutes)
             })
             .ToListAsync(ct);
 
@@ -252,10 +255,13 @@ public class ShareService
         if (share is null) return null;
 
         var now = DateTime.UtcNow;
+        var rules = await _config.GetReservationRulesAsync(ct);
         var waitlistCount = await _db.ReservationWaitlists.CountAsync(
             w => w.ShareId == share.Id && w.Status == WaitlistStatus.Waiting, ct);
 
-        var isReservable = share.Status == SeatShareStatus.Available && share.StartAt > now;
+        var isReservable = share.Status == SeatShareStatus.Available && share.StartAt > now
+            && share.StartAt <= now.AddHours(rules.MaxAdvanceHours)
+            && (share.EndAt - now) >= TimeSpan.FromMinutes(rules.MinMinutes);
 
         var dto = new ShareDetailDto
         {

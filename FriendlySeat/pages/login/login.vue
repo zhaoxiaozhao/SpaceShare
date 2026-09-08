@@ -5,16 +5,15 @@
 			<text class="brand-name">友邻座</text>
 			<text class="brand-slogan">一席相邻，善意相续</text>
 		</view>
-		<view class="login-desc">
-			<text>公共学习空间座位共享与预约平台</text>
-			<text>免费共享 · 免费预约 · 真实到座</text>
-		</view>
 		<button class="btn-primary login-btn" @click="wxLogin">微信登录</button>
-		<view class="agreement">
-			<text class="agreement-text">登录即表示同意</text>
-			<text class="agreement-link" @click="openAgreement">《用户服务协议》</text>
+		<view class="agreement" @tap="toggleAgreed">
+			<view class="agree-box" :class="{ checked: agreed }">
+				<text v-if="agreed" class="agree-check">✓</text>
+			</view>
+			<text class="agreement-text">我已阅读并同意</text>
+			<text class="agreement-link" @tap.stop="openAgreement">《用户服务协议》</text>
 			<text class="agreement-text">和</text>
-			<text class="agreement-link" @click="openPrivacy">《隐私保护指引》</text>
+			<text class="agreement-link" @tap.stop="openPrivacy">《隐私保护指引》</text>
 		</view>
 	</view>
 </template>
@@ -26,10 +25,14 @@
 	export default {
 		data() {
 			return {
-				loading: false
+				loading: false,
+				agreed: false
 			}
 		},
 		methods: {
+			toggleAgreed() {
+				this.agreed = !this.agreed
+			},
 			openAgreement() {
 				uni.navigateTo({ url: '/pages/agreement/agreement' })
 			},
@@ -38,6 +41,10 @@
 			},
 			wxLogin() {
 				if (this.loading) return
+				if (!this.agreed) {
+					uni.showToast({ title: '请先阅读并勾选同意《用户服务协议》和《隐私保护指引》', icon: 'none' })
+					return
+				}
 				this.loading = true
 				uni.showLoading({ title: '登录中', mask: true })
 
@@ -118,6 +125,31 @@
 		margin-top: 40rpx;
 		font-size: 22rpx;
 		color: #B0B0AB;
+		display: flex;
+		align-items: center;
+		gap: 2rpx;
+		flex-wrap: wrap;
+		justify-content: center;
+	}
+	.agree-box {
+		width: 32rpx;
+		height: 32rpx;
+		border: 2rpx solid #C8C8C3;
+		border-radius: 6rpx;
+		margin-right: 10rpx;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		flex-shrink: 0;
+	}
+	.agree-box.checked {
+		background: var(--primary);
+		border-color: var(--primary);
+	}
+	.agree-check {
+		font-size: 22rpx;
+		color: #FFFFFF;
+		line-height: 1;
 	}
 	.agreement-text {
 		font-size: 22rpx;
