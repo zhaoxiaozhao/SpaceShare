@@ -19,7 +19,8 @@ export const userApi = {
   detail: (id) => request.get(`/detail/${id}`),
   setUserStatus: (id, status) => request.post(`/detail/${id}/status?status=${status}`),
   adjustCredit: (id, change, reason) => request.post(`/detail/${id}/credit?change=${change}&reason=${encodeURIComponent(reason || '')}`),
-  adjustRisk: (id, change, reason) => request.post(`/detail/${id}/risk?change=${change}&reason=${encodeURIComponent(reason || '')}`)
+  adjustRisk: (id, change, reason) => request.post(`/detail/${id}/risk?change=${change}&reason=${encodeURIComponent(reason || '')}`),
+  sendDemoNotifications: (id) => request.post(`/detail/${id}/demo-notifications`)
 }
 
 export const venueApi = {

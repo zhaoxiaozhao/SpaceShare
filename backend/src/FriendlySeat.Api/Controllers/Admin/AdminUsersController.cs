@@ -78,4 +78,11 @@ public class AdminUsersController : AdminControllerBase
         await _users.AdjustRiskAsync(id, change, reason ?? "管理员调整", _currentAdmin.AdminId!.Value, ct);
         return Ok();
     }
+
+    [HttpPost("detail/{id:long}/demo-notifications")]
+    public async Task<IActionResult> SendDemoNotifications(long id, CancellationToken ct)
+    {
+        await _users.SendDemoNotificationsAsync(id, _currentAdmin.AdminId!.Value, ct);
+        return Ok(new { message = "已生成演示通知" });
+    }
 }

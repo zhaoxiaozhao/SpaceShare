@@ -33,9 +33,10 @@
       <el-table-column label="注册时间" width="160">
         <template #default="{ row }">{{ formatTime(row.createdAt) }}</template>
       </el-table-column>
-      <el-table-column label="操作" width="200" fixed="right">
+      <el-table-column label="操作" width="280" fixed="right">
         <template #default="{ row }">
           <el-button size="small" @click="openDetail(row.id)">详情</el-button>
+          <el-button size="small" type="success" @click="sendDemoNotifications(row)">演示通知</el-button>
           <el-button size="small" type="warning" @click="toggleStatus(row)">{{ row.status === 'Active' ? '封禁' : '解禁' }}</el-button>
         </template>
       </el-table-column>
@@ -128,6 +129,17 @@ async function adjustRisk() {
   await userApi.adjustRisk(detail.value.id, changeValue.value, changeReason.value)
   ElMessage.success('已调整风险')
   detail.value = await userApi.detail(detail.value.id)
+}
+
+async function sendDemoNotifications(row) {
+  try {
+    await ElMessageBox.confirm(
+      `将给用户「${row.nickname}」生成 9 类演示通知，请让该用户在「我的 → 消息通知」中查看。确认吗？`,
+      '生成演示通知'
+    )
+    await userApi.sendDemoNotifications(row.id)
+    ElMessage.success('已生成演示通知')
+  } catch (e) {}
 }
 </script>
 
