@@ -129,9 +129,9 @@ public class ShareService
                 Note = s.Note,
                 AllowContact = s.AllowContact,
                 CreatedAt = s.CreatedAt,
-                IsReservable = s.Status == SeatShareStatus.Available && s.StartAt > now
-                    && s.StartAt <= now.AddHours(rules.MaxAdvanceHours)
+                IsReservable = s.Status == SeatShareStatus.Available
                     && s.EndAt >= now.AddMinutes(rules.MinMinutes)
+                    && s.StartAt <= now.AddHours(rules.MaxAdvanceHours)
             })
             .ToListAsync(ct);
 
@@ -259,9 +259,9 @@ public class ShareService
         var waitlistCount = await _db.ReservationWaitlists.CountAsync(
             w => w.ShareId == share.Id && w.Status == WaitlistStatus.Waiting, ct);
 
-        var isReservable = share.Status == SeatShareStatus.Available && share.StartAt > now
-            && share.StartAt <= now.AddHours(rules.MaxAdvanceHours)
-            && share.EndAt >= now.AddMinutes(rules.MinMinutes);
+        var isReservable = share.Status == SeatShareStatus.Available
+            && share.EndAt >= now.AddMinutes(rules.MinMinutes)
+            && share.StartAt <= now.AddHours(rules.MaxAdvanceHours);
 
         var dto = new ShareDetailDto
         {
