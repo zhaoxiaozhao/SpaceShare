@@ -232,6 +232,7 @@ public class VenueService
                 Pois = f.Pois.OrderBy(p => p.PositionY).ThenBy(p => p.PositionX).Select(p => new PoiDto
                 {
                     Id = p.Id,
+                    AreaId = p.AreaId,
                     Type = p.Type.ToString(),
                     Name = p.Name,
                     PositionX = p.PositionX,

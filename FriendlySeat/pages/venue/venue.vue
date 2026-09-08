@@ -114,7 +114,7 @@
 								<text class="zone-label" :style="zoneLabelStyle()"><text class="zone-letter">{{zoneLetter(z, f)}}区</text></text>
 							</view>
 							<view
-								v-for="p in f.pois"
+								v-for="p in visiblePois(f)"
 								:key="'p' + p.id"
 								class="poi-rect"
 								:class="poiClass(p.type)"
@@ -193,24 +193,28 @@
 					</view>
 
 					<!-- 标志物（文本/线条可旋转） -->
-					<view
-						v-for="p in f.pois"
-						:key="'p' + p.id"
-						class="poi-rect"
-						:class="poiClass(p.type)"
-						:style="poiRectStyle(f, p)"
-					>
-						<template v-if="p.type === 'Text'">
-							<text class="poi-text" :style="poiRotateStyle(p)">{{p.text || p.name}}</text>
-						</template>
-						<template v-else-if="p.type === 'Line'">
-							<view class="poi-line" :style="poiRotateStyle(p)"></view>
-						</template>
-						<template v-else>
-							<text class="poi-icon" :style="poiIconStyle()">{{poiIcon(p.type)}}</text>
-							<text class="poi-name" :style="poiNameStyle()">{{p.name}}</text>
-						</template>
+<view
+							v-for="p in visiblePois(f)"
+							:key="'p' + p.id"
+							class="poi-rect"
+							:class="poiClass(p.type)"
+							:style="poiRectStyle(f, p)"
+						>
+							<template v-if="p.type === 'Text'">
+								<text class="poi-text" :style="poiRotateStyle(p)">{{p.text || p.name}}</text>
+							</template>
+							<template v-else-if="p.type === 'Line'">
+								<view class="poi-line" :style="poiRotateStyle(p)"></view>
+							</template>
+							<template v-else>
+								<text class="poi-icon" :style="poiIconStyle()">{{poiIcon(p.type)}}</text>
+								<text class="poi-name" :style="poiNameStyle()">{{p.name}}</text>
+							</template>
+						</view>
 					</view>
+				</scroll-view>
+			</scroll-view>
+		</view>
 				</view>
 				</scroll-view>
 			</view>
@@ -326,6 +330,10 @@
 			visibleZones(f) {
 				if (this.currentAreaId === null) return f.zones
 				return f.zones.filter(z => (z.areaId || 0) === this.currentAreaId)
+			},
+			visiblePois(f) {
+				if (this.currentAreaId === null) return f.pois
+				return f.pois.filter(p => (p.areaId || 0) === this.currentAreaId)
 			},
 
 			// ===== 楼层平面图计算 =====
