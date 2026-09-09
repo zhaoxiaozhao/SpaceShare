@@ -1,7 +1,7 @@
 <template>
 	<page-meta :page-style="pageThemeStyle" />
 		<view>
-		<view class="notif-toolbar" v-if="list.length">
+		<view class="notif-toolbar">
 			<view class="tabs">
 				<text class="tab" :class="{ active: filter === '' }" @click="switchFilter('')">全部</text>
 				<text class="tab" :class="{ active: filter === 'unread' }" @click="switchFilter('unread')">未读</text>

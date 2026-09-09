@@ -173,7 +173,12 @@ public class VenueService
     {
         var cacheKey = $"venue:{id}";
         var cached = await _cache.GetAsync<VenueDetailDto?>(cacheKey, ct);
-        if (cached is not null) return cached;
+        if (cached is not null)
+        {
+            // 动态计数（可预约数/座位分享数/预约数）实时计算，避免逾期后被旧缓存误导
+            await EnrichCountsAsync(cached, id, DateTime.UtcNow, ct);
+            return cached;
+        }
 
         var venue = await _db.Venues
             .Include(v => v.Floors)
@@ -187,23 +192,6 @@ public class VenueService
 
         if (venue is null) return null;
 
-        var now = DateTime.UtcNow;
-        var (seatCount, availableCount) = await GetVenueCountsAsync(venue.Id, now, ct);
-
-        // 该场馆座位 → 有效分享/预约计数（用于地图状态显示）
-        var venueSeatIds = venue.Floors.SelectMany(f => f.Zones).SelectMany(z => z.Seats).Select(s => s.Id).ToList();
-        var shareCounts = await _db.SeatShares
-            .Where(s => venueSeatIds.Contains(s.SeatId) && s.Status == SeatShareStatus.Available && s.EndAt > now)
-            .GroupBy(s => s.SeatId)
-            .Select(g => new { SeatId = g.Key, Count = g.Count() })
-            .ToDictionaryAsync(x => x.SeatId, x => x.Count, ct);
-        var reservedCounts = await _db.Reservations
-            .Where(r => venueSeatIds.Contains(r.SeatId) && r.EndAt > now
-                && (r.Status == ReservationStatus.Reserved || r.Status == ReservationStatus.Arrived))
-            .GroupBy(r => r.SeatId)
-            .Select(g => new { SeatId = g.Key, Count = g.Count() })
-            .ToDictionaryAsync(x => x.SeatId, x => x.Count, ct);
-
         var dto = new VenueDetailDto
         {
             Id = venue.Id,
@@ -215,8 +203,8 @@ public class VenueService
             Description = venue.Description,
             OpeningTime = venue.OpeningTime.ToString(@"hh\:mm"),
             ClosingTime = venue.ClosingTime.ToString(@"hh\:mm"),
-            SeatCount = seatCount,
-            AvailableCount = availableCount,
+            SeatCount = 0,
+            AvailableCount = 0,
             Floors = venue.Floors.OrderBy(f => f.SortOrder).Select(f => new FloorDto
             {
                 Id = f.Id,
@@ -291,15 +279,45 @@ public class VenueService
                         PhotoUrl = s.PhotoUrl,
                         Description = s.Description,
                         Verified = s.Verified,
-                        CurrentShareCount = shareCounts.GetValueOrDefault(s.Id),
-                        CurrentReservedCount = reservedCounts.GetValueOrDefault(s.Id)
+                        CurrentShareCount = 0,
+                        CurrentReservedCount = 0
                     }).ToList()
                 }).ToList()
             }).ToList()
         };
 
+        await EnrichCountsAsync(dto, id, DateTime.UtcNow, ct);
         await _cache.SetAsync(cacheKey, dto, TimeSpan.FromMinutes(5), ct);
         return dto;
+    }
+
+    // 动态计数实时计算：可预约数（有可用分享的座位）、每座位有效分享/预约数
+    private async Task EnrichCountsAsync(VenueDetailDto dto, long venueId, DateTime now, CancellationToken ct)
+    {
+        var (seatCount, availableCount) = await GetVenueCountsAsync(venueId, now, ct);
+        dto.SeatCount = seatCount;
+        dto.AvailableCount = availableCount;
+
+        var venueSeatIds = dto.Floors.SelectMany(f => f.Zones).SelectMany(z => z.Seats).Select(s => s.Id).ToList();
+        if (venueSeatIds.Count == 0) return;
+
+        var shareCounts = await _db.SeatShares
+            .Where(s => venueSeatIds.Contains(s.SeatId) && s.Status == SeatShareStatus.Available && s.EndAt > now)
+            .GroupBy(s => s.SeatId)
+            .Select(g => new { SeatId = g.Key, Count = g.Count() })
+            .ToDictionaryAsync(x => x.SeatId, x => x.Count, ct);
+        var reservedCounts = await _db.Reservations
+            .Where(r => venueSeatIds.Contains(r.SeatId) && r.EndAt > now
+                && (r.Status == ReservationStatus.Reserved || r.Status == ReservationStatus.Arrived))
+            .GroupBy(r => r.SeatId)
+            .Select(g => new { SeatId = g.Key, Count = g.Count() })
+            .ToDictionaryAsync(x => x.SeatId, x => x.Count, ct);
+
+        foreach (var seat in dto.Floors.SelectMany(f => f.Zones).SelectMany(z => z.Seats))
+        {
+            seat.CurrentShareCount = shareCounts.GetValueOrDefault(seat.Id);
+            seat.CurrentReservedCount = reservedCounts.GetValueOrDefault(seat.Id);
+        }
     }
 
     public async Task<SeatDto?> GetSeatAsync(long id, CancellationToken ct = default)
