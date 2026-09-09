@@ -1061,6 +1061,8 @@
 		color: #FFFFFF;
 		padding: 2px;
 		min-width: 0;
+		box-sizing: border-box;
+		overflow: hidden;
 	}
 	/* 文本标志物 */
 	.poi-rect.poi-rect-text {
@@ -1095,6 +1097,7 @@
 	}
 	.poi-icon {
 		font-size: 18px;
+		line-height: 1;
 	}
 	.poi-name {
 		font-size: 9px;
@@ -1103,6 +1106,7 @@
 		overflow: hidden;
 		text-overflow: ellipsis;
 		max-width: 100%;
+		line-height: 1.2;
 	}
 	.share-card {
 		display: flex;
