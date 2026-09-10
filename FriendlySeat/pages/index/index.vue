@@ -25,7 +25,7 @@
 				</view>
 				<view class="venue-meta">
 					<text class="venue-available" v-if="v.availableCount > 0">可预约 {{v.availableCount}}</text>
-					<text class="venue-available none" v-else>暂无分享</text>
+					<text class="venue-available none" v-else>{{v.seatCount || 0}} 座位</text>
 					<text class="venue-distance" v-if="v.distanceKm">{{v.distanceKm}}km</text>
 				</view>
 			</view>
@@ -131,10 +131,7 @@
 				})
 			},
 			goFindSeat() {
-				uni.switchTab({ url: '/pages/reservations/reservations' })
-				setTimeout(() => {
-					uni.navigateTo({ url: '/pages/venues/venues' })
-				}, 300)
+				uni.navigateTo({ url: '/pages/venues/venues' })
 			},
 			goShare() {
 				if (!uni.getStorageSync('token')) {
