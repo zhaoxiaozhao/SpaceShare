@@ -83,6 +83,23 @@
 		onShow() {
 			this.load()
 		},
+		onShareAppMessage() {
+			const r = this.report
+			const hours = r.totalMinutes >= 60 ? Math.floor(r.totalMinutes / 60) + '小时' : ''
+			const mins = r.totalMinutes % 60 ? (r.totalMinutes % 60) + '分钟' : ''
+			return {
+				title: `${this.year}年度阅读报告：${hours}${mins}${r.readingDays ? ` · ${r.readingDays}天` : ''}`,
+				path: '/pages/index/index'
+			}
+		},
+		onShareTimeline() {
+			const r = this.report
+			const hours = r.totalMinutes >= 60 ? Math.floor(r.totalMinutes / 60) + '小时' : ''
+			const mins = r.totalMinutes % 60 ? (r.totalMinutes % 60) + '分钟' : ''
+			return {
+				title: `${this.year}年度阅读报告：${hours}${mins}${r.readingDays ? ` · ${r.readingDays}天` : ''}`
+			}
+		},
 		methods: {
 			async load() {
 				try {

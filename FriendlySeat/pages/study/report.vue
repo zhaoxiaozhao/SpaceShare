@@ -101,6 +101,12 @@
 				imageUrl: this.shareImage || ''
 			}
 		},
+		onShareTimeline() {
+			return {
+				title: `我的学习${this.period === 'monthly' ? '月报' : '周报'}：共学习${this.formatHours(this.report ? this.report.totalMinutes : 0)}`,
+				...(this.shareImage ? { imageUrl: this.shareImage } : {})
+			}
+		},
 		computed: {
 			periodText() {
 				if (!this.report) return ''

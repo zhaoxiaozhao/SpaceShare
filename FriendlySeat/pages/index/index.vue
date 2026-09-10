@@ -70,6 +70,12 @@
 		onPullDownRefresh() {
 			this.loadData().then(() => uni.stopPullDownRefresh())
 		},
+		onShareAppMessage() {
+			return { title: '友邻座 - 发现身边的共享座位，座位不浪费', path: '/pages/index/index' }
+		},
+		onShareTimeline() {
+			return { title: '友邻座 - 发现身边的共享座位' }
+		},
 		methods: {
 			formatTime,
 			async loadData() {

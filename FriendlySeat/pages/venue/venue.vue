@@ -282,6 +282,20 @@
 			} catch (e) {}
 			this.loadedOnce = false
 		},
+		onShareAppMessage() {
+			const v = this.venue
+			const title = v
+				? `${v.name}${v.availableCount > 0 ? ` 有${v.availableCount}个座位可预约` : ''}`
+				: '友邻座 - 发现身边的共享座位'
+			return { title, path: `/pages/venue/venue?id=${this.id}` }
+		},
+		onShareTimeline() {
+			const v = this.venue
+			const title = v
+				? `${v.name}${v.availableCount > 0 ? ` 有${v.availableCount}个座位可预约` : ''}`
+				: '友邻座 - 发现身边的共享座位'
+			return { title, query: `id=${this.id}` }
+		},
 		onShow() {
 			this.load()
 		},

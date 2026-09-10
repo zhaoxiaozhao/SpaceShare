@@ -73,6 +73,19 @@
 			this.loadCities()
 			this.initLocation()
 		},
+		onShareAppMessage() {
+			const city = this.cities.find(c => c.id === this.cityId)
+			return {
+				title: city ? `${city.name}共享座位 - 友邻座` : '友邻座 - 发现身边的共享座位',
+				path: '/pages/index/index'
+			}
+		},
+		onShareTimeline() {
+			const city = this.cities.find(c => c.id === this.cityId)
+			return {
+				title: city ? `${city.name}共享座位 - 友邻座` : '友邻座 - 发现身边的共享座位'
+			}
+		},
 		onPullDownRefresh() {
 			this.loadVenues(true).then(() => uni.stopPullDownRefresh())
 		},

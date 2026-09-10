@@ -66,6 +66,25 @@
 		onShow() {
 			this.load()
 		},
+		onShareAppMessage() {
+			const c = this.c
+			const s = c.shareCount || 0
+			const h = c.helpedCount || 0
+			const badges = s >= 20 ? '常予一席' : s >= 5 ? '乐于相助' : s >= 1 ? '初识友邻' : '友邻贡献'
+			return {
+				title: `${badges} | 分享${s}次 · 帮助${h}人`,
+				path: '/pages/index/index'
+			}
+		},
+		onShareTimeline() {
+			const c = this.c
+			const s = c.shareCount || 0
+			const h = c.helpedCount || 0
+			const badges = s >= 20 ? '常予一席' : s >= 5 ? '乐于相助' : s >= 1 ? '初识友邻' : '友邻贡献'
+			return {
+				title: `${badges} | 分享${s}次 · 帮助${h}人`
+			}
+		},
 		methods: {
 			async load() {
 				try {

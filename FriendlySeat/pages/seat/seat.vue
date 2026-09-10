@@ -81,6 +81,22 @@
 		onLoad(options) {
 			this.id = options.id
 		},
+		onShareAppMessage() {
+			const s = this.seat
+			const hasShares = this.shares.length > 0
+			const title = s
+				? `${s.displayCode || s.code}${hasShares ? ' 可预约' : ''} · ${s.venueName || '友邻座'}`
+				: '友邻座 - 发现身边的共享座位'
+			return { title, path: `/pages/seat/seat?id=${this.id}` }
+		},
+		onShareTimeline() {
+			const s = this.seat
+			const hasShares = this.shares.length > 0
+			const title = s
+				? `${s.displayCode || s.code}${hasShares ? ' 可预约' : ''} · ${s.venueName || '友邻座'}`
+				: '友邻座 - 发现身边的共享座位'
+			return { title, query: `id=${this.id}` }
+		},
 		onShow() {
 			this.load()
 		},
