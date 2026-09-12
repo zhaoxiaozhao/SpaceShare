@@ -923,7 +923,6 @@
 		display: flex;
 		flex-direction: column;
 		align-items: center;
-		gap: 4rpx;
 	}
 	.stat-num {
 		font-size: 44rpx;
@@ -936,12 +935,17 @@
 	.stat-label {
 		font-size: 22rpx;
 		color: #8A8A86;
+		margin-top: auto;
+		white-space: nowrap;
 	}
 	.stat-act {
 		display: flex;
 		flex-direction: column;
 		align-items: center;
-		gap: 4rpx;
+		justify-content: space-between;
+		flex: 1;
+		align-self: stretch;
+		width: 100%;
 	}
 	.icon-waitlist {
 		width: 44rpx;
