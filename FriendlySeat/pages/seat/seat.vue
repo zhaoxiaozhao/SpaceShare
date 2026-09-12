@@ -113,9 +113,11 @@
 			async load() {
 				try {
 					this.seat = await api.getSeat(this.id)
-					// 座位状态语义：不可用 > 已预约(进行中) > 可预约(有可用分享) > 待分享
+					// 座位状态语义：不可用 > 使用中(已入座) > 已预约 > 可预约(有可用分享) > 待分享
 					if (this.seat.status === 'Unavailable') {
 						this.seat.statusText = '不可用'
+					} else if (this.seat.status === 'Occupied') {
+						this.seat.statusText = '使用中'
 					} else if (this.seat.currentReservedCount > 0) {
 						this.seat.statusText = '已预约'
 					} else if (this.seat.currentShareCount > 0) {

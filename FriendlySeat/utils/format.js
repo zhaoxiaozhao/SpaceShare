@@ -36,6 +36,7 @@ export function statusText(status) {
 		Reserved: '待到达',
 		Arrived: '已到座',
 		Using: '使用中',
+		Active: '使用中',
 		Completed: '已完成',
 		Cancelled: '已取消',
 		NoShow: '爽约',

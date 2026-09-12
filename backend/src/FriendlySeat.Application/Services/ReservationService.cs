@@ -239,6 +239,17 @@ public class ReservationService
         var seatEntity = await _db.Seats.FirstAsync(s => s.Id == reservation.SeatId, ct);
         seatEntity.Status = SeatStatus.Occupied;
 
+        // 到座后，对应分享进入使用中（Active），前端状态从“待到达”变为“使用中”
+        if (reservation.ShareId.HasValue)
+        {
+            var shareEntity = await _db.SeatShares
+                .FirstOrDefaultAsync(s => s.Id == reservation.ShareId.Value && s.Status == SeatShareStatus.Reserved, ct);
+            if (shareEntity is not null)
+            {
+                shareEntity.Status = SeatShareStatus.Active;
+            }
+        }
+
         await _db.SaveChangesAsync(ct);
         await InvalidateVenueCacheAsync(reservation.SeatId, ct);
 
@@ -324,6 +335,17 @@ public class ReservationService
 
         var seat = await _db.Seats.FirstAsync(s => s.Id == reservation.SeatId, ct);
         seat.Status = SeatStatus.Available;
+
+        // 使用结束后，对应分享标记为已完成
+        if (reservation.ShareId.HasValue)
+        {
+            var shareEntity = await _db.SeatShares
+                .FirstOrDefaultAsync(s => s.Id == reservation.ShareId.Value && s.Status == SeatShareStatus.Active, ct);
+            if (shareEntity is not null)
+            {
+                shareEntity.Status = SeatShareStatus.Completed;
+            }
+        }
 
         await _db.SaveChangesAsync(ct);
         await InvalidateVenueCacheAsync(reservation.SeatId, ct);

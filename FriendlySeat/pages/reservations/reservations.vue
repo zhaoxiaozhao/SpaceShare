@@ -16,7 +16,8 @@
 						<text class="tag" :class="'status-' + r.status.toLowerCase()">{{statusText(r.status)}}</text>
 					</view>
 					<text class="res-venue">{{r.venueName}}<text v-if="r.floorName" class="res-floor"> · {{r.floorName}}</text><text v-if="r.areaName" class="res-floor"> · {{r.areaName}}</text></text>
-					<text class="res-time">{{formatTime(r.startAt)}} ~ {{formatTime(r.endAt)}}</text>
+					<text v-if="r.status === 'Arrived' && r.arrivedAt" class="res-time">{{formatTime(r.arrivedAt)}} ~ {{formatTime(r.endAt)}} 使用中</text>
+					<text v-else class="res-time">{{formatTime(r.startAt)}} ~ {{formatTime(r.endAt)}}</text>
 					<!-- 核销码到座：输入分享者出示的核销码 -->
 					<view class="code-input-row" v-if="r.status === 'Reserved'">
 						<input

@@ -26,6 +26,7 @@
 		<view class="card legend">
 			<view class="legend-item"><view class="dot avail"></view><text>可预约</text></view>
 			<view class="legend-item"><view class="dot reserved"></view><text>已预约</text></view>
+			<view class="legend-item"><view class="dot using"></view><text>使用中</text></view>
 			<view class="legend-item"><view class="dot off"></view><text>不可用</text></view>
 			<view class="legend-item"><view class="dot unknown"></view><text>待分享</text></view>
 			<view class="legend-item"><view class="dot-poi"></view><text>设施</text></view>
@@ -222,7 +223,7 @@
 			<view class="card share-card" v-for="s in shares" :key="s.id" @click="goReserve(s)">
 				<view class="share-top">
 					<text class="share-seat">{{s.displayCode || s.seatCode}}</text>
-					<text class="tag">可预约</text>
+					<text class="tag" :class="shareTagClass(s.status)">{{statusText(s.status)}}</text>
 				</view>
 				<view class="share-loc">
 					<text class="share-floor">{{s.floorName || ''}}</text>
@@ -237,7 +238,7 @@
 
 <script>
 	import { api } from '../../utils/request.js'
-	import { formatTime } from '../../utils/format.js'
+	import { formatTime, statusText } from '../../utils/format.js'
 
 	export default {
 		data() {
@@ -301,6 +302,16 @@
 		},
 		methods: {
 			formatTime,
+			statusText,
+			shareTagClass(status) {
+				const map = {
+					Available: 'status-available',
+					Reserved: 'status-reserved',
+					Active: 'status-active',
+					Completed: 'status-completed'
+				}
+				return map[status] || 'status-completed'
+			},
 			async load() {
 				try {
 					this.venue = await api.getVenue(this.id)
@@ -686,8 +697,9 @@
 			},
 			seatClass(s) {
 				if (s.status === 'Unavailable') return 'off'
-				if (s.currentShareCount > 0) return 'avail'
+				if (s.status === 'Occupied') return 'using'
 				if (s.currentReservedCount > 0) return 'reserved'
+				if (s.currentShareCount > 0) return 'avail'
 				return 'unknown'
 			},
 			seatShortCode(code) {
@@ -888,6 +900,7 @@
 	}
 	.dot.avail { background: var(--primary); }
 	.dot.reserved { background: #8C8C86; }
+	.dot.using { background: #3E4C6B; }
 	.dot.off { background: #B85450; }
 	.dot.unknown { background: var(--primary-bg); border: 2rpx dashed var(--primary-disabled); }
 	.dot-poi {
@@ -1026,6 +1039,9 @@
 	}
 	.map-cell.reserved {
 		background: #8C8C86;
+	}
+	.map-cell.using {
+		background: #3E4C6B;
 	}
 	.map-cell.unknown {
 		background: var(--primary-bg);

@@ -36,7 +36,7 @@
 			<view class="card share-card" v-for="s in shares" :key="s.id" @click="goSeat(s.seatId)">
 				<view class="share-top">
 					<text class="share-seat">{{s.displayCode || s.seatCode}}</text>
-					<text class="tag">可预约</text>
+					<text class="tag" :class="shareTagClass(s.status)">{{statusText(s.status)}}</text>
 				</view>
 				<text class="share-venue">{{s.venueName}}<text v-if="s.floorName" class="share-floor"> · {{s.floorName}}</text><text v-if="s.areaName" class="share-floor"> · {{s.areaName}}</text></text>
 				<view class="share-time">预计释放：{{formatTime(s.endAt)}}</view>
@@ -58,7 +58,7 @@
 
 <script>
 	import { api } from '../../utils/request.js'
-	import { formatTime } from '../../utils/format.js'
+	import { formatTime, statusText } from '../../utils/format.js'
 	import { getSeasonKey } from '../../utils/theme.js'
 
 	export default {
@@ -84,6 +84,16 @@
 		},
 		methods: {
 			formatTime,
+			statusText,
+			shareTagClass(status) {
+				const map = {
+					Available: 'status-available',
+					Reserved: 'status-reserved',
+					Active: 'status-active',
+					Completed: 'status-completed'
+				}
+				return map[status] || 'status-completed'
+			},
 			async loadData() {
 				try {
 					const location = await this.getLocation()
