@@ -950,11 +950,13 @@
 	.icon-waitlist {
 		width: 44rpx;
 		height: 44rpx;
+		margin-top: 8rpx;
 		background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='none' stroke='%2360A080' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round' d='M12 6v6l4 2'/%3E%3Ccircle cx='12' cy='12' r='9' fill='none' stroke='%2360A080' stroke-width='1.8'/%3E%3C/svg%3E") no-repeat center / contain;
 	}
 	.icon-fullscreen {
 		width: 44rpx;
 		height: 44rpx;
+		margin-top: 8rpx;
 		background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='none' stroke='%2360A080' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round' d='M9 4H4v5M15 4h5v5M9 20H4v-5M15 20h5v-5'/%3E%3C/svg%3E") no-repeat center / contain;
 	}
 	.icon-fullscreen.expanded {
