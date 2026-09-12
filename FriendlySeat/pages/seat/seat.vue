@@ -180,10 +180,10 @@
 					success: async (res) => {
 						if (res.confirm) {
 							try {
-								const r = await api.createReservation(share.id)
+								// 先请求订阅授权（预约成功/即将开始/到座提醒），再创建预约，确保能收到推送
+								await subscribeFor(['reservation_created', 'reservation_starting', 'arrival_required'])
+								await api.createReservation(share.id)
 								uni.showToast({ title: '预约成功', icon: 'success' })
-								// 预约成功后请求订阅：预约创建/即将开始/到座提醒
-								subscribeFor(['reservation_created', 'reservation_starting', 'arrival_required'])
 								setTimeout(() => uni.switchTab({ url: '/pages/reservations/reservations' }), 600)
 							} catch (e) {
 								uni.showToast({ title: e.message || '预约失败', icon: 'none' })

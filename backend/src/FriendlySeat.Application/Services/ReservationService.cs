@@ -3,6 +3,7 @@ using FriendlySeat.Application.Dtos;
 using FriendlySeat.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using System.Text.Json;
 
 namespace FriendlySeat.Application.Services;
 
@@ -145,8 +146,14 @@ public class ReservationService
         if (share.OwnerUserId != userId)
         {
             await _notifications.SendAsync(share.OwnerUserId, NotificationType.ReservationCreated,
-                "你的分享被预约", $"友邻 {user.Nickname ?? "某位友邻"} 预约了你的座位「{share.Seat?.Code}」", null, ct);
+                "你的分享被预约", $"友邻 {user.Nickname ?? "某位友邻"} 预约了你的座位「{share.Seat?.Code}」",
+                JsonSerializer.Serialize(new { seat = share.Seat?.Code ?? "", status = "已被预约", time = reservation.StartAt.ToUniversalTime() }), ct);
         }
+
+        // 通知预约人：预约成功
+        await _notifications.SendAsync(userId, NotificationType.ReservationCreated,
+            "预约成功", $"「{share.Seat?.Code}」预约成功，请按时到座",
+            JsonSerializer.Serialize(new { seat = share.Seat?.Code ?? "", status = "预约成功", time = reservation.StartAt.ToUniversalTime() }), ct);
 
         await InvalidateVenueCacheAsync(share.SeatId, ct);
 
@@ -514,7 +521,8 @@ public class ReservationService
         await _db.SaveChangesAsync(ct);
 
         await _notifications.SendAsync(next.UserId, NotificationType.WaitlistAvailable,
-            "候补成功", $"「{share.Seat?.Code}」有空位了，座位已为你预留，请在{rules.WaitlistWindowMinutes}分钟内预约", null, ct);
+            "候补成功", $"「{share.Seat?.Code}」有空位了，座位已为你预留，请在{rules.WaitlistWindowMinutes}分钟内预约",
+            JsonSerializer.Serialize(new { seat = share.Seat?.Code ?? "", status = "待确认", time = next.ExpiredAt?.ToUniversalTime() }), ct);
     }
 
     // 范围偏好自动代约：share 仍可预约时，按提交顺序为最早匹配的偏好用户直接预约（无具体候补队列时）
@@ -558,7 +566,8 @@ public class ReservationService
                 await _db.SaveChangesAsync(ct);
 
                 await _notifications.SendAsync(pref.UserId, NotificationType.WaitlistAvailable,
-                    "候补成功，已自动预约", $"「{seat.Code}」有空位，已自动为你预约，按时到座确认即可。", null, ct);
+                    "候补成功，已自动预约", $"「{seat.Code}」有空位，已自动为你预约，按时到座确认即可。",
+                    JsonSerializer.Serialize(new { seat = seat.Code, status = "预约成功", time = reservation.StartAt.ToUniversalTime() }), ct);
                 return;
             }
             catch (AppException)

@@ -102,7 +102,6 @@
 			</view>
 			<view v-if="!waitlist.length && !preferences.length" class="empty">暂无候补</view>
 
-			<view v-if="preferences.length" class="wl-prefs-title">范围候补（系统自动代约）</view>
 			<view class="card res-card" v-for="p in preferences" :key="'p' + p.id">
 				<view class="res-top">
 					<text class="res-seat">{{prefText(p.preference)}}候补</text>
@@ -406,12 +405,6 @@
 	.res-time {
 		font-size: 26rpx;
 		color: #8A8A86;
-	}
-	.wl-prefs-title {
-		font-size: 26rpx;
-		font-weight: 600;
-		color: #8A8A86;
-		margin: 24rpx 0 12rpx;
 	}
 	.res-actions {
 		display: flex;

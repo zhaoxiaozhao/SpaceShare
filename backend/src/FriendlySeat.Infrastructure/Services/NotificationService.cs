@@ -3,6 +3,8 @@ using FriendlySeat.Application.Services;
 using FriendlySeat.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using System.Globalization;
+using System.Text.Json;
 
 namespace FriendlySeat.Infrastructure.Services;
 
@@ -86,14 +88,59 @@ public class NotificationService : INotificationService
             _ => "pages/index/index"
         };
 
-        var msg = new Dictionary<string, SubscribeDataItem>
+        var msg = BuildTemplateData(type, title, content, data);
+
+        await _wechat.SendSubscribeMessageAsync(user.OpenId, templateId, page, msg, ct);
+    }
+
+    // 按通知类型组装订阅消息字段。
+    // 注意：字段名（如 thing46/phrase14/date3）必须与微信公众平台所选模板的关键词 ID 完全一致。
+    // 「预约成功 / 候补自动预约 / 分享被预约」复用模板「预约通知」（编号 461）：
+    // 座位={{thing46}}、预约状态={{phrase14}}、预约时间={{date3}}，
+    // 具体值由业务侧通过 data(JSON) 传入 { seat, status, time }，未传时使用默认值。
+    private static Dictionary<string, SubscribeDataItem> BuildTemplateData(NotificationType type, string title, string? content, string? data)
+    {
+        if (type == NotificationType.WaitlistAvailable || type == NotificationType.ReservationCreated)
+        {
+            var seat = string.Empty;
+            var status = "预约成功";
+            var timeCn = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, ChinaTz).ToString("yyyy-MM-dd HH:mm");
+
+            if (!string.IsNullOrWhiteSpace(data))
+            {
+                try
+                {
+                    using var doc = JsonDocument.Parse(data);
+                    var root = doc.RootElement;
+                    if (root.TryGetProperty("seat", out var s) && s.ValueKind == JsonValueKind.String)
+                        seat = s.GetString() ?? seat;
+                    if (root.TryGetProperty("status", out var st) && st.ValueKind == JsonValueKind.String)
+                        status = st.GetString() ?? status;
+                    if (root.TryGetProperty("time", out var t) && t.ValueKind == JsonValueKind.String
+                        && DateTime.TryParse(t.GetString(), CultureInfo.InvariantCulture,
+                            DateTimeStyles.AdjustToUniversal | DateTimeStyles.AssumeUniversal, out var dt))
+                        timeCn = TimeZoneInfo.ConvertTimeFromUtc(dt, ChinaTz).ToString("yyyy-MM-dd HH:mm");
+                }
+                catch (JsonException) { }
+            }
+
+            return new Dictionary<string, SubscribeDataItem>
+            {
+                ["thing46"] = new SubscribeDataItem(Clip(seat, 20)),
+                ["phrase14"] = new SubscribeDataItem(Clip(status, 5)),
+                ["date3"] = new SubscribeDataItem(timeCn)
+            };
+        }
+
+        return new Dictionary<string, SubscribeDataItem>
         {
             ["thing1"] = new SubscribeDataItem(Clip(title, 20)),
             ["thing2"] = new SubscribeDataItem(Clip(content ?? string.Empty, 20))
         };
-
-        await _wechat.SendSubscribeMessageAsync(user.OpenId, templateId, page, msg, ct);
     }
+
+    private static readonly TimeZoneInfo ChinaTz = TimeZoneInfo.CreateCustomTimeZone(
+        "China Standard Time", TimeSpan.FromHours(8), "China Standard Time", "China Standard Time");
 
     private static string Clip(string s, int max) => s.Length <= max ? s : s[..max];
 }

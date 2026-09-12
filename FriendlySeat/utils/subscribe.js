@@ -19,18 +19,23 @@ async function getTemplates() {
 }
 
 // 订阅指定场景的消息模板（key 对应后端配置键），一次可传多个
+// 返回 Promise：在微信授权弹窗结束后 resolve，便于在关键请求前先完成订阅
 export async function subscribeFor(keys) {
 	// #ifdef MP-WEIXIN
 	const list = Array.isArray(keys) ? keys : [keys]
 	const templates = await getTemplates()
 	const tmplIds = list.map(k => templates[k]).filter(id => !!id)
-	if (!tmplIds.length) return
-	try {
-		wx.requestSubscribeMessage({
-			tmplIds,
-			success: () => {},
-			fail: () => {}
-		})
-	} catch (e) {}
+	if (!tmplIds.length) return false
+	return new Promise((resolve) => {
+		try {
+			wx.requestSubscribeMessage({
+				tmplIds,
+				success: () => resolve(true),
+				fail: () => resolve(false)
+			})
+		} catch (e) {
+			resolve(false)
+		}
+	})
 	// #endif
 }

@@ -278,6 +278,7 @@
 	import { api } from '../../utils/request.js'
 	import { formatTime, statusText } from '../../utils/format.js'
 	import { getTheme } from '../../utils/theme.js'
+	import { subscribeFor } from '../../utils/subscribe.js'
 
 	export default {
 		data() {
@@ -880,6 +881,8 @@
 				}).then(() => {
 					this.wlPicker = false
 					uni.showToast({ title: '候补已提交，系统将自动为您预约', icon: 'none' })
+					// 提交候补后请求订阅：候补成功、到座提醒、爽约过期提醒
+					subscribeFor(['waitlist_available', 'arrival_required', 'reservation_expired'])
 				}).catch((e) => {
 					uni.showToast({ title: (e && e.message) || '提交失败，请稍后重试', icon: 'none' })
 				}).finally(() => {
