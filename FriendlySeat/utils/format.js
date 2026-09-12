@@ -43,7 +43,7 @@ export function statusText(status) {
 		Expired: '已过期',
 		Available: '可预约',
 		Waiting: '候补中',
-		Notified: '可预约',
+		Notified: '已通知',
 		Pending: '待处理',
 		Failed: '失败'
 	}

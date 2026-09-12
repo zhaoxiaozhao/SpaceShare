@@ -312,11 +312,18 @@ public class VenueService
             .GroupBy(r => r.SeatId)
             .Select(g => new { SeatId = g.Key, Count = g.Count() })
             .ToDictionaryAsync(x => x.SeatId, x => x.Count, ct);
+        // 候补预留：被预留给候补的座位同样视为不可预约（计入 reserved）
+        var heldShareCounts = await _db.SeatShares
+            .Where(s => venueSeatIds.Contains(s.SeatId) && s.Status == SeatShareStatus.Reserved
+                && s.HoldForUserId.HasValue && s.EndAt > now)
+            .GroupBy(s => s.SeatId)
+            .Select(g => new { SeatId = g.Key, Count = g.Count() })
+            .ToDictionaryAsync(x => x.SeatId, x => x.Count, ct);
 
         foreach (var seat in dto.Floors.SelectMany(f => f.Zones).SelectMany(z => z.Seats))
         {
             seat.CurrentShareCount = shareCounts.GetValueOrDefault(seat.Id);
-            seat.CurrentReservedCount = reservedCounts.GetValueOrDefault(seat.Id);
+            seat.CurrentReservedCount = reservedCounts.GetValueOrDefault(seat.Id) + heldShareCounts.GetValueOrDefault(seat.Id);
         }
     }
 
@@ -336,6 +343,9 @@ public class VenueService
             r => r.SeatId == id && r.EndAt > now && (r.Status == ReservationStatus.Reserved || r.Status == ReservationStatus.Arrived), ct);
         var shareCount = await _db.SeatShares.CountAsync(
             s => s.SeatId == id && s.EndAt > now && s.Status == SeatShareStatus.Available, ct);
+        // 候补预留：被预留给候补的座位同样视为不可预约（计入 reserved）
+        var heldShareCount = await _db.SeatShares.CountAsync(
+            s => s.SeatId == id && s.EndAt > now && s.Status == SeatShareStatus.Reserved && s.HoldForUserId.HasValue, ct);
 
         var venue = seat.Zone?.Floor?.Venue;
         var dto = new SeatDto
@@ -354,7 +364,7 @@ public class VenueService
             PhotoUrl = seat.PhotoUrl,
             Description = seat.Description,
             Verified = seat.Verified,
-            CurrentReservedCount = reservedCount,
+            CurrentReservedCount = reservedCount + heldShareCount,
             CurrentShareCount = shareCount,
             VenueName = venue?.Name ?? string.Empty,
             FloorName = seat.Zone?.Floor?.Name ?? string.Empty,

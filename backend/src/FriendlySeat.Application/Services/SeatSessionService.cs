@@ -157,6 +157,7 @@ public class SeatSessionService
         foreach (var share in activeShares)
         {
             share.Status = SeatShareStatus.Expired;
+            share.HoldForUserId = null;
         }
 
         var seat = await _db.Seats.FirstAsync(s => s.Id == session.SeatId, ct);

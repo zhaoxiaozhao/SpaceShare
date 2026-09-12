@@ -53,6 +53,7 @@ public class AutoReleaseJob : IAutoReleaseJob
                 (r.ReservedAt > r.StartAt && r.ReservedAt.AddMinutes(rules.ArrivalGraceMinutes) < now)))
             .ToListAsync(ct);
 
+        var releasedShareIds = new List<long>();
         foreach (var reservation in overdueReservations)
         {
             _logger.LogInformation("自动释放超时预约 {ReservationId}", reservation.Id);
@@ -66,6 +67,8 @@ public class AutoReleaseJob : IAutoReleaseJob
                 if (share is not null && share.Status == SeatShareStatus.Reserved)
                 {
                     share.Status = SeatShareStatus.Available;
+                    share.HoldForUserId = null;
+                    releasedShareIds.Add(reservation.ShareId.Value);
                 }
             }
 
@@ -107,6 +110,16 @@ public class AutoReleaseJob : IAutoReleaseJob
                 : (int)Math.Max(0, (reservation.StartAt.AddMinutes(rules.ArrivalGraceMinutes) - now).TotalMinutes);
             await _notifications.SendAsync(reservation.UserId, NotificationType.ArrivalRequired,
                 "到座提醒", $"你预约的座位将在 {minutesLeft} 分钟后超时释放，如已到座请尽快在小程序确认。", dataTag, ct);
+        }
+
+        // 1.5 爽约释放后通知候补（座位已恢复可预约）
+        if (releasedShareIds.Count > 0)
+        {
+            await _db.SaveChangesAsync(ct);
+            foreach (var shareId in releasedShareIds.Distinct())
+            {
+                await NotifyNextWaitlistAsync(shareId, ct);
+            }
         }
 
         // 2. 处理到座后未结束但超时：arrived 且超过 end → completed
@@ -153,6 +166,19 @@ public class AutoReleaseJob : IAutoReleaseJob
         }
         if (expiredWaitlists.Count > 0) await _db.SaveChangesAsync(ct);
 
+        // 过期候补对应的分享：若座位仍被该候补预留（Reserved + Hold），恢复 Available 供下一位候补接力
+        var sharesToRelease = await _db.SeatShares
+            .Where(s => s.Status == SeatShareStatus.Reserved
+                && s.HoldForUserId.HasValue
+                && expiredWaitlists.Select(w => w.UserId).Contains(s.HoldForUserId.Value))
+            .ToListAsync(ct);
+        foreach (var share in sharesToRelease)
+        {
+            share.Status = SeatShareStatus.Available;
+            share.HoldForUserId = null;
+        }
+        if (sharesToRelease.Count > 0) await _db.SaveChangesAsync(ct);
+
         // 对每条过期候补对应的分享，通知当前队首候补
         foreach (var shareId in shareIdsToRecheck.Distinct())
         {
@@ -196,7 +222,7 @@ public class AutoReleaseJob : IAutoReleaseJob
         }
     }
 
-    // 候补链条：通知分享当前队首候补（若有空位）
+    // 候补链条：通知分享当前队首候补（若有空位），并为其预留座位
     private async Task NotifyNextWaitlistAsync(long shareId, CancellationToken ct)
     {
         var rules = await _config.GetReservationRulesAsync(ct);
@@ -209,12 +235,15 @@ public class AutoReleaseJob : IAutoReleaseJob
         var share = await _db.SeatShares.Include(s => s.Seat).FirstOrDefaultAsync(s => s.Id == shareId, ct);
         if (share is null || share.Status != SeatShareStatus.Available) return;
 
+        // 候补优先预约权：座位释放后预留给队首候补，窗口期内只有他能预约
         next.Status = WaitlistStatus.Notified;
         next.NotifiedAt = DateTime.UtcNow;
         next.ExpiredAt = DateTime.UtcNow.AddMinutes(rules.WaitlistWindowMinutes);
+        share.Status = SeatShareStatus.Reserved;
+        share.HoldForUserId = next.UserId;
         await _db.SaveChangesAsync(ct);
 
         await _notifications.SendAsync(next.UserId, NotificationType.WaitlistAvailable,
-            "候补成功", $"「{share.Seat?.Code}」有空位了，请在{rules.WaitlistWindowMinutes}分钟内预约", null, ct);
+            "候补成功", $"「{share.Seat?.Code}」有空位了，座位已为你预留，请在{rules.WaitlistWindowMinutes}分钟内预约", null, ct);
     }
 }

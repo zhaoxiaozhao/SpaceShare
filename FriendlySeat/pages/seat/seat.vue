@@ -33,7 +33,7 @@
 						<text class="share-owner" v-if="s.ownerNickname">分享者：{{s.ownerNickname}}</text>
 					</view>
 					<view class="share-actions">
-						<button v-if="s.isReservable" class="btn-primary small" @click="reserve(s)">预约</button>
+						<button v-if="canReserve(s)" class="btn-primary small" @click="reserve(s)">{{yourTurn(s) ? '去预约' : '预约'}}</button>
 						<button
 							v-else-if="!isMine(s) && s.status !== 'Available'"
 							class="btn-outline small"
@@ -145,12 +145,21 @@
 			waiting(s) {
 				return this.myWaitlist.some(w => w.shareId === s.id && (w.status === 'Waiting' || w.status === 'Notified'))
 			},
+			// 候补优先预约权：我的候补已被通知（座位预留给本人）时，显示「去预约」
+			yourTurn(s) {
+				return this.myWaitlist.some(w => w.shareId === s.id && w.status === 'Notified')
+			},
+			canReserve(s) {
+				return s.isReservable || this.yourTurn(s)
+			},
 			async waitlist(s) {
 				if (!this.checkLogin()) return
 				try {
 					await api.joinWaitlist(s.id)
 					this.myWaitlist = await api.getMyWaitlist()
 					uni.showToast({ title: '已加入候补，有空位会通知你', icon: 'none' })
+					// 加入候补后请求订阅：有空位时能收到微信订阅消息
+					subscribeFor(['waitlist_available'])
 				} catch (e) {
 					uni.showToast({ title: e.message || '操作失败', icon: 'none' })
 				}

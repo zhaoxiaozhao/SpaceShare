@@ -18,6 +18,10 @@
 				<text class="stat-label">可预约</text>
 			</view>
 			<view class="stat">
+				<text class="fs-btn wl-btn" @click="openWaitlist">候补</text>
+				<text class="stat-label">{{fullscreen ? '' : '选座排队'}}</text>
+			</view>
+			<view class="stat">
 				<text class="fs-btn" @click="toggleFullscreen">{{fullscreen ? '退出全屏' : '全屏'}}</text>
 				<text class="stat-label">{{fullscreen ? '' : '查看地图'}}</text>
 			</view>
@@ -218,6 +222,25 @@
 			<view v-else class="empty">该楼层暂无座位数据</view>
 		</view>
 
+		<!-- 候补座位列表（按偏好/楼层/区域筛选） -->
+		<view class="section" v-if="wlFilteredShows.length">
+			<text class="section-title">当前可候补座位</text>
+			<view class="card share-card" v-for="s in wlFilteredShows" :key="s.id" @click="goSeat(s.seatId)">
+				<view class="share-top">
+					<text class="share-seat">{{s.displayCode || s.seatCode}}</text>
+					<text class="tag" :class="shareTagClass(s.status)">{{statusText(s.status)}}</text>
+				</view>
+				<view class="share-loc" v-if="s.floorName || s.areaName">
+					<text class="share-floor">{{s.floorName}}</text>
+					<text class="share-area" v-if="s.areaName">{{s.areaName}}</text>
+				</view>
+				<view class="share-time">预计释放：{{formatTime(s.endAt)}}</view>
+				<view class="share-actions">
+					<button class="btn-outline small" @click.stop="goWaitlistReserve(s)">加入候补</button>
+				</view>
+			</view>
+		</view>
+
 		<view class="section" v-if="shares.length">
 			<text class="section-title">当前可预约座位</text>
 			<view class="card share-card" v-for="s in shares" :key="s.id" @click="goReserve(s)">
@@ -231,6 +254,35 @@
 				</view>
 				<view class="share-time">预计释放：{{formatTime(s.endAt)}}</view>
 				<text class="share-note" v-if="s.note">{{s.note}}</text>
+			</view>
+		</view>
+
+		<!-- 候补筛选弹窗 -->
+		<view v-if="wlPicker" class="wl-mask" @click="wlPicker = false">
+			<view class="wl-pop" @click.stop>
+				<text class="wl-title">候补选座</text>
+				<view class="wl-row">
+					<text class="wl-label">候补偏好</text>
+					<picker :range="wlPrefs" :value="wlPrefIndex" @change="wlPrefIndex = $event.detail.value">
+						<view class="wl-value">{{wlPrefs[wlPrefIndex]}}</view>
+					</picker>
+				</view>
+				<view class="wl-row">
+					<text class="wl-label">楼层</text>
+					<picker :range="floorTabs" :value="wlFloorIndex" range-key="name" @change="onWlFloorChange">
+						<view class="wl-value">{{floorTabs[wlFloorIndex].name}}</view>
+					</picker>
+				</view>
+				<view class="wl-row" v-if="wlAreas.length">
+					<text class="wl-label">区域</text>
+					<picker :range="wlAreas" :value="wlAreaIndex" @change="wlAreaIndex = $event.detail.value">
+						<view class="wl-value">{{wlAreas[wlAreaIndex]}}</view>
+					</picker>
+				</view>
+				<view class="wl-actions">
+					<button class="btn-outline small" @click="wlPicker = false">取消</button>
+					<button class="btn-primary small" @click="applyWaitlist">查看可候补座位</button>
+				</view>
 			</view>
 		</view>
 	</view>
@@ -249,7 +301,12 @@
 				shares: [],
 				windowWidth: 375,
 				fullscreen: false,
-				mapScale: 1.6
+				mapScale: 1.6,
+				wlPicker: false,
+				wlPrefIndex: 0,
+				wlFloorIndex: 0,
+				wlAreaIndex: 0,
+				wlPrefs: ['不限', '靠窗', '有插座', '安静']
 			}
 		},
 		computed: {
@@ -273,6 +330,39 @@
 				if (!f) return ''
 				const a = (f.areas || []).find(a => a.id === this.currentAreaId)
 				return a ? a.name : ''
+			},
+			wlFloorTabs() {
+				const tabs = this.floorTabs
+				this.wlFloorIndex = Math.min(this.wlFloorIndex, tabs.length - 1)
+				return tabs
+			},
+			wlAreas() {
+				const f = this.wlFloorTabs.length ? (this.venue.floors.find(x => x.id === this.wlFloorTabs[this.wlFloorIndex].id) || null) : null
+				const names = ['全部区域']
+				if (f && f.areas && f.areas.length) {
+					names.push(...f.areas.map(a => a.name))
+				}
+				this.wlAreaIndex = Math.min(this.wlAreaIndex, names.length - 1)
+				return names
+			},
+			wlFilteredShows() {
+				if (!this.shares.length) return []
+				const pref = this.wlPrefs[this.wlPrefIndex]
+				const floor = this.wlFloorTabs[this.wlFloorIndex]
+				const areaName = this.wlAreas[this.wlAreaIndex]
+				return this.shares.filter(s => {
+					if (!floor || s.floorName !== floor.name) return false
+					if (areaName !== '全部区域' && s.areaName !== areaName) return false
+					if (pref !== '不限') {
+						const seat = this.findSeat(s.seatId)
+						if (!seat) return false
+						if (pref === '靠窗' && !seat.window) return false
+						if (pref === '有插座' && !seat.powerSocket) return false
+						if (pref === '安静' && seat.quietLevel !== 3) return false
+					}
+					// 可候补 = 分享未被本人占用且尚未释放结束
+					return s.status !== 'Available' && s.status !== 'Completed' && s.status !== 'Expired' && s.status !== 'Cancelled'
+				})
 			}
 		},
 		onLoad(options) {
@@ -765,6 +855,39 @@
 			},
 			goReserve(share) {
 				uni.navigateTo({ url: `/pages/seat/seat?id=${share.seatId}&shareId=${share.id}` })
+			},
+			findSeat(seatId) {
+				if (!this.venue) return null
+				for (const f of this.venue.floors) {
+					for (const z of f.zones) {
+						const seat = z.seats.find(s => s.id === seatId)
+						if (seat) return seat
+					}
+				}
+				return null
+			},
+			openWaitlist() {
+				if (!this.venue) return
+				const tabs = this.floorTabs
+				const floorIdx = tabs.findIndex(f => f.id === this.currentFloor)
+				this.wlFloorIndex = floorIdx >= 0 ? floorIdx : 0
+				this.wlAreaIndex = 0
+				this.wlPrefIndex = 0
+				this.wlPicker = true
+			},
+			onWlFloorChange(e) {
+				this.wlFloorIndex = Number(e.detail.value)
+				this.wlAreaIndex = 0
+			},
+			applyWaitlist() {
+				this.wlPicker = false
+				const tabs = this.floorTabs
+				if (tabs[this.wlFloorIndex]) {
+					this.currentFloor = tabs[this.wlFloorIndex].id
+				}
+			},
+			goWaitlistReserve(s) {
+				uni.navigateTo({ url: `/pages/seat/seat?id=${s.seatId}&shareId=${s.id}` })
 			}
 		}
 	}
@@ -817,6 +940,61 @@
 		padding: 8rpx 20rpx;
 		background: var(--primary-bg);
 		border-radius: 30rpx;
+	}
+	.wl-btn {
+		color: #fff;
+		background: var(--primary);
+	}
+	/* 候补筛选弹窗 */
+	.wl-mask {
+		position: fixed;
+		inset: 0;
+		z-index: 999;
+		background: rgba(0, 0, 0, 0.4);
+		display: flex;
+		align-items: flex-end;
+	}
+	.wl-pop {
+		width: 100%;
+		background: #fff;
+		border-radius: 24rpx 24rpx 0 0;
+		padding: 32rpx;
+	}
+	.wl-title {
+		font-size: 32rpx;
+		font-weight: 700;
+		margin-bottom: 24rpx;
+		display: block;
+	}
+	.wl-row {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		padding: 20rpx 8rpx;
+		border-bottom: 1rpx solid #F0EFEB;
+	}
+	.wl-row .wl-label {
+		font-size: 28rpx;
+		color: #55554F;
+	}
+	.wl-row .wl-value {
+		font-size: 28rpx;
+		color: var(--primary);
+		font-weight: 600;
+		padding-right: 20rpx;
+	}
+	.wl-row .wl-value::after {
+		content: '›';
+		margin-left: 8rpx;
+		opacity: 0.6;
+	}
+	.wl-actions {
+		display: flex;
+		gap: 24rpx;
+		margin-top: 32rpx;
+	}
+	.wl-actions button {
+		flex: 1;
 	}
 	/* 全屏地图 */
 	.fs-overlay {
@@ -1173,5 +1351,16 @@
 	.share-note {
 		font-size: 24rpx;
 		color: #8A8A86;
+	}
+	.share-actions {
+		display: flex;
+		margin-top: 8rpx;
+	}
+	.share-actions button {
+		flex: 1;
+		font-size: 26rpx;
+		line-height: 2;
+		padding: 0 24rpx;
+		margin: 0;
 	}
 </style>

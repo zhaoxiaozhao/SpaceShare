@@ -40,6 +40,9 @@ public class SeatShareDto
 
     /// <summary>当前是否可预约（Available 且尚未开始）</summary>
     public bool IsReservable { get; set; }
+
+    /// <summary>候补预留：非空表示该座位已预留给此候补用户（仅供前端判断本人是否为持有人）</summary>
+    public long? HoldForUserId { get; set; }
 }
 
 public class ShareDetailDto : SeatShareDto

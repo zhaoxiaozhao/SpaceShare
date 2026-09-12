@@ -15,6 +15,12 @@ public class SeatShare
     /// <summary>到座核销码（6 位数字，分享者出示给预约者核销到座）</summary>
     public string CheckInCode { get; set; } = string.Empty;
 
+    /// <summary>
+    /// 候补预留：座位释放时预留给队首候补用户（该用户 10 分钟内优先预约），
+    /// 其他用户不可预约；预留期间 share.Status 为 Reserved。
+    /// </summary>
+    public long? HoldForUserId { get; set; }
+
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime? CancelledAt { get; set; }
 

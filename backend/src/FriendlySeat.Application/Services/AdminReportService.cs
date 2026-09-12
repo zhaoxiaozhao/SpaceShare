@@ -12,13 +12,15 @@ public class AdminReportService
     private readonly IAuditService _audit;
     private readonly ConfigService _config;
     private readonly INotificationService _notifications;
+    private readonly ReservationService _reservationService;
 
-    public AdminReportService(IAppDbContext db, IAuditService audit, ConfigService config, INotificationService notifications)
+    public AdminReportService(IAppDbContext db, IAuditService audit, ConfigService config, INotificationService notifications, ReservationService reservationService)
     {
         _db = db;
         _audit = audit;
         _config = config;
         _notifications = notifications;
+        _reservationService = reservationService;
     }
 
     public async Task<List<ReportDto>> GetReportsAsync(string? status, CancellationToken ct = default)
@@ -190,6 +192,12 @@ public class AdminReportService
 
         await _db.SaveChangesAsync(ct);
         await _audit.LogAsync(operatorId, "reservation.force_cancel", "Reservation", reservationId.ToString(), $"强制取消预约，原因={reason}", null, ct);
+
+        // 强制取消释放座位后，通知候补队首并进行预留
+        if (reservation.Status == ReservationStatus.Cancelled && reservation.ShareId.HasValue)
+        {
+            await _reservationService.NotifyNextWaitlistAsync(reservation.ShareId, ct);
+        }
     }
 
     public async Task<List<AdminAuditLogDto>> GetAuditLogsAsync(CancellationToken ct = default)

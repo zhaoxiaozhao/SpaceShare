@@ -51,7 +51,10 @@ public class ReservationService
         if (share.OwnerUserId == userId)
             throw AppException.BadRequest("cannot_reserve_own", "不能预约自己分享的座位");
 
-        if (share.Status != SeatShareStatus.Available)
+        // 候补优先预约权：座位被预留给队首候补时，只有该候补用户可以预约
+        if (share.HoldForUserId.HasValue && share.HoldForUserId != userId)
+            throw AppException.Conflict("share_held_for_waitlist", "该座位已预留给候补用户，暂不可预约");
+        if (share.Status != SeatShareStatus.Available && !(share.Status == SeatShareStatus.Reserved && share.HoldForUserId == userId))
             throw AppException.Conflict("share_not_available", "该分享已不可预约");
         // 分享起点为“现在”或未来都可预约（到座确认后使用）；只要求结束时间在未来
         if (share.EndAt <= now)
@@ -80,7 +83,8 @@ public class ReservationService
         await using var tx = await _db.Database.BeginTransactionAsync(ct);
 
         var freshShare = await _db.SeatShares.FirstAsync(s => s.Id == request.ShareId, ct);
-        if (freshShare.Status != SeatShareStatus.Available)
+        if (freshShare.Status != SeatShareStatus.Available
+            && !(freshShare.Status == SeatShareStatus.Reserved && freshShare.HoldForUserId == userId))
             throw AppException.Conflict("share_not_available", "该分享已被预约");
 
         // 校验同一用户有效预约数
@@ -111,6 +115,15 @@ public class ReservationService
 
         // 标记 share 已预约
         freshShare.Status = SeatShareStatus.Reserved;
+        freshShare.HoldForUserId = null;
+
+        // 候补状态：若当前预约者为被通知的候补，将其候补记录置为 Reserved（代表已成功预约）
+        var heldWaitlist = await _db.ReservationWaitlists
+            .FirstOrDefaultAsync(w => w.ShareId == freshShare.Id && w.UserId == userId && w.Status == WaitlistStatus.Notified, ct);
+        if (heldWaitlist is not null)
+        {
+            heldWaitlist.Status = WaitlistStatus.Reserved;
+        }
 
         var reservation = new Reservation
         {
@@ -162,6 +175,7 @@ public class ReservationService
             if (share.Status == SeatShareStatus.Reserved)
             {
                 share.Status = SeatShareStatus.Available;
+                share.HoldForUserId = null;
             }
         }
 
@@ -472,7 +486,8 @@ public class ReservationService
         return new MyReservationSummaryDto { Upcoming = upcoming, History = history, MyShares = shareService };
     }
 
-    private async Task NotifyNextWaitlistAsync(long? shareId, CancellationToken ct)
+    // 候补优先预约权：座位释放后通知并预留队首候补（管理员强制取消/爽约释放等场景复用）
+    public async Task NotifyNextWaitlistAsync(long? shareId, CancellationToken ct)
     {
         if (!shareId.HasValue) return;
 
@@ -487,13 +502,16 @@ public class ReservationService
         var share = await _db.SeatShares.Include(s => s.Seat).FirstAsync(s => s.Id == shareId.Value, ct);
         if (share.Status != SeatShareStatus.Available) return;
 
+        // 候补优先预约权：座位释放后预留给队首候补，10 分钟内只有他能预约
         next.Status = WaitlistStatus.Notified;
         next.NotifiedAt = DateTime.UtcNow;
         next.ExpiredAt = DateTime.UtcNow.AddMinutes(rules.WaitlistWindowMinutes);
+        share.Status = SeatShareStatus.Reserved;
+        share.HoldForUserId = next.UserId;
         await _db.SaveChangesAsync(ct);
 
         await _notifications.SendAsync(next.UserId, NotificationType.WaitlistAvailable,
-            "候补成功", $"「{share.Seat?.Code}」有空位了，请在{rules.WaitlistWindowMinutes}分钟内预约", null, ct);
+            "候补成功", $"「{share.Seat?.Code}」有空位了，座位已为你预留，请在{rules.WaitlistWindowMinutes}分钟内预约", null, ct);
     }
 
     private async Task AwardCreditAsync(long userId, string referenceType, string reason, long referenceId, CancellationToken ct)

@@ -129,6 +129,7 @@ public class ShareService
                 Note = s.Note,
                 AllowContact = s.AllowContact,
                 CreatedAt = s.CreatedAt,
+                HoldForUserId = s.HoldForUserId,
                 IsReservable = s.Status == SeatShareStatus.Available
                     && s.EndAt >= now.AddMinutes(rules.MinMinutes)
                     && s.StartAt <= now.AddHours(rules.MaxAdvanceHours)
@@ -231,6 +232,7 @@ public class ShareService
                 Note = s.Note,
                 AllowContact = s.AllowContact,
                 CheckInCode = s.CheckInCode,
+                HoldForUserId = s.HoldForUserId,
                 CreatedAt = s.CreatedAt
             })
             .ToListAsync(ct);
@@ -259,9 +261,16 @@ public class ShareService
         var waitlistCount = await _db.ReservationWaitlists.CountAsync(
             w => w.ShareId == share.Id && w.Status == WaitlistStatus.Waiting, ct);
 
+        // 候补优先预约权：座位预留给队首候补时，仅该候补可见可预约
         var isReservable = share.Status == SeatShareStatus.Available
             && share.EndAt >= now.AddMinutes(rules.MinMinutes)
             && share.StartAt <= now.AddHours(rules.MaxAdvanceHours);
+        if (share.Status == SeatShareStatus.Reserved && share.HoldForUserId.HasValue)
+        {
+            isReservable = share.HoldForUserId == userId
+                && share.EndAt >= now.AddMinutes(rules.MinMinutes)
+                && share.StartAt <= now.AddHours(rules.MaxAdvanceHours);
+        }
 
         var dto = new ShareDetailDto
         {
@@ -281,6 +290,7 @@ public class ShareService
             CreatedAt = share.CreatedAt,
             WaitlistCount = waitlistCount,
             IsMine = share.OwnerUserId == userId,
+            HoldForUserId = share.HoldForUserId,
             IsReservable = isReservable
         };
 
@@ -351,6 +361,7 @@ public class ShareService
 
         share.Status = SeatShareStatus.Cancelled;
         share.CancelledAt = DateTime.UtcNow;
+        share.HoldForUserId = null;
         await _db.SaveChangesAsync(ct);
 
         // 友邻贡献：取消分享撤销该次贡献（次数/时长），保持贡献反映有效分享

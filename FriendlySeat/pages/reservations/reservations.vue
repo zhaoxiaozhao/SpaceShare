@@ -88,7 +88,12 @@
 					<text class="res-time">{{formatTime(w.startAt)}} ~ {{formatTime(w.endAt)}}</text>
 					<view class="res-actions">
 						<button
-							v-if="w.status === 'Waiting' || w.status === 'Notified'"
+							v-if="w.status === 'Notified'"
+							class="btn-primary small"
+							@click.stop="goSeat(w)"
+						>去预约</button>
+						<button
+							v-else-if="w.status === 'Waiting'"
 							class="btn-outline small"
 							@click.stop="cancelWaitlist(w)"
 						>取消候补</button>
