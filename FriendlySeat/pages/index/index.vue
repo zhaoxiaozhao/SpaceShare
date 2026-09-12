@@ -47,6 +47,12 @@
 		<view v-if="!nearby.length && !shares.length" class="empty">
 			<text>正在加载附近的场馆与共享座位…</text>
 		</view>
+
+		<!-- 浮动分享入口 -->
+		<view class="fab" @click="goShare">
+			<view class="share-icon"></view>
+			<text>分享座位</text>
+		</view>
 	</view>
 </template>
 
@@ -192,6 +198,28 @@
 	.action-icon {
 		width: 56rpx;
 		height: 56rpx;
+	}
+	.fab {
+		position: fixed;
+		right: 30rpx;
+		bottom: 60rpx;
+		z-index: 99;
+		display: flex;
+		align-items: center;
+		gap: 12rpx;
+		padding: 20rpx 32rpx;
+		border-radius: 44rpx;
+		background: var(--primary-gradient, linear-gradient(135deg, #C98A3D, #DBA968));
+		color: #FFFFFF;
+		font-size: 26rpx;
+		font-weight: 600;
+		box-shadow: 0 8rpx 24rpx rgba(0, 0, 0, 0.18);
+	}
+	.share-icon {
+		width: 30rpx;
+		height: 30rpx;
+		flex: none;
+		background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23FFFFFF' d='M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92 1.61 0 2.92-1.31 2.92-2.92s-1.31-2.92-2.92-2.92z'/%3E%3C/svg%3E") no-repeat center / contain;
 	}
 	.section {
 		margin-top: 20rpx;

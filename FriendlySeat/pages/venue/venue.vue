@@ -27,7 +27,7 @@
 			<view class="legend-item"><view class="dot avail"></view><text>可预约</text></view>
 			<view class="legend-item"><view class="dot reserved"></view><text>已预约</text></view>
 			<view class="legend-item"><view class="dot off"></view><text>不可用</text></view>
-			<view class="legend-item"><view class="dot unknown"></view><text>未知</text></view>
+			<view class="legend-item"><view class="dot unknown"></view><text>待分享</text></view>
 			<view class="legend-item"><view class="dot-poi"></view><text>设施</text></view>
 		</view>
 
@@ -887,7 +887,7 @@
 		border-radius: 6rpx;
 	}
 	.dot.avail { background: var(--primary); }
-	.dot.reserved { background: #D9822B; }
+	.dot.reserved { background: #8C8C86; }
 	.dot.off { background: #B85450; }
 	.dot.unknown { background: var(--primary-bg); border: 2rpx dashed var(--primary-disabled); }
 	.dot-poi {
@@ -1025,8 +1025,7 @@
 		background: var(--primary);
 	}
 	.map-cell.reserved {
-		background: #FBEEDD;
-		border: 1px solid #D9822B;
+		background: #8C8C86;
 	}
 	.map-cell.unknown {
 		background: var(--primary-bg);
@@ -1041,7 +1040,7 @@
 		color: #FFFFFF;
 		font-weight: 600;
 	}
-	.map-cell.reserved .seat-code, .map-cell.unknown .seat-code, .map-cell.off .seat-code {
+	.map-cell.unknown .seat-code, .map-cell.off .seat-code {
 		color: #33332E;
 	}
 	.zone-label {
