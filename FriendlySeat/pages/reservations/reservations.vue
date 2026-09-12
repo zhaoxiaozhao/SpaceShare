@@ -100,7 +100,30 @@
 					</view>
 				</view>
 			</view>
-			<view v-else class="empty">暂无候补</view>
+			<view v-if="!waitlist.length && !preferences.length" class="empty">暂无候补</view>
+
+			<view v-if="preferences.length" class="wl-prefs-title">范围候补（系统自动代约）</view>
+			<view class="card res-card" v-for="p in preferences" :key="'p' + p.id">
+				<view class="res-top">
+					<text class="res-seat">{{prefText(p.preference)}}候补</text>
+					<text class="tag" :class="'status-' + p.status.toLowerCase()">{{prefStatusText(p.status)}}</text>
+				</view>
+				<text class="res-venue">{{p.venueName}}</text>
+				<text class="res-time">{{p.floorName || '不限楼层'}}<text v-if="p.areaName"> · {{p.areaName}}</text></text>
+				<text class="res-time" v-if="p.status === 'Booked' && p.bookedSeatCode">已自动预约：{{p.bookedSeatCode}}（{{formatTime(p.reservationStartAt)}} ~ {{formatTime(p.reservationEndAt)}}）</text>
+				<view class="res-actions">
+					<button
+						v-if="p.status === 'Active'"
+						class="btn-outline small"
+						@click.stop="cancelPreference(p)"
+					>取消候补</button>
+					<button
+						v-else-if="p.status === 'Booked' && p.reservationId"
+						class="btn-primary small"
+						@click.stop="goReservation(p)"
+					>查看预约</button>
+				</view>
+			</view>
 		</view>
 
 		<view v-if="tab === 'history'">
@@ -129,6 +152,7 @@
 				tab: 'upcoming',
 				summary: { upcoming: [], history: [], myShares: [] },
 				waitlist: [],
+				preferences: [],
 				checkInCodes: {}
 			}
 		},
@@ -153,6 +177,9 @@
 				}
 				try {
 					this.waitlist = await api.getMyWaitlist()
+				} catch (e) {}
+				try {
+					this.preferences = await api.getMyWaitlistPreferences()
 				} catch (e) {}
 			},
 			async cancel(r) {
@@ -268,6 +295,33 @@
 			goSeat(w) {
 				uni.navigateTo({ url: `/pages/seat/seat?id=${w.seatId}` })
 			},
+			prefText(p) {
+				const map = { none: '不限', window: '靠窗', socket: '有插座', quiet: '安静' }
+				return map[p] || p || '不限'
+			},
+			prefStatusText(s) {
+				const map = { Active: '候补中', Booked: '已预约', Cancelled: '已取消' }
+				return map[s] || s
+			},
+			async cancelPreference(p) {
+				uni.showModal({
+					title: '取消候补',
+					content: '确定取消这条范围候补吗？',
+					success: async (res) => {
+						if (!res.confirm) return
+						try {
+							await api.cancelWaitlistPreference(p.id)
+							uni.showToast({ title: '已取消', icon: 'success' })
+							this.load()
+						} catch (e) {
+							uni.showToast({ title: e.message || '操作失败', icon: 'none' })
+						}
+					}
+				})
+			},
+			goReservation(p) {
+				if (p.bookedSeatId) uni.navigateTo({ url: `/pages/seat/seat?id=${p.bookedSeatId}` })
+			},
 		}
 	}
 </script>
@@ -352,6 +406,12 @@
 	.res-time {
 		font-size: 26rpx;
 		color: #8A8A86;
+	}
+	.wl-prefs-title {
+		font-size: 26rpx;
+		font-weight: 600;
+		color: #8A8A86;
+		margin: 24rpx 0 12rpx;
 	}
 	.res-actions {
 		display: flex;

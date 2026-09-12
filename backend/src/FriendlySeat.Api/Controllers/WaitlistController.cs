@@ -38,4 +38,24 @@ public class WaitlistController : ControllerBase
         await _waitlist.CancelAsync(id, _currentUser.UserId!.Value, ct);
         return Ok();
     }
+
+    // ===== 范围候补偏好（提交后系统自动盯+自动代约） =====
+    [HttpPost("waitlist/preferences")]
+    public async Task<ActionResult<WaitlistPreferenceDto>> CreatePreference(WaitlistPreferenceRequest request, CancellationToken ct)
+    {
+        return Ok(await _waitlist.CreatePreferenceAsync(_currentUser.UserId!.Value, request, ct));
+    }
+
+    [HttpGet("waitlist/preferences/my")]
+    public async Task<ActionResult<List<WaitlistPreferenceDto>>> GetMyPreferences(CancellationToken ct)
+    {
+        return Ok(await _waitlist.GetMyPreferencesAsync(_currentUser.UserId!.Value, ct));
+    }
+
+    [HttpDelete("waitlist/preferences/{id:long}")]
+    public async Task<IActionResult> CancelPreference(long id, CancellationToken ct)
+    {
+        await _waitlist.CancelPreferenceAsync(id, _currentUser.UserId!.Value, ct);
+        return Ok();
+    }
 }

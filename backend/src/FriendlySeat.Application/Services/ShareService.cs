@@ -14,9 +14,10 @@ public class ShareService
     private readonly IRedisCache _cache;
     private readonly RiskService _risk;
     private readonly CreditService _credit;
+    private readonly ReservationService _reservationService;
     private readonly ILogger _logger;
 
-    public ShareService(IAppDbContext db, ConfigService config, INotificationService notifications, IRedisCache cache, RiskService risk, CreditService credit, ILogger<ShareService> logger)
+    public ShareService(IAppDbContext db, ConfigService config, INotificationService notifications, IRedisCache cache, RiskService risk, CreditService credit, ReservationService reservationService, ILogger<ShareService> logger)
     {
         _db = db;
         _config = config;
@@ -24,6 +25,7 @@ public class ShareService
         _cache = cache;
         _risk = risk;
         _credit = credit;
+        _reservationService = reservationService;
         _logger = logger;
     }
 
@@ -94,6 +96,9 @@ public class ShareService
         await _credit.TrackContributionAsync(userId, "share_created", shareHours, ct);
 
         await InvalidateSeatCacheAsync(request.SeatId, ct);
+
+        // 主动分享/新分享上线后，若有匹配的范围候补偏好，直接自动预约
+        await _reservationService.TryAutoBookPreferenceAsync(share.Id, ct);
 
         return await GetShareDtoAsync(share.Id, ct) ?? throw AppException.NotFound();
     }

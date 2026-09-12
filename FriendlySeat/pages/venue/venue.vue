@@ -226,25 +226,6 @@
 			<view v-else class="empty">该楼层暂无座位数据</view>
 		</view>
 
-		<!-- 候补座位列表（按偏好/楼层/区域筛选） -->
-		<view class="section" v-if="wlFilteredShows.length">
-			<text class="section-title">当前可候补座位</text>
-			<view class="card share-card" v-for="s in wlFilteredShows" :key="s.id" @click="goSeat(s.seatId)">
-				<view class="share-top">
-					<text class="share-seat">{{s.displayCode || s.seatCode}}</text>
-					<text class="tag" :class="shareTagClass(s.status)">{{statusText(s.status)}}</text>
-				</view>
-				<view class="share-loc" v-if="s.floorName || s.areaName">
-					<text class="share-floor">{{s.floorName}}</text>
-					<text class="share-area" v-if="s.areaName">{{s.areaName}}</text>
-				</view>
-				<view class="share-time">预计释放：{{formatTime(s.endAt)}}</view>
-				<view class="share-actions">
-					<button class="btn-outline small" @click.stop="goWaitlistReserve(s)">加入候补</button>
-				</view>
-			</view>
-		</view>
-
 		<view class="section" v-if="shares.length">
 			<text class="section-title">当前可预约座位</text>
 			<view class="card share-card" v-for="s in shares" :key="s.id" @click="goReserve(s)">
@@ -264,7 +245,8 @@
 		<!-- 候补筛选弹窗 -->
 		<view v-if="wlPicker" class="wl-mask" @click="wlPicker = false">
 			<view class="wl-pop" @click.stop>
-				<text class="wl-title">候补选座</text>
+				<text class="wl-title">提交候补</text>
+				<text class="wl-hint">提交后系统自动盯，有人释放座位时自动帮您预约。</text>
 				<view class="wl-row">
 					<text class="wl-label">候补偏好</text>
 					<picker :range="wlPrefs" :value="wlPrefIndex" @change="wlPrefIndex = $event.detail.value">
@@ -273,8 +255,8 @@
 				</view>
 				<view class="wl-row">
 					<text class="wl-label">楼层</text>
-					<picker :range="floorTabs" :value="wlFloorIndex" range-key="name" @change="onWlFloorChange">
-						<view class="wl-value">{{floorTabs[wlFloorIndex].name}}</view>
+					<picker :range="wlFloorTabs" :value="wlFloorIndex" range-key="name" @change="onWlFloorChange">
+						<view class="wl-value">{{wlFloorTabs[wlFloorIndex].name}}</view>
 					</picker>
 				</view>
 				<view class="wl-row" v-if="wlAreas.length">
@@ -285,7 +267,7 @@
 				</view>
 				<view class="wl-actions">
 					<button class="btn-outline small" @click="wlPicker = false">取消</button>
-					<button class="btn-primary small" @click="applyWaitlist">查看可候补座位</button>
+					<button class="btn-primary small" @click="applyWaitlist" :loading="wlSubmitting">提交候补</button>
 				</view>
 			</view>
 		</view>
@@ -311,6 +293,7 @@
 				wlPrefIndex: 0,
 				wlFloorIndex: 0,
 				wlAreaIndex: 0,
+				wlSubmitting: false,
 				wlPrefs: ['不限', '靠窗', '有插座', '安静']
 			}
 		},
@@ -349,7 +332,7 @@
 				return a ? a.name : ''
 			},
 			wlFloorTabs() {
-				const tabs = this.floorTabs
+				const tabs = [{ id: null, name: '不限楼层' }, ...this.floorTabs]
 				this.wlFloorIndex = Math.min(this.wlFloorIndex, tabs.length - 1)
 				return tabs
 			},
@@ -361,25 +344,6 @@
 				}
 				this.wlAreaIndex = Math.min(this.wlAreaIndex, names.length - 1)
 				return names
-			},
-			wlFilteredShows() {
-				if (!this.shares.length) return []
-				const pref = this.wlPrefs[this.wlPrefIndex]
-				const floor = this.wlFloorTabs[this.wlFloorIndex]
-				const areaName = this.wlAreas[this.wlAreaIndex]
-				return this.shares.filter(s => {
-					if (!floor || s.floorName !== floor.name) return false
-					if (areaName !== '全部区域' && s.areaName !== areaName) return false
-					if (pref !== '不限') {
-						const seat = this.findSeat(s.seatId)
-						if (!seat) return false
-						if (pref === '靠窗' && !seat.window) return false
-						if (pref === '有插座' && !seat.powerSocket) return false
-						if (pref === '安静' && seat.quietLevel !== 3) return false
-					}
-					// 可候补 = 分享未被本人占用且尚未释放结束
-					return s.status !== 'Available' && s.status !== 'Completed' && s.status !== 'Expired' && s.status !== 'Cancelled'
-				})
 			}
 		},
 		onLoad(options) {
@@ -883,19 +847,9 @@
 			goReserve(share) {
 				uni.navigateTo({ url: `/pages/seat/seat?id=${share.seatId}&shareId=${share.id}` })
 			},
-			findSeat(seatId) {
-				if (!this.venue) return null
-				for (const f of this.venue.floors) {
-					for (const z of f.zones) {
-						const seat = z.seats.find(s => s.id === seatId)
-						if (seat) return seat
-					}
-				}
-				return null
-			},
 			openWaitlist() {
 				if (!this.venue) return
-				const tabs = this.floorTabs
+				const tabs = this.wlFloorTabs
 				const floorIdx = tabs.findIndex(f => f.id === this.currentFloor)
 				this.wlFloorIndex = floorIdx >= 0 ? floorIdx : 0
 				this.wlAreaIndex = 0
@@ -907,14 +861,30 @@
 				this.wlAreaIndex = 0
 			},
 			applyWaitlist() {
-				this.wlPicker = false
-				const tabs = this.floorTabs
-				if (tabs[this.wlFloorIndex]) {
-					this.currentFloor = tabs[this.wlFloorIndex].id
+				if (this.wlSubmitting) return
+				const floor = this.wlFloorTabs[this.wlFloorIndex] || null
+				const areaName = this.wlAreas[this.wlAreaIndex] || '全部区域'
+				const prefMap = { '不限': 'none', '靠窗': 'window', '有插座': 'socket', '安静': 'quiet' }
+				let areaId = null
+				if (floor && floor.id) {
+					const fullFloor = this.venue.floors.find(f => f.id === floor.id)
+					const area = (fullFloor && fullFloor.areas || []).find(a => a.name === areaName)
+					if (area) areaId = area.id
 				}
-			},
-			goWaitlistReserve(s) {
-				uni.navigateTo({ url: `/pages/seat/seat?id=${s.seatId}&shareId=${s.id}` })
+				this.wlSubmitting = true
+				api.createWaitlistPreference({
+					venueId: Number(this.id),
+					floorId: floor && floor.id ? floor.id : null,
+					areaId,
+					preference: prefMap[this.wlPrefs[this.wlPrefIndex]] || 'none'
+				}).then(() => {
+					this.wlPicker = false
+					uni.showToast({ title: '候补已提交，系统将自动为您预约', icon: 'none' })
+				}).catch((e) => {
+					uni.showToast({ title: (e && e.message) || '提交失败，请稍后重试', icon: 'none' })
+				}).finally(() => {
+					this.wlSubmitting = false
+				})
 			}
 		}
 	}
@@ -1004,6 +974,12 @@
 	.wl-title {
 		font-size: 32rpx;
 		font-weight: 700;
+		margin-bottom: 24rpx;
+		display: block;
+	}
+	.wl-hint {
+		font-size: 24rpx;
+		color: #8A8A86;
 		margin-bottom: 24rpx;
 		display: block;
 	}

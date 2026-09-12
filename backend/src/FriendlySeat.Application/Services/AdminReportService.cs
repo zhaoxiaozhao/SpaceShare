@@ -193,10 +193,11 @@ public class AdminReportService
         await _db.SaveChangesAsync(ct);
         await _audit.LogAsync(operatorId, "reservation.force_cancel", "Reservation", reservationId.ToString(), $"强制取消预约，原因={reason}", null, ct);
 
-        // 强制取消释放座位后，通知候补队首并进行预留
+        // 强制取消释放座位后，通知候补队首并进行预留；无具体队列时由范围偏好自动代约
         if (reservation.Status == ReservationStatus.Cancelled && reservation.ShareId.HasValue)
         {
             await _reservationService.NotifyNextWaitlistAsync(reservation.ShareId, ct);
+            await _reservationService.TryAutoBookPreferenceAsync(reservation.ShareId, ct);
         }
     }
 

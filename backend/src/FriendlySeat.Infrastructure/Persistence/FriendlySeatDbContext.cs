@@ -24,6 +24,7 @@ public class FriendlySeatDbContext : DbContext, IAppDbContext
     public DbSet<SeatShare> SeatShares => Set<SeatShare>();
     public DbSet<Reservation> Reservations => Set<Reservation>();
     public DbSet<ReservationWaitlist> ReservationWaitlists => Set<ReservationWaitlist>();
+    public DbSet<WaitlistPreference> WaitlistPreferences => Set<WaitlistPreference>();
     public DbSet<CreditTransaction> CreditTransactions => Set<CreditTransaction>();
     public DbSet<RiskEvent> RiskEvents => Set<RiskEvent>();
     public DbSet<Report> Reports => Set<Report>();
@@ -92,6 +93,12 @@ public class FriendlySeatDbContext : DbContext, IAppDbContext
 
         modelBuilder.Entity<ReservationWaitlist>()
             .HasIndex(w => new { w.UserId, w.Status });
+
+        modelBuilder.Entity<WaitlistPreference>()
+            .HasIndex(p => new { p.VenueId, p.Status, p.CreatedAt });
+
+        modelBuilder.Entity<WaitlistPreference>()
+            .HasIndex(p => new { p.UserId, p.Status });
 
         modelBuilder.Entity<UserContact>()
             .HasIndex(c => new { c.UserId, c.ContactType });

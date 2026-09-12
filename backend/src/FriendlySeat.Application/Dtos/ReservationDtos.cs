@@ -62,3 +62,33 @@ public class WaitlistDto
     public DateTime StartAt { get; set; }
     public DateTime EndAt { get; set; }
 }
+
+public class WaitlistPreferenceRequest
+{
+    public long VenueId { get; set; }
+    public long? FloorId { get; set; }
+    public long? AreaId { get; set; }
+
+    /// <summary>none / window / socket / quiet</summary>
+    public string Preference { get; set; } = "none";
+}
+
+public class WaitlistPreferenceDto
+{
+    public long Id { get; set; }
+    public long VenueId { get; set; }
+    public string VenueName { get; set; } = string.Empty;
+    public long? FloorId { get; set; }
+    public string? FloorName { get; set; }
+    public long? AreaId { get; set; }
+    public string? AreaName { get; set; }
+    public string Preference { get; set; } = "none";
+    public string Status { get; set; } = string.Empty;
+    public DateTime CreatedAt { get; set; }
+    public DateTime? BookedAt { get; set; }
+    public long? ReservationId { get; set; }
+    public long? BookedSeatId { get; set; }
+    public DateTime ReservationStartAt { get; set; }
+    public DateTime ReservationEndAt { get; set; }
+    public string? BookedSeatCode { get; set; }
+}

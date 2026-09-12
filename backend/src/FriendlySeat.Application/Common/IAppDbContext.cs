@@ -20,6 +20,7 @@ public interface IAppDbContext
     DbSet<SeatShare> SeatShares { get; }
     DbSet<Reservation> Reservations { get; }
     DbSet<ReservationWaitlist> ReservationWaitlists { get; }
+    DbSet<WaitlistPreference> WaitlistPreferences { get; }
     DbSet<CreditTransaction> CreditTransactions { get; }
     DbSet<RiskEvent> RiskEvents { get; }
     DbSet<Report> Reports { get; }

@@ -77,6 +77,13 @@ public enum WaitlistStatus
     Cancelled
 }
 
+public enum WaitlistPreferenceStatus
+{
+    Active,
+    Booked,
+    Cancelled
+}
+
 public enum ContactType
 {
     WechatId,

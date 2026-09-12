@@ -17,6 +17,7 @@ public class AutoReleaseJob : IAutoReleaseJob
     private readonly ConfigService _config;
     private readonly CreditService _credit;
     private readonly INotificationService _notifications;
+    private readonly ReservationService _reservationService;
     private readonly ILogger<AutoReleaseJob> _logger;
 
     private readonly RiskService _risk;
@@ -26,6 +27,7 @@ public class AutoReleaseJob : IAutoReleaseJob
         ConfigService config,
         CreditService credit,
         INotificationService notifications,
+        ReservationService reservationService,
         RiskService risk,
         ILogger<AutoReleaseJob> logger)
     {
@@ -33,6 +35,7 @@ public class AutoReleaseJob : IAutoReleaseJob
         _config = config;
         _credit = credit;
         _notifications = notifications;
+        _reservationService = reservationService;
         _risk = risk;
         _logger = logger;
     }
@@ -119,6 +122,8 @@ public class AutoReleaseJob : IAutoReleaseJob
             foreach (var shareId in releasedShareIds.Distinct())
             {
                 await NotifyNextWaitlistAsync(shareId, ct);
+                // 无具体座位候补队列时，由范围偏好自动代约兜底
+                await _reservationService.TryAutoBookPreferenceAsync(shareId, ct);
             }
         }
 
@@ -183,6 +188,8 @@ public class AutoReleaseJob : IAutoReleaseJob
         foreach (var shareId in shareIdsToRecheck.Distinct())
         {
             await NotifyNextWaitlistAsync(shareId, ct);
+            // 无具体座位候补队列时，由范围偏好自动代约兜底
+            await _reservationService.TryAutoBookPreferenceAsync(shareId, ct);
         }
 
         // 5. 清理过期使用会话

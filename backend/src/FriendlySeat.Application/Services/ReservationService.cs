@@ -194,6 +194,9 @@ public class ReservationService
 
         // 通知候补
         await NotifyNextWaitlistAsync(reservation.ShareId, ct);
+
+        // 范围偏好自动代约：无具体座位候补队列时（share 仍 Available），按最早提交的偏好直接预约
+        await TryAutoBookPreferenceAsync(reservation.ShareId, ct);
     }
 
     public async Task<ArrivalResultDto> ArriveAsync(long reservationId, long userId, double? lat, double? lng, CancellationToken ct = default)
@@ -512,6 +515,69 @@ public class ReservationService
 
         await _notifications.SendAsync(next.UserId, NotificationType.WaitlistAvailable,
             "候补成功", $"「{share.Seat?.Code}」有空位了，座位已为你预留，请在{rules.WaitlistWindowMinutes}分钟内预约", null, ct);
+    }
+
+    // 范围偏好自动代约：share 仍可预约时，按提交顺序为最早匹配的偏好用户直接预约（无具体候补队列时）
+    public async Task TryAutoBookPreferenceAsync(long? shareId, CancellationToken ct)
+    {
+        if (!shareId.HasValue) return;
+
+        var share = await _db.SeatShares
+            .Include(s => s.Seat)
+                .ThenInclude(s => s!.Zone)
+            .FirstOrDefaultAsync(s => s.Id == shareId.Value, ct);
+        if (share is null || share.Status != SeatShareStatus.Available) return;
+
+        var seat = share.Seat;
+        if (seat?.Zone is null) return;
+
+        var venueId = await _db.Floors
+            .Where(f => f.Id == seat.Zone!.FloorId)
+            .Select(f => f.VenueId)
+            .FirstOrDefaultAsync(ct);
+
+        var prefs = await _db.WaitlistPreferences
+            .Where(p => p.Status == WaitlistPreferenceStatus.Active
+                && p.VenueId == venueId
+                && (!p.FloorId.HasValue || p.FloorId == seat.Zone!.FloorId)
+                && (!p.AreaId.HasValue || p.AreaId == seat.Zone!.AreaId))
+            .OrderBy(p => p.CreatedAt)
+            .ToListAsync(ct);
+
+        foreach (var pref in prefs)
+        {
+            if (pref.UserId == share.OwnerUserId) continue;
+            if (!PreferenceMatchesSeat(pref.Preference, seat)) continue;
+
+            try
+            {
+                var reservation = await CreateAsync(pref.UserId, new ReservationCreateRequest { ShareId = share.Id }, ct);
+                pref.Status = WaitlistPreferenceStatus.Booked;
+                pref.BookedAt = DateTime.UtcNow;
+                pref.ReservationId = reservation.Id;
+                await _db.SaveChangesAsync(ct);
+
+                await _notifications.SendAsync(pref.UserId, NotificationType.WaitlistAvailable,
+                    "候补成功，已自动预约", $"「{seat.Code}」有空位，已自动为你预约，按时到座确认即可。", null, ct);
+                return;
+            }
+            catch (AppException)
+            {
+                // 该偏好用户当前无法预约（已有申请/信用不足/座位被抢等），尝试下一位
+                continue;
+            }
+        }
+    }
+
+    private static bool PreferenceMatchesSeat(string preference, Seat seat)
+    {
+        return preference switch
+        {
+            "window" => seat.Window,
+            "socket" => seat.PowerSocket,
+            "quiet" => seat.QuietLevel == 3,
+            _ => true
+        };
     }
 
     private async Task AwardCreditAsync(long userId, string referenceType, string reason, long referenceId, CancellationToken ct)
