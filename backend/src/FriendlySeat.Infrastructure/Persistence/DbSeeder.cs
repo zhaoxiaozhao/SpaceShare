@@ -244,6 +244,43 @@ CREATE TABLE `ReadingSessions` (
             logger.LogInformation("MySQL 补充 FloorPois.AreaId 列（标志物区域归属）");
             await db.Database.ExecuteSqlRawAsync("ALTER TABLE `FloorPois` ADD COLUMN `AreaId` bigint NULL;");
         }
+
+        // SeatShares.HoldForUserId 列（候补预留归属用户）：已有表补列
+        if (await tableExists("SeatShares") && !await ColumnExistsAsync(db, "SeatShares", "HoldForUserId"))
+        {
+            logger.LogInformation("MySQL 补充 SeatShares.HoldForUserId 列（候补预留归属）");
+            await db.Database.ExecuteSqlRawAsync("ALTER TABLE `SeatShares` ADD COLUMN `HoldForUserId` bigint NULL;");
+        }
+
+        // 范围候补偏好表 WaitlistPreferences（系统自动代约）：已有库补建表
+        if (!await tableExists("WaitlistPreferences"))
+        {
+            logger.LogInformation("MySQL 补建范围候补偏好表（WaitlistPreferences）");
+            await db.Database.ExecuteSqlRawAsync(@"
+CREATE TABLE `WaitlistPreferences` (
+  `Id` bigint NOT NULL AUTO_INCREMENT,
+  `UserId` bigint NOT NULL,
+  `VenueId` bigint NOT NULL,
+  `FloorId` bigint NULL,
+  `AreaId` bigint NULL,
+  `Preference` longtext NOT NULL,
+  `Status` int NOT NULL,
+  `CreatedAt` datetime(6) NOT NULL,
+  `BookedAt` datetime(6) NULL,
+  `ReservationId` bigint NULL,
+  PRIMARY KEY (`Id`),
+  KEY `IX_WaitlistPreferences_AreaId` (`AreaId`),
+  KEY `IX_WaitlistPreferences_FloorId` (`FloorId`),
+  KEY `IX_WaitlistPreferences_ReservationId` (`ReservationId`),
+  KEY `IX_WaitlistPreferences_UserId_Status` (`UserId`, `Status`),
+  KEY `IX_WaitlistPreferences_VenueId_Status_CreatedAt` (`VenueId`, `Status`, `CreatedAt`),
+  CONSTRAINT `FK_WaitlistPreferences_Users_UserId` FOREIGN KEY (`UserId`) REFERENCES `Users` (`Id`) ON DELETE CASCADE,
+  CONSTRAINT `FK_WaitlistPreferences_Venues_VenueId` FOREIGN KEY (`VenueId`) REFERENCES `Venues` (`Id`) ON DELETE CASCADE,
+  CONSTRAINT `FK_WaitlistPreferences_Floors_FloorId` FOREIGN KEY (`FloorId`) REFERENCES `Floors` (`Id`) ON DELETE RESTRICT,
+  CONSTRAINT `FK_WaitlistPreferences_Areas_AreaId` FOREIGN KEY (`AreaId`) REFERENCES `Areas` (`Id`) ON DELETE RESTRICT,
+  CONSTRAINT `FK_WaitlistPreferences_Reservations_ReservationId` FOREIGN KEY (`ReservationId`) REFERENCES `Reservations` (`Id`) ON DELETE RESTRICT
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
+        }
     }
 
     // 检测某表中是否存在某列
