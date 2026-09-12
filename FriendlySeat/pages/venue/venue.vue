@@ -393,6 +393,7 @@
 		},
 		onShow() {
 			this.load()
+			this.syncNavigationBar()
 		},
 		methods: {
 			formatTime,
@@ -436,9 +437,14 @@
 			},
 			toggleFullscreen() {
 				this.fullscreen = !this.fullscreen
+				this.syncNavigationBar()
+			},
+			syncNavigationBar() {
 				if (this.fullscreen) {
+					uni.hideNavigationBar && uni.hideNavigationBar()
 					uni.setNavigationBarTitle({ title: '楼层平面图' })
 				} else {
+					uni.showNavigationBar && uni.showNavigationBar()
 					uni.setNavigationBarTitle({ title: this.venue ? this.venue.name : '' })
 				}
 			},
