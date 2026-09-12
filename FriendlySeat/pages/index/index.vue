@@ -21,12 +21,15 @@
 			<view class="card venue-card" v-for="v in nearby" :key="v.id" @click="goVenue(v.id)">
 				<view class="venue-main">
 					<text class="venue-name">{{v.name}}</text>
-					<text class="venue-addr">{{v.address}}</text>
+					<view class="venue-addr-row">
+						<text class="venue-addr">{{v.address}}</text>
+						<text class="venue-distance" v-if="v.distanceKm">{{v.distanceKm}}km</text>
+					</view>
 				</view>
 				<view class="venue-meta">
-					<text class="venue-available" v-if="v.availableCount > 0">可预约 {{v.availableCount}}</text>
-					<text class="venue-available none" v-else>{{v.seatCount || 0}} 座位</text>
-					<text class="venue-distance" v-if="v.distanceKm">{{v.distanceKm}}km</text>
+					<text class="venue-count">{{v.seatCount || 0}} 座位</text>
+					<text class="venue-sep">丨</text>
+					<text class="venue-available" :class="{ none: v.availableCount === 0 }">可预约 {{v.availableCount || 0}}</text>
 				</view>
 			</view>
 		</view>
@@ -253,22 +256,37 @@
 		font-size: 24rpx;
 		color: #8A8A86;
 	}
+	.venue-addr-row {
+		display: flex;
+		align-items: center;
+		gap: 12rpx;
+	}
+	.venue-distance {
+		font-size: 22rpx;
+		color: var(--primary);
+		flex: none;
+	}
 	.venue-meta {
 		display: flex;
-		flex-direction: column;
-		align-items: flex-end;
-		gap: 8rpx;
+		flex-direction: row;
+		align-items: center;
+		gap: 12rpx;
 	}
 	.venue-available {
 		font-size: 24rpx;
 		color: var(--primary);
 	}
+	.venue-count {
+		font-size: 24rpx;
+		color: #8A8A86;
+	}
+	.venue-sep {
+		font-size: 22rpx;
+		color: #C9C4B8;
+		transform: scaleY(0.8);
+	}
 	.venue-available.none {
 		color: #B85450;
-	}
-	.venue-distance {
-		font-size: 22rpx;
-		color: #8A8A86;
 	}
 	.share-card {
 		display: flex;
