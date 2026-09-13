@@ -71,6 +71,9 @@ public class WaitlistPreferenceRequest
 
     /// <summary>none / window / socket / quiet</summary>
     public string Preference { get; set; } = "none";
+
+    /// <summary>候补截止时间（UTC）；必填，超过后不再自动预约</summary>
+    public DateTime? ExpireAt { get; set; }
 }
 
 public class WaitlistPreferenceDto
@@ -85,6 +88,7 @@ public class WaitlistPreferenceDto
     public string Preference { get; set; } = "none";
     public string Status { get; set; } = string.Empty;
     public DateTime CreatedAt { get; set; }
+    public DateTime? ExpireAt { get; set; }
     public DateTime? BookedAt { get; set; }
     public long? ReservationId { get; set; }
     public long? BookedSeatId { get; set; }

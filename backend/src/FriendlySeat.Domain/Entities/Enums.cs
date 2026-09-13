@@ -81,7 +81,8 @@ public enum WaitlistPreferenceStatus
 {
     Active,
     Booked,
-    Cancelled
+    Cancelled,
+    Expired
 }
 
 public enum ContactType

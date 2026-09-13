@@ -185,6 +185,15 @@ public class AutoReleaseJob : IAutoReleaseJob
             session.ActualEndAt = now;
         }
 
+        // 5.5 过期候补偏好：超过截止时间仍未自动预约 → Expired（历史无截止时间的也一并失效）
+        var expiredPrefs = await _db.WaitlistPreferences
+            .Where(p => p.Status == WaitlistPreferenceStatus.Active && (!p.ExpireAt.HasValue || p.ExpireAt < now))
+            .ToListAsync(ct);
+        foreach (var p in expiredPrefs)
+        {
+            p.Status = WaitlistPreferenceStatus.Expired;
+        }
+
         await _db.SaveChangesAsync(ct);
 
         // 6. 风险晋升检查：风险分达到阈值自动升级处罚（可配置）

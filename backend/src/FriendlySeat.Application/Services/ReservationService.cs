@@ -554,8 +554,12 @@ public class ReservationService
             .Select(f => f.VenueId)
             .FirstOrDefaultAsync(ct);
 
+        var now = DateTime.UtcNow;
+
+        // 仅匹配未过期、且候补截止时间晚于该座位开始时间的偏好（ExpireAt 为空的历史数据视为已过期）
         var prefs = await _db.WaitlistPreferences
             .Where(p => p.Status == WaitlistPreferenceStatus.Active
+                && p.ExpireAt.HasValue && p.ExpireAt > now && p.ExpireAt > share.StartAt
                 && p.VenueId == venueId
                 && (!p.FloorId.HasValue || p.FloorId == seat.Zone!.FloorId)
                 && (!p.AreaId.HasValue || p.AreaId == seat.Zone!.AreaId))

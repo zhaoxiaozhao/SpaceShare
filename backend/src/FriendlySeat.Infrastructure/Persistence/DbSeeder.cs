@@ -264,6 +264,7 @@ CREATE TABLE `WaitlistPreferences` (
   `FloorId` bigint NULL,
   `AreaId` bigint NULL,
   `Preference` longtext NOT NULL,
+  `ExpireAt` datetime(6) NULL,
   `Status` int NOT NULL,
   `CreatedAt` datetime(6) NOT NULL,
   `BookedAt` datetime(6) NULL,
@@ -280,6 +281,13 @@ CREATE TABLE `WaitlistPreferences` (
   CONSTRAINT `FK_WaitlistPreferences_Areas_AreaId` FOREIGN KEY (`AreaId`) REFERENCES `Areas` (`Id`) ON DELETE RESTRICT,
   CONSTRAINT `FK_WaitlistPreferences_Reservations_ReservationId` FOREIGN KEY (`ReservationId`) REFERENCES `Reservations` (`Id`) ON DELETE RESTRICT
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
+        }
+
+        // WaitlistPreferences.ExpireAt 列（候补截止时间）：已有表补列
+        if (await tableExists("WaitlistPreferences") && !await ColumnExistsAsync(db, "WaitlistPreferences", "ExpireAt"))
+        {
+            logger.LogInformation("MySQL 补充 WaitlistPreferences.ExpireAt 列（候补截止时间）");
+            await db.Database.ExecuteSqlRawAsync("ALTER TABLE `WaitlistPreferences` ADD COLUMN `ExpireAt` datetime(6) NULL;");
         }
     }
 

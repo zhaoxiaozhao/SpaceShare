@@ -135,6 +135,14 @@ public class WaitlistService
         if (!validPrefs.Contains(request.Preference))
             throw AppException.BadRequest("preference_invalid", "候补偏好无效");
 
+        // 候补截止时间必填，且需在合理范围内（最长 24 小时）
+        if (!request.ExpireAt.HasValue)
+            throw AppException.BadRequest("expire_required", "请选择候补结束时间");
+        if (request.ExpireAt.Value <= now)
+            throw AppException.BadRequest("expire_invalid", "候补结束时间必须晚于当前时间");
+        if (request.ExpireAt.Value > now.AddHours(24))
+            throw AppException.BadRequest("expire_too_far", "候补结束时间最长 24 小时");
+
         // 同一用户同一范围（场馆+楼层+区域+偏好）只允许一条进行中的候补
         var active = await _db.WaitlistPreferences
             .AnyAsync(p => p.UserId == userId
@@ -161,6 +169,7 @@ public class WaitlistService
             FloorId = request.FloorId,
             AreaId = request.AreaId,
             Preference = request.Preference,
+            ExpireAt = request.ExpireAt.Value,
             Status = WaitlistPreferenceStatus.Active,
             CreatedAt = now
         };
@@ -180,6 +189,7 @@ public class WaitlistService
         var candidateId = await _db.SeatShares
             .Where(s => s.Status == SeatShareStatus.Available
                 && s.EndAt > now
+                && (!pref.ExpireAt.HasValue || s.StartAt < pref.ExpireAt.Value)
                 && s.Seat!.Zone!.Floor!.VenueId == pref.VenueId
                 && (!pref.FloorId.HasValue || s.Seat.Zone.FloorId == pref.FloorId.Value)
                 && (!pref.AreaId.HasValue || s.Seat.Zone.AreaId == pref.AreaId.Value))
@@ -208,6 +218,7 @@ public class WaitlistService
                 Preference = p.Preference,
                 Status = p.Status.ToString(),
                 CreatedAt = p.CreatedAt,
+                ExpireAt = p.ExpireAt,
                 BookedAt = p.BookedAt,
                 ReservationId = p.ReservationId,
                 BookedSeatId = p.Reservation != null && p.Reservation.Seat != null ? p.Reservation.Seat.Id : default,
@@ -249,6 +260,7 @@ public class WaitlistService
                 Preference = p.Preference,
                 Status = p.Status.ToString(),
                 CreatedAt = p.CreatedAt,
+                ExpireAt = p.ExpireAt,
                 BookedAt = p.BookedAt,
                 ReservationId = p.ReservationId,
                 BookedSeatId = p.Reservation != null && p.Reservation.Seat != null ? p.Reservation.Seat.Id : default,

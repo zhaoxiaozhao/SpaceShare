@@ -15,6 +15,9 @@ public class WaitlistPreference
     /// <summary>候补偏好：none / window / socket / quiet</summary>
     public string Preference { get; set; } = "none";
 
+    /// <summary>候补截止时间（UTC）；超过后自动失效，不再自动预约</summary>
+    public DateTime? ExpireAt { get; set; }
+
     public WaitlistPreferenceStatus Status { get; set; } = WaitlistPreferenceStatus.Active;
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime? BookedAt { get; set; }

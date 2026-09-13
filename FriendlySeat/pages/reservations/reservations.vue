@@ -109,6 +109,7 @@
 				</view>
 				<text class="res-venue">{{p.venueName}}</text>
 				<text class="res-time">{{p.floorName || '不限楼层'}}<text v-if="p.areaName"> · {{p.areaName}}</text></text>
+				<text class="res-time" v-if="p.status === 'Active' && p.expireAt">候补截止：{{formatTime(p.expireAt)}}</text>
 				<text class="res-time" v-if="p.status === 'Booked' && p.bookedSeatCode">已自动预约：{{p.bookedSeatCode}}（{{formatTime(p.reservationStartAt)}} ~ {{formatTime(p.reservationEndAt)}}）</text>
 				<view class="res-actions">
 					<button
@@ -299,7 +300,7 @@
 				return map[p] || p || '不限'
 			},
 			prefStatusText(s) {
-				const map = { Active: '候补中', Booked: '已预约', Cancelled: '已取消' }
+				const map = { Active: '候补中', Booked: '已预约', Cancelled: '已取消', Expired: '已过期' }
 				return map[s] || s
 			},
 			async cancelPreference(p) {
