@@ -5,7 +5,7 @@
 			<view class="tab" :class="{ active: tab === 'upcoming' }" @click="tab = 'upcoming'">待使用</view>
 			<view class="tab" :class="{ active: tab === 'shares' }" @click="tab = 'shares'">我的分享</view>
 			<view class="tab" :class="{ active: tab === 'waitlist' }" @click="tab = 'waitlist'">我的候补</view>
-			<view class="tab" :class="{ active: tab === 'history' }" @click="tab = 'history'">历史</view>
+			<view class="tab" :class="{ active: tab === 'swap' }" @click="tab = 'swap'">换座</view>
 		</view>
 
 		<view v-if="tab === 'upcoming'">
@@ -126,18 +126,43 @@
 			</view>
 		</view>
 
-		<view v-if="tab === 'history'">
-			<view v-if="summary.history.length">
-				<view class="card res-card" v-for="r in summary.history" :key="r.id">
-					<view class="res-top">
-						<text class="res-seat">{{r.displayCode || r.seatCode}}</text>
-						<text class="tag" :class="'status-' + r.status.toLowerCase()">{{statusText(r.status)}}</text>
+		<view v-if="tab === 'swap'">
+			<view v-if="mySwaps.length" class="swap-group-title">我发布的</view>
+			<view class="card res-card" v-for="s in mySwaps" :key="'m' + s.id">
+				<view class="res-top">
+					<text class="res-seat">{{s.venueName}}</text>
+					<text class="tag" :class="'status-' + s.status.toLowerCase()">{{swapStatusText(s.status)}}</text>
+				</view>
+				<text class="res-time">当前位置：{{locText(s)}}</text>
+				<text class="res-time">想换到：{{wantText(s)}}</text>
+				<view class="chips"><text class="chip" v-for="r in s.reasons" :key="r">{{reasonLabel(r)}}</text></view>
+
+				<view class="resp-title" v-if="s.responses && s.responses.length">响应者（{{s.responses.length}}）</view>
+				<view class="resp-row" v-for="p in (s.responses || [])" :key="p.id">
+					<view class="resp-info">
+						<text class="resp-nick">{{p.userNickname || '友邻'}}</text>
+						<text class="resp-loc">{{respLocText(p)}}</text>
+						<text class="resp-status" :class="'rs-' + p.status.toLowerCase()">{{respStatusText(p.status)}}</text>
 					</view>
-					<text class="res-venue">{{r.venueName}}<text v-if="r.floorName" class="res-floor"> · {{r.floorName}}</text><text v-if="r.areaName" class="res-floor"> · {{r.areaName}}</text></text>
-					<text class="res-time">{{formatTime(r.startAt)}} ~ {{formatTime(r.endAt)}}</text>
+					<button v-if="s.status === 'Open' && p.status === 'Pending'" class="btn-primary small" @click="acceptSwap(s, p)">同意换座</button>
+				</view>
+				<view class="res-actions" v-if="s.status === 'Open'">
+					<button class="btn-outline small" @click="cancelSwap(s)">取消意向</button>
 				</view>
 			</view>
-			<view v-else class="empty">暂无历史记录</view>
+
+			<view v-if="respondedSwaps.length" class="swap-group-title">我响应的</view>
+			<view class="card res-card" v-for="s in respondedSwaps" :key="'r' + s.id">
+				<view class="res-top">
+					<text class="res-seat">{{s.userNickname || '友邻'}} 的换座</text>
+					<text class="tag" :class="'rs-' + (s.myResponseStatus || '').toLowerCase()">{{myResponseText(s.myResponseStatus)}}</text>
+				</view>
+				<text class="res-time">{{s.venueName}} · 当前位置：{{locText(s)}}</text>
+				<text class="res-time">想换到：{{wantText(s)}}</text>
+				<text class="ok-tip" v-if="s.myResponseStatus === 'Accepted'">对方已同意，可按双方位置线下物理交换</text>
+			</view>
+
+			<view v-if="!mySwaps.length && !respondedSwaps.length" class="empty">暂无换座记录</view>
 		</view>
 	</view>
 </template>
@@ -153,6 +178,8 @@
 				summary: { upcoming: [], history: [], myShares: [] },
 				waitlist: [],
 				preferences: [],
+				mySwaps: [],
+				respondedSwaps: [],
 				checkInCodes: {}
 			}
 		},
@@ -180,6 +207,12 @@
 				} catch (e) {}
 				try {
 					this.preferences = await api.getMyWaitlistPreferences()
+				} catch (e) {}
+				try {
+					this.mySwaps = await api.getMySwaps()
+				} catch (e) {}
+				try {
+					this.respondedSwaps = await api.getRespondedSwaps()
 				} catch (e) {}
 			},
 			async cancel(r) {
@@ -322,6 +355,69 @@
 			goReservation(p) {
 				if (p.bookedSeatId) uni.navigateTo({ url: `/pages/seat/seat?id=${p.bookedSeatId}` })
 			},
+			swapStatusText(s) {
+				const map = { Open: '进行中', Matched: '已匹配', Cancelled: '已取消', Expired: '已过期' }
+				return map[s] || s
+			},
+			reasonLabel(code) {
+				const map = {
+					light: '光线问题', cold: '位置偏冷', hot: '位置偏热', noise: '附近有人交谈',
+					together: '想与同伴相邻', window: '想靠窗', socket: '需要插座', other: '其他'
+				}
+				return map[code] || code
+			},
+			locText(s) {
+				const parts = [s.floorName, s.areaName, s.zoneName].filter(Boolean)
+				return parts.length ? parts.join(' / ') : '未填写'
+			},
+			wantText(s) {
+				const parts = [s.wantFloorName || '不限楼层', s.wantAreaName, s.wantZoneName].filter(Boolean)
+				return parts.join(' / ')
+			},
+			respLocText(p) {
+				const parts = [p.floorName, p.areaName, p.zoneName].filter(Boolean)
+				return parts.length ? parts.join(' / ') : '未填写'
+			},
+			respStatusText(status) {
+				const map = { Pending: '待确认', Accepted: '已同意', Rejected: '未选中' }
+				return map[status] || status
+			},
+			myResponseText(status) {
+				const map = { Pending: '等待对方确认', Accepted: '已同意', Rejected: '未被选中' }
+				return map[status] || '已响应'
+			},
+			acceptSwap(s, p) {
+				uni.showModal({
+					title: '确认换座',
+					content: `同意与「${p.userNickname || '友邻'}」交换座位？确认后请线下物理交换。`,
+					success: async (res) => {
+						if (!res.confirm) return
+						try {
+							await api.acceptSwap(s.id, p.id)
+							uni.showModal({ title: '已确认', content: '已同意换座，请按双方位置进行线下物理交换。', showCancel: false })
+							this.load()
+						} catch (e) {
+							uni.showToast({ title: e.message || '操作失败', icon: 'none' })
+						}
+					}
+				})
+			},
+			cancelSwap(s) {
+				uni.showModal({
+					title: '取消换座意向',
+					content: '确定取消这条换座意向吗？',
+					success: async (res) => {
+						if (!res.confirm) return
+						try {
+							await api.cancelSwap(s.id)
+							uni.showToast({ title: '已取消', icon: 'success' })
+							this.load()
+						} catch (e) {
+							uni.showToast({ title: e.message || '操作失败', icon: 'none' })
+						}
+					}
+				})
+			},
 		}
 	}
 </script>
@@ -417,5 +513,61 @@
 		line-height: 2;
 		padding: 0 24rpx;
 		margin: 0;
+	}
+	.swap-group-title {
+		font-size: 26rpx;
+		font-weight: 600;
+		color: #8A8A86;
+		margin: 24rpx 0 12rpx;
+	}
+	.chips {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 10rpx;
+		margin-top: 10rpx;
+	}
+	.chip {
+		font-size: 22rpx;
+		padding: 4rpx 16rpx;
+		border-radius: 999rpx;
+		background: var(--primary-bg, #EAF3F1);
+		color: var(--primary);
+	}
+	.resp-title {
+		font-size: 24rpx;
+		color: #8A8A86;
+		margin: 16rpx 0 6rpx;
+	}
+	.resp-row {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		padding: 10rpx 0;
+		border-top: 1rpx solid #F0EEE8;
+	}
+	.resp-info {
+		display: flex;
+		flex-direction: column;
+		gap: 4rpx;
+	}
+	.resp-nick {
+		font-size: 26rpx;
+		font-weight: 600;
+	}
+	.resp-loc {
+		font-size: 22rpx;
+		color: #8A8A86;
+	}
+	.resp-status {
+		font-size: 22rpx;
+	}
+	.rs-pending { color: #C78A2B; }
+	.rs-accepted { color: var(--primary); }
+	.rs-rejected { color: #B0AEA8; }
+	.ok-tip {
+		display: block;
+		font-size: 24rpx;
+		color: var(--primary);
+		margin-top: 10rpx;
 	}
 </style>

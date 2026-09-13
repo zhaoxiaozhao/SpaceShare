@@ -27,12 +27,6 @@
 			}
 		},
 		{
-			"path": "pages/swap/swap",
-			"style": {
-				"navigationBarTitleText": "换座"
-			}
-		},
-		{
 			"path": "pages/seat/seat",
 			"style": {
 				"navigationBarTitleText": "座位详情"

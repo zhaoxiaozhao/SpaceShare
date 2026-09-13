@@ -132,6 +132,7 @@ export const api = {
 	cancelWaitlistPreference: (id) => request(`/waitlist/preferences/${id}`, { method: 'DELETE' }),
 	createSwap: (data) => request('/swaps', { method: 'POST', data }),
 	getSwaps: (venueId) => request(`/swaps?venueId=${venueId}`),
+	getRecentSwaps: (take) => request(`/swaps/recent?take=${take || 20}`),
 	getMySwaps: () => request('/swaps/mine'),
 	getRespondedSwaps: () => request('/swaps/responded'),
 	respondSwap: (id, data) => request(`/swaps/${id}/respond`, { method: 'POST', data }),

@@ -102,6 +102,37 @@ public class SwapService
         return dtos;
     }
 
+    /// <summary>最近换座意向（跨场馆，供首页展示）</summary>
+    public async Task<List<SeatSwapDto>> GetRecentAsync(long viewerUserId, int take, CancellationToken ct = default)
+    {
+        var now = DateTime.UtcNow;
+        var list = await _db.SeatSwapRequests
+            .Where(r => r.Status == SeatSwapStatus.Open && r.ExpireAt > now)
+            .OrderByDescending(r => r.CreatedAt)
+            .Take(Math.Clamp(take, 1, 50))
+            .ToListAsync(ct);
+
+        var idList = list.Select(r => r.Id).ToList();
+        var myResponses = await _db.SeatSwapResponses
+            .Where(x => x.UserId == viewerUserId && idList.Contains(x.RequestId))
+            .Select(x => new { x.RequestId, x.Status })
+            .ToListAsync(ct);
+        var myResponseMap = myResponses
+            .GroupBy(x => x.RequestId)
+            .ToDictionary(g => g.Key, g => g.First().Status);
+
+        var dtos = await BuildDtosAsync(list, viewerUserId, includeResponses: false, ct);
+        foreach (var d in dtos)
+        {
+            if (myResponseMap.TryGetValue(d.Id, out var st))
+            {
+                d.RespondedByMe = true;
+                d.MyResponseStatus = st.ToString();
+            }
+        }
+        return dtos;
+    }
+
     public async Task<List<SeatSwapDto>> GetMineAsync(long userId, CancellationToken ct = default)
     {
         var list = await _db.SeatSwapRequests

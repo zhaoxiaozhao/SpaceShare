@@ -47,6 +47,33 @@
 			</view>
 		</view>
 
+		<view class="section">
+			<view class="sec-head">
+				<text class="section-title">最近换座</text>
+				<text class="sec-more" @click="openPublish">＋ 发布换座</text>
+			</view>
+			<view v-if="swaps.length">
+				<view class="card swap-card" v-for="s in swaps" :key="s.id">
+					<view class="swap-top">
+						<text class="swap-title">{{s.userNickname || '友邻'}} · {{s.venueName}}</text>
+						<text class="remain">剩 {{remainMinutes(s.expireAt)}} 分</text>
+					</view>
+					<view class="swap-line"><text class="sk">当前位置</text><text class="sv">{{locText(s)}}</text></view>
+					<view class="swap-line"><text class="sk">想换到</text><text class="sv">{{wantText(s)}}</text></view>
+					<view class="reasons">
+						<text class="chip" v-for="r in s.reasons" :key="r">{{reasonLabel(r)}}</text>
+					</view>
+					<view class="swap-foot">
+						<text class="swap-hint">平台仅信息撮合，线下自行交换</text>
+						<button v-if="s.isMine" class="btn-outline small" disabled>我发布的</button>
+						<button v-else-if="s.respondedByMe" class="btn-outline small" disabled>{{myResponseText(s.myResponseStatus)}}</button>
+						<button v-else class="btn-primary small" @click="openRespond(s)">我愿意换</button>
+					</view>
+				</view>
+			</view>
+			<view v-else class="swap-empty">暂无换座需求</view>
+		</view>
+
 		<view v-if="!nearby.length && !shares.length" class="empty">
 			<text>正在加载附近的场馆与共享座位…</text>
 		</view>
@@ -55,6 +82,83 @@
 		<view class="fab" @click="goShare">
 			<view class="share-icon"></view>
 			<text>分享座位</text>
+		</view>
+
+		<!-- 发布换座 -->
+		<view v-if="showPublish" class="mask" @click="showPublish = false">
+			<view class="pop" @click.stop>
+				<text class="pop-title">发布换座意向</text>
+				<text class="pop-hint">免费、无联系方式；平台仅提供信息撮合，以场馆规定为准。</text>
+
+				<text class="lb">场馆</text>
+				<picker mode="selector" :range="publishVenues" range-key="name" :value="pubVenueIdx" @change="onVenueChange">
+					<view class="pick">{{pubVenue ? pubVenue.name : '选择场馆'}}</view>
+				</picker>
+
+				<text class="lb">我当前的位置</text>
+				<view class="loc-row">
+					<picker mode="selector" :range="floorList('cur')" range-key="name" :value="cur.floor" @change="onLoc('cur', 'floor', $event)">
+						<view class="pick">{{pickText('cur', 'floor')}}</view>
+					</picker>
+					<picker mode="selector" :range="areaOptions('cur')" range-key="name" :value="cur.area" @change="onLoc('cur', 'area', $event)">
+						<view class="pick">{{pickText('cur', 'area')}}</view>
+					</picker>
+					<picker mode="selector" :range="zoneOptions('cur')" range-key="name" :value="cur.zone" @change="onLoc('cur', 'zone', $event)">
+						<view class="pick">{{pickText('cur', 'zone')}}</view>
+					</picker>
+				</view>
+
+				<text class="lb">期望换到（可不限）</text>
+				<view class="loc-row">
+					<picker mode="selector" :range="floorList('want')" range-key="name" :value="want.floor" @change="onLoc('want', 'floor', $event)">
+						<view class="pick">{{pickText('want', 'floor')}}</view>
+					</picker>
+					<picker mode="selector" :range="areaOptions('want')" range-key="name" :value="want.area" @change="onLoc('want', 'area', $event)">
+						<view class="pick">{{pickText('want', 'area')}}</view>
+					</picker>
+					<picker mode="selector" :range="zoneOptions('want')" range-key="name" :value="want.zone" @change="onLoc('want', 'zone', $event)">
+						<view class="pick">{{pickText('want', 'zone')}}</view>
+					</picker>
+				</view>
+
+				<text class="lb">原因（客观因素，可多选）</text>
+				<view class="reasons">
+					<text class="chip" :class="{ on: publishReasons.includes(r.code) }" v-for="r in reasonOptions" :key="r.code" @click="toggleReason(r.code)">{{r.label}}</text>
+				</view>
+
+				<text class="lb">有效期</text>
+				<view class="chips-row">
+					<text class="chip" :class="{ on: durationIdx === i }" v-for="(d, i) in durationOptions" :key="d.value" @click="durationIdx = i">{{d.label}}</text>
+				</view>
+
+				<view class="pop-actions">
+					<button class="btn-outline small" @click="showPublish = false">取消</button>
+					<button class="btn-primary small" :loading="submitting" @click="publish">发布</button>
+				</view>
+			</view>
+		</view>
+
+		<!-- 响应换座 -->
+		<view v-if="showRespond" class="mask" @click="showRespond = false">
+			<view class="pop" @click.stop>
+				<text class="pop-title">提交我的位置</text>
+				<text class="pop-hint">对方确认后即可线下物理交换</text>
+				<view class="loc-row">
+					<picker mode="selector" :range="floorList('resp')" range-key="name" :value="resp.floor" @change="onLoc('resp', 'floor', $event)">
+						<view class="pick">{{pickText('resp', 'floor')}}</view>
+					</picker>
+					<picker mode="selector" :range="areaOptions('resp')" range-key="name" :value="resp.area" @change="onLoc('resp', 'area', $event)">
+						<view class="pick">{{pickText('resp', 'area')}}</view>
+					</picker>
+					<picker mode="selector" :range="zoneOptions('resp')" range-key="name" :value="resp.zone" @change="onLoc('resp', 'zone', $event)">
+						<view class="pick">{{pickText('resp', 'zone')}}</view>
+					</picker>
+				</view>
+				<view class="pop-actions">
+					<button class="btn-outline small" @click="showRespond = false">取消</button>
+					<button class="btn-primary small" :loading="submitting" @click="submitRespond">提交</button>
+				</view>
+			</view>
 		</view>
 	</view>
 </template>
@@ -70,7 +174,43 @@
 				nearby: [],
 				shares: [],
 				venueShares: [],
-				season: getSeasonKey()
+				season: getSeasonKey(),
+				swaps: [],
+				showPublish: false,
+				showRespond: false,
+				submitting: false,
+				currentSwap: null,
+				publishVenues: [],
+				pubVenueIdx: 0,
+				pubVenue: null,
+				respondVenue: null,
+				publishReasons: [],
+				durationIdx: 1,
+				reasonOptions: [
+					{ code: 'light', label: '光线问题' },
+					{ code: 'cold', label: '位置偏冷' },
+					{ code: 'hot', label: '位置偏热' },
+					{ code: 'noise', label: '附近有人交谈' },
+					{ code: 'together', label: '想与同伴相邻' },
+					{ code: 'window', label: '想靠窗' },
+					{ code: 'socket', label: '需要插座' },
+					{ code: 'other', label: '其他' }
+				],
+				durationOptions: [
+					{ label: '30分钟', value: 30 },
+					{ label: '1小时', value: 60 },
+					{ label: '2小时', value: 120 }
+				],
+				cur: { floor: 0, area: 0, zone: 0 },
+				want: { floor: 0, area: 0, zone: 0 },
+				resp: { floor: 0, area: 0, zone: 0 }
+			}
+		},
+		computed: {
+			activeVenue() {
+				if (this.showPublish) return this.pubVenue
+				if (this.showRespond) return this.respondVenue
+				return null
 			}
 		},
 		onShow() {
@@ -98,6 +238,7 @@
 				return map[status] || 'status-completed'
 			},
 			async loadData() {
+				this.loadSwaps()
 				try {
 					const location = await this.getLocation()
 					this.nearby = await api.getVenues({
@@ -183,6 +324,183 @@
 			},
 			goSeat(id) {
 				uni.navigateTo({ url: `/pages/seat/seat?id=${id}` })
+			},
+			async loadSwaps() {
+				if (!uni.getStorageSync('token')) return
+				try {
+					this.swaps = await api.getRecentSwaps(20)
+				} catch (e) {}
+			},
+			locText(s) {
+				const parts = [s.floorName, s.areaName, s.zoneName].filter(Boolean)
+				return parts.length ? parts.join(' / ') : '未填写'
+			},
+			wantText(s) {
+				const parts = [s.wantFloorName || '不限楼层', s.wantAreaName, s.wantZoneName].filter(Boolean)
+				return parts.join(' / ')
+			},
+			reasonLabel(code) {
+				const o = this.reasonOptions.find(r => r.code === code)
+				return o ? o.label : code
+			},
+			remainMinutes(expireAt) {
+				return Math.max(0, Math.round((new Date(expireAt).getTime() - Date.now()) / 60000))
+			},
+			myResponseText(status) {
+				const map = { Pending: '等待对方确认', Accepted: '已同意', Rejected: '未被选中' }
+				return map[status] || '已响应'
+			},
+			floorList(ctx) {
+				const base = this.activeVenue && this.activeVenue.floors ? this.activeVenue.floors : []
+				return ctx === 'want' ? [{ id: null, name: '不限楼层' }].concat(base) : base
+			},
+			floorObj(ctx) {
+				return this.floorList(ctx)[this[ctx].floor] || null
+			},
+			areaOptions(ctx) {
+				const f = this.floorObj(ctx)
+				const base = [{ id: null, name: '不限区域' }]
+				if (!f || !f.areas) return base
+				return base.concat(f.areas.map(a => ({ id: a.id, name: a.name })))
+			},
+			zoneOptions(ctx) {
+				const f = this.floorObj(ctx)
+				const base = [{ id: null, name: '不限区块' }]
+				if (!f || !f.zones) return base
+				const area = this.areaOptions(ctx)[this[ctx].area]
+				let zones = f.zones
+				if (area && area.id) zones = zones.filter(z => z.areaId === area.id)
+				return base.concat(zones.map(z => ({ id: z.id, name: z.name })))
+			},
+			pickText(ctx, level) {
+				if (level === 'floor') {
+					const o = this.floorList(ctx)[this[ctx].floor]
+					return o ? o.name : '选择楼层'
+				}
+				if (level === 'area') {
+					const o = this.areaOptions(ctx)[this[ctx].area]
+					return o ? o.name : '不限区域'
+				}
+				const o = this.zoneOptions(ctx)[this[ctx].zone]
+				return o ? o.name : '不限区块'
+			},
+			onLoc(ctx, level, e) {
+				const v = Number(e.detail.value)
+				if (level === 'floor') {
+					this[ctx].floor = v
+					this[ctx].area = 0
+					this[ctx].zone = 0
+				} else if (level === 'area') {
+					this[ctx].area = v
+					this[ctx].zone = 0
+				} else {
+					this[ctx].zone = v
+				}
+			},
+			buildLoc(ctx) {
+				const f = this.floorObj(ctx)
+				const area = this.areaOptions(ctx)[this[ctx].area]
+				const zone = this.zoneOptions(ctx)[this[ctx].zone]
+				return {
+					floorId: f ? f.id : null,
+					areaId: area ? area.id : null,
+					zoneId: zone ? zone.id : null
+				}
+			},
+			toggleReason(code) {
+				const i = this.publishReasons.indexOf(code)
+				if (i >= 0) this.publishReasons.splice(i, 1)
+				else this.publishReasons.push(code)
+			},
+			async openPublish() {
+				if (!uni.getStorageSync('token')) {
+					uni.navigateTo({ url: '/pages/login/login' })
+					return
+				}
+				this.publishReasons = []
+				this.durationIdx = 1
+				this.cur = { floor: 0, area: 0, zone: 0 }
+				this.want = { floor: 0, area: 0, zone: 0 }
+				this.showPublish = true
+				try {
+					if (!this.publishVenues.length) {
+						this.publishVenues = await api.getVenues({ page: 1, pageSize: 100 })
+					}
+				} catch (e) {}
+				if (this.publishVenues.length) {
+					this.pubVenueIdx = 0
+					try { this.pubVenue = await api.getVenue(this.publishVenues[0].id) } catch (e) { this.pubVenue = null }
+				}
+			},
+			async onVenueChange(e) {
+				this.pubVenueIdx = Number(e.detail.value)
+				const v = this.publishVenues[this.pubVenueIdx]
+				this.cur = { floor: 0, area: 0, zone: 0 }
+				this.want = { floor: 0, area: 0, zone: 0 }
+				this.pubVenue = v ? await api.getVenue(v.id).catch(() => null) : null
+			},
+			async publish() {
+				if (this.submitting) return
+				if (!this.pubVenue) {
+					uni.showToast({ title: '请选择场馆', icon: 'none' })
+					return
+				}
+				if (!this.publishReasons.length) {
+					uni.showToast({ title: '请选择换座原因', icon: 'none' })
+					return
+				}
+				this.submitting = true
+				try {
+					const l = this.buildLoc('cur')
+					const w = this.buildLoc('want')
+					await api.createSwap({
+						venueId: this.pubVenue.id,
+						floorId: l.floorId,
+						areaId: l.areaId,
+						zoneId: l.zoneId,
+						wantFloorId: w.floorId,
+						wantAreaId: w.areaId,
+						wantZoneId: w.zoneId,
+						reasons: this.publishReasons,
+						durationMinutes: this.durationOptions[this.durationIdx].value
+					})
+					this.showPublish = false
+					uni.showToast({ title: '已发布换座意向', icon: 'none' })
+					this.loadSwaps()
+				} catch (e) {
+					uni.showToast({ title: (e && e.message) || '发布失败', icon: 'none' })
+				} finally {
+					this.submitting = false
+				}
+			},
+			async openRespond(s) {
+				if (!uni.getStorageSync('token')) {
+					uni.navigateTo({ url: '/pages/login/login' })
+					return
+				}
+				this.currentSwap = s
+				this.resp = { floor: 0, area: 0, zone: 0 }
+				this.showRespond = true
+				try { this.respondVenue = await api.getVenue(s.venueId) } catch (e) { this.respondVenue = null }
+			},
+			async submitRespond() {
+				if (this.submitting || !this.currentSwap) return
+				this.submitting = true
+				try {
+					const l = this.buildLoc('resp')
+					await api.respondSwap(this.currentSwap.id, {
+						floorId: l.floorId,
+						areaId: l.areaId,
+						zoneId: l.zoneId
+					})
+					this.showRespond = false
+					uni.showToast({ title: '已提交，等待对方确认', icon: 'none' })
+					this.loadSwaps()
+				} catch (e) {
+					uni.showToast({ title: (e && e.message) || '提交失败', icon: 'none' })
+				} finally {
+					this.submitting = false
+				}
 			}
 		}
 	}
@@ -317,5 +635,131 @@
 	.share-note {
 		font-size: 24rpx;
 		color: #8A8A86;
+	}
+	.sec-head {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+	}
+	.sec-more {
+		font-size: 26rpx;
+		color: var(--primary);
+	}
+	.swap-card {
+		margin-top: 12rpx;
+	}
+	.swap-top {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+	}
+	.swap-title {
+		font-size: 28rpx;
+		font-weight: 600;
+	}
+	.remain {
+		font-size: 22rpx;
+		color: #8A8A86;
+	}
+	.swap-line {
+		display: flex;
+		margin-top: 10rpx;
+	}
+	.sk {
+		width: 120rpx;
+		font-size: 24rpx;
+		color: #8A8A86;
+	}
+	.sv {
+		flex: 1;
+		font-size: 26rpx;
+	}
+	.reasons {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 12rpx;
+		margin-top: 12rpx;
+	}
+	.chip {
+		font-size: 22rpx;
+		padding: 6rpx 18rpx;
+		border-radius: 999rpx;
+		background: var(--primary-bg, #EAF3F1);
+		color: var(--primary);
+	}
+	.chip.on {
+		background: var(--primary);
+		color: #fff;
+	}
+	.chips-row {
+		display: flex;
+		gap: 12rpx;
+	}
+	.swap-foot {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		margin-top: 16rpx;
+	}
+	.swap-hint {
+		font-size: 20rpx;
+		color: #B0AEA8;
+	}
+	.swap-empty {
+		text-align: center;
+		color: #B0AEA8;
+		font-size: 26rpx;
+		padding: 30rpx 0;
+	}
+	.mask {
+		position: fixed;
+		inset: 0;
+		background: rgba(0, 0, 0, 0.4);
+		display: flex;
+		align-items: flex-end;
+		z-index: 999;
+	}
+	.pop {
+		width: 100%;
+		background: #fff;
+		border-radius: 24rpx 24rpx 0 0;
+		padding: 32rpx;
+		max-height: 80vh;
+		overflow-y: auto;
+	}
+	.pop-title {
+		font-size: 32rpx;
+		font-weight: 700;
+		display: block;
+		margin-bottom: 12rpx;
+	}
+	.pop-hint {
+		display: block;
+		font-size: 22rpx;
+		color: #8A8A86;
+		margin-bottom: 12rpx;
+	}
+	.lb {
+		display: block;
+		font-size: 24rpx;
+		color: #8A8A86;
+		margin: 20rpx 0 10rpx;
+	}
+	.loc-row {
+		display: flex;
+		gap: 12rpx;
+	}
+	.pick {
+		background: var(--primary-bg, #EAF3F1);
+		border-radius: 12rpx;
+		padding: 14rpx 16rpx;
+		font-size: 24rpx;
+		text-align: center;
+	}
+	.pop-actions {
+		display: flex;
+		justify-content: flex-end;
+		gap: 16rpx;
+		margin-top: 30rpx;
 	}
 </style>

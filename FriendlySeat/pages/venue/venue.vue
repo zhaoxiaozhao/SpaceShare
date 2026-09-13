@@ -24,12 +24,6 @@
 				</view>
 			</view>
 			<view class="stat">
-				<view class="stat-act" @click="openSwap">
-					<view class="icon-swap" :style="swapIconStyle"></view>
-					<text class="stat-label">换座</text>
-				</view>
-			</view>
-			<view class="stat">
 				<view class="stat-act" @click="toggleFullscreen">
 					<view class="icon-fullscreen" :style="fullscreen ? fullscreenIconStyle : fullscreenOutIconStyle"></view>
 					<text class="stat-label">{{fullscreen ? '收起' : '地图'}}</text>
@@ -325,9 +319,6 @@
 			},
 			waitlistIconStyle() {
 				return this.seasonIconBg(`<path fill='none' stroke='${this.seasonPrimary}' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round' d='M12 6v6l4 2'/><circle cx='12' cy='12' r='9' fill='none' stroke='${this.seasonPrimary}' stroke-width='1.8'/>`)
-			},
-			swapIconStyle() {
-				return this.seasonIconBg(`<path fill='none' stroke='${this.seasonPrimary}' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round' d='M7 8h12l-3-3M17 16H5l3 3'/>`)
 			},
 			fullscreenOutIconStyle() {
 				return this.seasonIconBg(`<path fill='none' stroke='${this.seasonPrimary}' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round' d='M9 4H4v5M15 4h5v5M9 20H4v-5M15 20h5v-5'/>`)
@@ -872,9 +863,6 @@
 			goReserve(share) {
 				uni.navigateTo({ url: `/pages/seat/seat?id=${share.seatId}&shareId=${share.id}` })
 			},
-			openSwap() {
-				uni.navigateTo({ url: `/pages/swap/swap?venueId=${this.id}` })
-			},
 			openWaitlist() {
 				if (!this.venue) return
 				const tabs = this.wlFloorTabs
@@ -1010,14 +998,6 @@
 		width: 100%;
 	}
 	.icon-waitlist {
-		width: 44rpx;
-		height: 44rpx;
-		margin-top: 8rpx;
-		background-repeat: no-repeat;
-		background-position: center;
-		background-size: contain;
-	}
-	.icon-swap {
 		width: 44rpx;
 		height: 44rpx;
 		margin-top: 8rpx;
