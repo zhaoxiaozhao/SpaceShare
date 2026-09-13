@@ -419,12 +419,18 @@ public class SwapService
 
         foreach (var s in seats)
         {
-            var info = new SeatInfo { Code = s.Code };
+            var info = new SeatInfo();
             if (zoneMap.TryGetValue(s.ZoneId, out var zi))
             {
+                var seatNo = s.Code.Split('-').LastOrDefault() ?? s.Code;
+                info.Code = $"{zi.FloorName}-{zi.Letter}-{seatNo}";
                 info.ZoneName = $"{zi.Letter}区";
                 info.FloorName = zi.FloorName;
                 info.AreaName = zi.AreaName;
+            }
+            else
+            {
+                info.Code = s.Code;
             }
             result[s.Id] = info;
         }

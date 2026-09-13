@@ -334,6 +334,23 @@
 				if (!f || !f.areas) return base
 				return base.concat(f.areas.map(a => ({ id: a.id, name: a.name })))
 			},
+			zoneLabels() {
+				const map = {}
+				const v = this.swapVenue
+				if (!v || !v.floors) return map
+				const orderZones = (zs) => zs.slice().sort((a, b) =>
+					(a.sortOrder - b.sortOrder) || ((a.offsetX || 0) - (b.offsetX || 0)) || (a.id - b.id))
+				for (const f of v.floors) {
+					const ordered = []
+					const areas = (f.areas || []).slice().sort((a, b) => a.sortOrder - b.sortOrder)
+					for (const a of areas) {
+						ordered.push(...orderZones((f.zones || []).filter(z => z.areaId === a.id)))
+					}
+					ordered.push(...orderZones((f.zones || []).filter(z => !z.areaId)))
+					ordered.forEach((z, i) => { map[z.id] = String.fromCharCode(65 + i) + '区' })
+				}
+				return map
+			},
 			zoneOptions(ctx) {
 				const f = this.floorObj(ctx)
 				const base = [{ id: null, name: '不限区块' }]
@@ -341,7 +358,8 @@
 				const area = this.areaOptions(ctx)[this.want.area]
 				let zones = f.zones
 				if (area && area.id) zones = zones.filter(z => z.areaId === area.id)
-				return base.concat(zones.map(z => ({ id: z.id, name: z.label || z.name })))
+				const labels = this.zoneLabels()
+				return base.concat(zones.map(z => ({ id: z.id, name: labels[z.id] || z.label || z.name })))
 			},
 			pickText(ctx, level) {
 				if (level === 'floor') {
