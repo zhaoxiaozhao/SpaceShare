@@ -3,6 +3,7 @@ using FriendlySeat.Application.Services;
 using FriendlySeat.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using System.Text.Json;
 
 namespace FriendlySeat.Application.Services.Jobs;
 
@@ -77,6 +78,7 @@ public class AutoReleaseJob : IAutoReleaseJob
 
         // 1.5 到座提醒：预约已开始但未确认到座，提醒一次（结束仍未到座将视为爽约）
         var toRemind = await _db.Reservations
+            .Include(r => r.Seat)
             .Where(r => r.Status == ReservationStatus.Reserved
                 && r.StartAt <= now
                 && r.EndAt > now)
@@ -84,14 +86,28 @@ public class AutoReleaseJob : IAutoReleaseJob
 
         foreach (var reservation in toRemind)
         {
-            // 防重：该预约已发过到座提醒则跳过（Data 存预约Id）
+            // 防重：该预约已发过到座提醒则跳过（Data 中带 arrival_reminder:{id} 标记）
             var dataTag = $"arrival_reminder:{reservation.Id}";
             var alreadyReminded = await _db.Notifications
-                .AnyAsync(n => n.UserId == reservation.UserId && n.Data == dataTag, ct);
+                .AnyAsync(n => n.UserId == reservation.UserId && n.Data != null && n.Data.Contains(dataTag), ct);
             if (alreadyReminded) continue;
 
+            // 座位用短展示编号（如 3F-A-001），避免原始编号过长
+            var seatCode = reservation.Seat is not null
+                ? await SeatDisplayHelper.ShortCodeAsync(_db, reservation.Seat, ct)
+                : "";
+
+            var minutesLeft = (int)Math.Max(0, (reservation.EndAt - now).TotalMinutes);
+            var payload = JsonSerializer.Serialize(new
+            {
+                tag = dataTag,
+                seat = seatCode,
+                countdown = $"{minutesLeft}分钟",
+                deadline = reservation.EndAt.ToUniversalTime()
+            });
+
             await _notifications.SendAsync(reservation.UserId, NotificationType.ArrivalRequired,
-                "到座提醒", "你预约的座位已开始计时，请尽快在小程序确认到座；预约结束仍未到座将视为爽约。", dataTag, ct);
+                "到座提醒", "你预约的座位已开始计时，请尽快在小程序确认到座；预约结束仍未到座将视为爽约。", payload, ct);
         }
 
         // 2. 处理到座后未结束但超时：arrived 且超过 end → completed

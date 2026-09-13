@@ -132,6 +132,39 @@ public class NotificationService : INotificationService
             };
         }
 
+        // 到座提醒复用模板「签到提醒」（编号 513）：座位=short_thing32、入座倒计时=short_thing33、截止时间=time5
+        if (type == NotificationType.ArrivalRequired)
+        {
+            var seat = string.Empty;
+            var countdown = string.Empty;
+            var deadlineCn = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, ChinaTz).ToString("yyyy-MM-dd HH:mm");
+
+            if (!string.IsNullOrWhiteSpace(data))
+            {
+                try
+                {
+                    using var doc = JsonDocument.Parse(data);
+                    var root = doc.RootElement;
+                    if (root.TryGetProperty("seat", out var s) && s.ValueKind == JsonValueKind.String)
+                        seat = s.GetString() ?? seat;
+                    if (root.TryGetProperty("countdown", out var c) && c.ValueKind == JsonValueKind.String)
+                        countdown = c.GetString() ?? countdown;
+                    if (root.TryGetProperty("deadline", out var d) && d.ValueKind == JsonValueKind.String
+                        && DateTime.TryParse(d.GetString(), CultureInfo.InvariantCulture,
+                            DateTimeStyles.AdjustToUniversal | DateTimeStyles.AssumeUniversal, out var dd))
+                        deadlineCn = TimeZoneInfo.ConvertTimeFromUtc(dd, ChinaTz).ToString("yyyy-MM-dd HH:mm");
+                }
+                catch (JsonException) { }
+            }
+
+            return new Dictionary<string, SubscribeDataItem>
+            {
+                ["short_thing32"] = new SubscribeDataItem(Clip(seat, 20)),
+                ["short_thing33"] = new SubscribeDataItem(Clip(countdown, 10)),
+                ["time5"] = new SubscribeDataItem(deadlineCn)
+            };
+        }
+
         return new Dictionary<string, SubscribeDataItem>
         {
             ["thing1"] = new SubscribeDataItem(Clip(title, 20)),

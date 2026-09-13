@@ -57,4 +57,16 @@ public static class SeatDisplayHelper
         var seatNo = seatCode.Split('-').LastOrDefault() ?? seatCode;
         return $"{letter}区-{seatNo}";
     }
+
+    /// <summary>生成短展示编号（楼层-区块字母-序号，如 "3F-A-001"），用于通知等长度敏感场景</summary>
+    public static async Task<string> ShortCodeAsync(IAppDbContext db, Seat seat, CancellationToken ct)
+    {
+        var zoneMap = await BuildZoneMapAsync(db, new[] { seat.ZoneId }, ct);
+        if (zoneMap.TryGetValue(seat.ZoneId, out var info))
+        {
+            var seatNo = seat.Code.Split('-').LastOrDefault() ?? seat.Code;
+            return $"{info.FloorName}-{info.Letter}-{seatNo}";
+        }
+        return seat.Code;
+    }
 }
