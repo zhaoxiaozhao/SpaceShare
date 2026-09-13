@@ -272,13 +272,7 @@
 					</picker>
 				</view>
 				<view class="wl-row" v-if="wlExpireOptions[wlExpireIndex] === '自定义'">
-					<text class="wl-label">日期</text>
-					<picker mode="date" :value="wlCustomDate" :start="wlCustomMinDate" @change="wlCustomDate = $event.detail.value">
-						<view class="wl-value">{{wlCustomDate || '选择日期'}}</view>
-					</picker>
-				</view>
-				<view class="wl-row" v-if="wlExpireOptions[wlExpireIndex] === '自定义'">
-					<text class="wl-label">时间</text>
+					<text class="wl-label">截止时间</text>
 					<picker mode="time" :value="wlCustomTime" @change="wlCustomTime = $event.detail.value">
 						<view class="wl-value">{{wlCustomTime || '选择时间'}}</view>
 					</picker>
@@ -316,7 +310,6 @@
 				wlPrefs: ['不限', '靠窗', '有插座', '安静'],
 				wlExpireIndex: 1,
 				wlExpireOptions: ['1小时后', '2小时后', '3小时后', '4小时后', '今天结束', '自定义'],
-				wlCustomDate: '',
 				wlCustomTime: ''
 			}
 		},
@@ -367,11 +360,6 @@
 				}
 				this.wlAreaIndex = Math.min(this.wlAreaIndex, names.length - 1)
 				return names
-			},
-			wlCustomMinDate() {
-				const d = new Date()
-				const pad = (n) => (n < 10 ? '0' + n : '' + n)
-				return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
 			}
 		},
 		onLoad(options) {
@@ -883,7 +871,6 @@
 				this.wlAreaIndex = 0
 				this.wlPrefIndex = 0
 				this.wlExpireIndex = 1
-				this.wlCustomDate = ''
 				this.wlCustomTime = ''
 				this.wlPicker = true
 			},
@@ -893,10 +880,9 @@
 			},
 			onWlExpireChange(e) {
 				this.wlExpireIndex = Number(e.detail.value)
-				if (this.wlExpireOptions[this.wlExpireIndex] === '自定义' && !this.wlCustomDate) {
+				if (this.wlExpireOptions[this.wlExpireIndex] === '自定义' && !this.wlCustomTime) {
 					const t = new Date(Date.now() + 60 * 60 * 1000)
 					const pad = (n) => (n < 10 ? '0' + n : '' + n)
-					this.wlCustomDate = `${t.getFullYear()}-${pad(t.getMonth() + 1)}-${pad(t.getDate())}`
 					this.wlCustomTime = `${pad(t.getHours())}:${pad(t.getMinutes())}`
 				}
 			},
@@ -907,11 +893,9 @@
 					return new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59)
 				}
 				if (option === '自定义') {
-					if (!this.wlCustomDate) return null
-					const time = this.wlCustomTime || '23:59'
-					const [y, m, d] = this.wlCustomDate.split('-').map(Number)
-					const [hh, mm] = time.split(':').map(Number)
-					return new Date(y, m - 1, d, hh, mm, 0)
+					if (!this.wlCustomTime) return null
+					const [hh, mm] = this.wlCustomTime.split(':').map(Number)
+					return new Date(now.getFullYear(), now.getMonth(), now.getDate(), hh, mm, 0)
 				}
 				const hours = parseInt(option, 10)
 				if (!hours) return null
