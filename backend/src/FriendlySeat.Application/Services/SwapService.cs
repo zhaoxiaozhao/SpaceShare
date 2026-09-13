@@ -318,7 +318,7 @@ public class SwapService
 
         var wantFloorNames = await _db.Floors.Where(f => wantFloorIds.Contains(f.Id)).ToDictionaryAsync(f => f.Id, f => f.Name, ct);
         var wantAreaNames = await _db.Areas.Where(a => wantAreaIds.Contains(a.Id)).ToDictionaryAsync(a => a.Id, a => a.Name, ct);
-        var wantZoneNames = await _db.Zones.Where(z => wantZoneIds.Contains(z.Id)).ToDictionaryAsync(z => z.Id, z => z.Name, ct);
+        var wantZoneMap = await SeatDisplayHelper.BuildZoneMapAsync(_db, wantZoneIds, ct);
         var venueNames = await _db.Venues.Where(v => venueIds.Contains(v.Id)).ToDictionaryAsync(v => v.Id, v => v.Name, ct);
         var nicknames = await _db.Users.Where(u => userIds.Contains(u.Id)).ToDictionaryAsync(u => u.Id, u => u.Nickname ?? "", ct);
 
@@ -363,7 +363,9 @@ public class SwapService
                 WantAreaId = r.WantAreaId,
                 WantAreaName = WantName(wantAreaNames, r.WantAreaId),
                 WantZoneId = r.WantZoneId,
-                WantZoneName = WantName(wantZoneNames, r.WantZoneId),
+                WantZoneName = r.WantZoneId.HasValue && wantZoneMap.TryGetValue(r.WantZoneId.Value, out var wz)
+                    ? $"{wz.Letter}区"
+                    : null,
                 Reasons = string.IsNullOrEmpty(r.Reasons)
                     ? new List<string>()
                     : r.Reasons.Split(',', StringSplitOptions.RemoveEmptyEntries).ToList(),
@@ -413,23 +415,16 @@ public class SwapService
             .Select(s => new { s.Id, s.Code, s.ZoneId })
             .ToListAsync(ct);
         var zoneIds = seats.Select(s => s.ZoneId).Distinct().ToList();
-        var zones = await _db.Zones.Where(z => zoneIds.Contains(z.Id))
-            .Select(z => new { z.Id, z.Name, z.FloorId, z.AreaId })
-            .ToListAsync(ct);
-        var zoneMap = zones.ToDictionary(z => z.Id);
-        var floorIds = zones.Select(z => z.FloorId).Distinct().ToList();
-        var areaIds = zones.Where(z => z.AreaId.HasValue).Select(z => z.AreaId!.Value).Distinct().ToList();
-        var floorNames = await _db.Floors.Where(f => floorIds.Contains(f.Id)).ToDictionaryAsync(f => f.Id, f => f.Name, ct);
-        var areaNames = await _db.Areas.Where(a => areaIds.Contains(a.Id)).ToDictionaryAsync(a => a.Id, a => a.Name, ct);
+        var zoneMap = await SeatDisplayHelper.BuildZoneMapAsync(_db, zoneIds, ct);
 
         foreach (var s in seats)
         {
             var info = new SeatInfo { Code = s.Code };
-            if (zoneMap.TryGetValue(s.ZoneId, out var z))
+            if (zoneMap.TryGetValue(s.ZoneId, out var zi))
             {
-                info.ZoneName = z.Name;
-                if (floorNames.TryGetValue(z.FloorId, out var fn)) info.FloorName = fn;
-                if (z.AreaId.HasValue && areaNames.TryGetValue(z.AreaId.Value, out var an)) info.AreaName = an;
+                info.ZoneName = $"{zi.Letter}区";
+                info.FloorName = zi.FloorName;
+                info.AreaName = zi.AreaName;
             }
             result[s.Id] = info;
         }

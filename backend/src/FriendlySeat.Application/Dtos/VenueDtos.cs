@@ -82,6 +82,10 @@ public class ZoneDto
     public long Id { get; set; }
     public long? AreaId { get; set; }
     public string Name { get; set; } = string.Empty;
+
+    /// <summary>展示标签（按楼层内区块顺序生成，如 "A区"）</summary>
+    public string? Label { get; set; }
+
     public int SortOrder { get; set; }
     public string? MapImageUrl { get; set; }
     public int GridRows { get; set; }

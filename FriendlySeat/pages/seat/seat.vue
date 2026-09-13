@@ -341,7 +341,7 @@
 				const area = this.areaOptions(ctx)[this.want.area]
 				let zones = f.zones
 				if (area && area.id) zones = zones.filter(z => z.areaId === area.id)
-				return base.concat(zones.map(z => ({ id: z.id, name: z.name })))
+				return base.concat(zones.map(z => ({ id: z.id, name: z.label || z.name })))
 			},
 			pickText(ctx, level) {
 				if (level === 'floor') {

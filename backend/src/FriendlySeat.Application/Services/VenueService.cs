@@ -287,6 +287,19 @@ public class VenueService
         };
 
         await EnrichCountsAsync(dto, id, DateTime.UtcNow, ct);
+
+        // 区块展示标签（A区/B区…）：与座位展示编号使用同一套字母规则
+        var zoneIds = dto.Floors.SelectMany(f => f.Zones).Select(z => z.Id).ToList();
+        if (zoneIds.Count > 0)
+        {
+            var zoneMap = await SeatDisplayHelper.BuildZoneMapAsync(_db, zoneIds, ct);
+            foreach (var z in dto.Floors.SelectMany(f => f.Zones))
+            {
+                if (zoneMap.TryGetValue(z.Id, out var info))
+                    z.Label = $"{info.Letter}区";
+            }
+        }
+
         await _cache.SetAsync(cacheKey, dto, TimeSpan.FromMinutes(5), ct);
         return dto;
     }
