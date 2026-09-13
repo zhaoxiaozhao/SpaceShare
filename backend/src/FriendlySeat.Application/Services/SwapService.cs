@@ -94,6 +94,18 @@ public class SwapService
         return await BuildViewerAwareAsync(list, viewerUserId, ct);
     }
 
+    /// <summary>取某座位当前进行中的换座意向（供座位详情页判断按钮）</summary>
+    public async Task<SeatSwapDto?> GetBySeatAsync(long seatId, long viewerUserId, CancellationToken ct = default)
+    {
+        var now = DateTime.UtcNow;
+        var entity = await _db.SeatSwapRequests
+            .Where(r => r.SeatId == seatId && r.Status == SeatSwapStatus.Open && r.ExpireAt > now)
+            .OrderByDescending(r => r.CreatedAt)
+            .FirstOrDefaultAsync(ct);
+        if (entity is null) return null;
+        return await GetDtoAsync(entity.Id, viewerUserId, includeResponses: false, ct);
+    }
+
     public async Task<List<SeatSwapDto>> GetMineAsync(long userId, CancellationToken ct = default)
     {
         var list = await _db.SeatSwapRequests
@@ -423,7 +435,7 @@ public class SwapService
             if (zoneMap.TryGetValue(s.ZoneId, out var zi))
             {
                 var seatNo = s.Code.Split('-').LastOrDefault() ?? s.Code;
-                info.Code = $"{zi.FloorName}-{zi.Letter}-{seatNo}";
+                info.Code = $"{zi.FloorName}-{zi.Letter}区-{seatNo}";
                 info.ZoneName = $"{zi.Letter}区";
                 info.FloorName = zi.FloorName;
                 info.AreaName = zi.AreaName;

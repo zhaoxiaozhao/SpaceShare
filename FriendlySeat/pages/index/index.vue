@@ -50,27 +50,17 @@
 		<view v-if="swaps.length" class="section">
 			<text class="section-title">最近换座</text>
 			<view class="card swap-card" v-for="s in swaps" :key="s.id" @click="goSwapSeat(s)">
-				<view class="swap-top">
+				<view class="swap-head">
 					<text class="swap-title">{{s.venueName}}</text>
 					<text class="remain">剩{{remainMinutes(s.expireAt)}}分钟</text>
 				</view>
 				<view class="swap-route">
-					<view class="route-node">
-						<text class="route-label">TA 的座位</text>
-						<text class="route-value">{{s.seatCode}}</text>
-					</view>
+					<text class="route-seat">{{s.seatCode}}</text>
 					<text class="route-arrow">→</text>
-					<view class="route-node">
-						<text class="route-label">想换到</text>
-						<text class="route-value">{{wantText(s)}}</text>
-					</view>
+					<text class="route-want">{{wantText(s)}}</text>
 				</view>
 				<view class="reasons" v-if="s.reasons && s.reasons.length">
 					<text class="chip" v-for="r in s.reasons" :key="r">{{reasonLabel(r)}}</text>
-				</view>
-				<view class="swap-foot">
-					<text class="swap-hint">点击卡片查看座位详情</text>
-					<button class="btn-primary small" @click.stop="openRespond(s)">换座</button>
 				</view>
 			</view>
 		</view>
@@ -83,35 +73,6 @@
 		<view class="fab" @click="goShare">
 			<view class="share-icon"></view>
 			<text>分享座位</text>
-		</view>
-
-		<!-- 响应换座 -->
-		<view v-if="showRespond" class="mask" @click="showRespond = false">
-			<view class="pop" @click.stop>
-				<text class="pop-title">响应换座</text>
-				<text class="pop-hint" v-if="currentSwap">TA 的座位 {{currentSwap.seatCode}} · 想换到 {{wantText(currentSwap)}}</text>
-				<text class="lb">我的座位</text>
-				<view class="loc-row">
-					<picker mode="selector" :range="respFloors" range-key="name" :value="resp.floor" @change="onResp('floor', $event)">
-						<view class="pick">{{respFloorText}}</view>
-					</picker>
-					<picker mode="selector" :range="respAreas" range-key="name" :value="resp.area" @change="onResp('area', $event)">
-						<view class="pick">{{respAreaText}}</view>
-					</picker>
-				</view>
-				<view class="loc-row" style="margin-top: 12rpx;">
-					<picker mode="selector" :range="respZones" range-key="name" :value="resp.zone" @change="onResp('zone', $event)">
-						<view class="pick">{{respZoneText}}</view>
-					</picker>
-					<picker mode="selector" :range="respSeats" range-key="name" :value="resp.seat" @change="onResp('seat', $event)">
-						<view class="pick">{{respSeatText}}</view>
-					</picker>
-				</view>
-				<view class="pop-actions">
-					<button class="btn-outline action-btn" @click="showRespond = false">取消</button>
-					<button class="btn-primary action-btn" :loading="submitting" @click="submitRespond">确认交换</button>
-				</view>
-			</view>
 		</view>
 	</view>
 </template>
@@ -130,11 +91,6 @@
 				sharesVenueId: null,
 				season: getSeasonKey(),
 				swaps: [],
-				showRespond: false,
-				submitting: false,
-				currentSwap: null,
-				respondVenue: null,
-				resp: { floor: 0, area: 0, zone: 0, seat: 0 },
 				reasonOptions: [
 					{ code: 'light', label: '光线问题' },
 					{ code: 'cold', label: '位置偏冷' },
@@ -145,60 +101,6 @@
 					{ code: 'socket', label: '需要插座' },
 					{ code: 'other', label: '其他' }
 				]
-			}
-		},
-		computed: {
-			rv() {
-				return this.showRespond ? this.respondVenue : null
-			},
-			respFloors() {
-				return this.rv && this.rv.floors ? this.rv.floors : []
-			},
-			respFloor() {
-				return this.respFloors[this.resp.floor] || null
-			},
-			respAreas() {
-				const f = this.respFloor
-				if (!f || !f.areas || !f.areas.length) return [{ id: null, name: '全部区域' }]
-				return f.areas.map(a => ({ id: a.id, name: a.name }))
-			},
-			respArea() {
-				return this.respAreas[this.resp.area] || null
-			},
-			respZones() {
-				const f = this.respFloor
-				if (!f || !f.zones) return []
-				let zones = f.zones
-				if (this.respArea && this.respArea.id) zones = zones.filter(z => z.areaId === this.respArea.id)
-				const labels = this.zoneLabels()
-				return zones.map(z => ({ id: z.id, name: labels[z.id] || z.label || z.name }))
-			},
-			respZone() {
-				return this.respZones[this.resp.zone] || null
-			},
-			respSeats() {
-				if (!this.respZone || !this.respZone.id) return []
-				const f = this.respFloor
-				const z = f && f.zones ? f.zones.find(x => x.id === this.respZone.id) : null
-				if (!z || !z.seats) return []
-				const letter = (this.respZone.name || '').replace('区', '')
-				return z.seats.map(s => ({ id: s.id, name: `${letter}区-${(s.code || '').split('-').pop()}` }))
-			},
-			respFloorText() {
-				const o = this.respFloors[this.resp.floor]
-				return o ? o.name : '楼层'
-			},
-			respAreaText() {
-				const o = this.respAreas[this.resp.area]
-				return o ? o.name : '区域'
-			},
-			respZoneText() {
-				const o = this.respZones[this.resp.zone]
-				return o ? o.name : '区块'
-			},
-			respSeatText() {
-				const o = this.respSeats[this.resp.seat]
-				return o ? o.name : '座位'
 			}
 		},
 		onShow() {
@@ -332,72 +234,8 @@
 			remainMinutes(expireAt) {
 				return Math.max(0, Math.round((new Date(expireAt).getTime() - Date.now()) / 60000))
 			},
-			zoneLabels() {
-				const map = {}
-				const v = this.rv
-				if (!v || !v.floors) return map
-				const orderZones = (zs) => zs.slice().sort((a, b) =>
-					(a.sortOrder - b.sortOrder) || ((a.offsetX || 0) - (b.offsetX || 0)) || (a.id - b.id))
-				for (const f of v.floors) {
-					const ordered = []
-					const areas = (f.areas || []).slice().sort((a, b) => a.sortOrder - b.sortOrder)
-					for (const a of areas) {
-						ordered.push(...orderZones((f.zones || []).filter(z => z.areaId === a.id)))
-					}
-					ordered.push(...orderZones((f.zones || []).filter(z => !z.areaId)))
-					ordered.forEach((z, i) => { map[z.id] = String.fromCharCode(65 + i) + '区' })
-				}
-				return map
-			},
 			goSwapSeat(s) {
 				uni.navigateTo({ url: `/pages/seat/seat?id=${s.seatId}&venueId=${s.venueId}` })
-			},
-			async openRespond(s) {
-				if (!uni.getStorageSync('token')) {
-					uni.navigateTo({ url: '/pages/login/login' })
-					return
-				}
-				this.currentSwap = s
-				this.resp = { floor: 0, area: 0, zone: 0, seat: 0 }
-				this.showRespond = true
-				try { this.respondVenue = await api.getVenue(s.venueId) } catch (e) { this.respondVenue = null }
-			},
-			onResp(level, e) {
-				const v = Number(e.detail.value)
-				if (level === 'floor') {
-					this.resp.floor = v
-					this.resp.area = 0
-					this.resp.zone = 0
-					this.resp.seat = 0
-				} else if (level === 'area') {
-					this.resp.area = v
-					this.resp.zone = 0
-					this.resp.seat = 0
-				} else if (level === 'zone') {
-					this.resp.zone = v
-					this.resp.seat = 0
-				} else {
-					this.resp.seat = v
-				}
-			},
-			async submitRespond() {
-				if (this.submitting || !this.currentSwap) return
-				const seat = this.respSeats[this.resp.seat]
-				if (!seat) {
-					uni.showToast({ title: '请选择你的座位', icon: 'none' })
-					return
-				}
-				this.submitting = true
-				try {
-					await api.respondSwap(this.currentSwap.id, { seatId: seat.id })
-					this.showRespond = false
-					uni.showToast({ title: '已提交，等待对方确认', icon: 'none' })
-					this.loadSwaps()
-				} catch (e) {
-					uni.showToast({ title: (e && e.message) || '提交失败', icon: 'none' })
-				} finally {
-					this.submitting = false
-				}
 			}
 		}
 	}
@@ -545,7 +383,7 @@
 	.swap-card {
 		margin-top: 12rpx;
 	}
-	.swap-top {
+	.swap-head {
 		display: flex;
 		justify-content: space-between;
 		align-items: center;
@@ -553,9 +391,12 @@
 	}
 	.swap-title {
 		flex: 1;
+		min-width: 0;
 		font-size: 28rpx;
 		font-weight: 600;
-		line-height: 1.4;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
 	}
 	.remain {
 		flex-shrink: 0;
@@ -568,35 +409,29 @@
 	.swap-route {
 		display: flex;
 		align-items: center;
-		gap: 16rpx;
+		gap: 12rpx;
 		margin-top: 16rpx;
 	}
-	.route-node {
-		flex: 1;
-		min-width: 0;
-		background: #F8F7F3;
-		border-radius: 14rpx;
-		padding: 14rpx 18rpx;
-		display: flex;
-		flex-direction: column;
-		gap: 4rpx;
-	}
-	.route-label {
-		font-size: 20rpx;
-		color: #A5A39D;
-	}
-	.route-value {
-		font-size: 26rpx;
-		font-weight: 600;
-		overflow: hidden;
-		text-overflow: ellipsis;
-		white-space: nowrap;
-	}
-	.route-arrow {
+	.route-seat {
 		flex-shrink: 0;
 		font-size: 30rpx;
 		font-weight: 700;
+		color: #33332E;
+	}
+	.route-arrow {
+		flex-shrink: 0;
+		font-size: 26rpx;
+		font-weight: 700;
 		color: var(--primary);
+	}
+	.route-want {
+		flex: 1;
+		min-width: 0;
+		font-size: 26rpx;
+		color: #55554F;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
 	}
 	.reasons {
 		display: flex;
@@ -610,98 +445,5 @@
 		border-radius: 999rpx;
 		background: var(--primary-bg, #EAF3F1);
 		color: var(--primary);
-	}
-	.chip.on {
-		background: var(--primary);
-		color: #fff;
-	}
-	.chips-row {
-		display: flex;
-		gap: 12rpx;
-	}
-	.swap-foot {
-		display: flex;
-		justify-content: space-between;
-		align-items: center;
-		margin-top: 16rpx;
-		padding-top: 16rpx;
-		border-top: 1rpx solid #F0EEE8;
-	}
-	.swap-hint {
-		font-size: 20rpx;
-		color: #B0AEA8;
-	}
-	.swap-empty {
-		text-align: center;
-		color: #B0AEA8;
-		font-size: 26rpx;
-		padding: 30rpx 0;
-	}
-	.mask {
-		position: fixed;
-		inset: 0;
-		background: rgba(0, 0, 0, 0.4);
-		display: flex;
-		align-items: flex-end;
-		z-index: 999;
-	}
-	.pop {
-		width: 100%;
-		background: #fff;
-		border-radius: 24rpx 24rpx 0 0;
-		padding: 32rpx;
-		max-height: 80vh;
-		overflow-y: auto;
-	}
-	.pop-title {
-		font-size: 32rpx;
-		font-weight: 700;
-		display: block;
-		margin-bottom: 16rpx;
-	}
-	.pop-hint {
-		display: block;
-		font-size: 24rpx;
-		color: var(--primary);
-		background: var(--primary-bg, #EAF3F1);
-		border-radius: 12rpx;
-		padding: 14rpx 18rpx;
-		margin-bottom: 8rpx;
-	}
-	.lb {
-		display: block;
-		font-size: 24rpx;
-		color: #8A8A86;
-		margin: 20rpx 0 10rpx;
-	}
-	.loc-row {
-		display: flex;
-		gap: 14rpx;
-	}
-	.pick {
-		flex: 1;
-		min-width: 0;
-		background: #F8F7F3;
-		border: 1rpx solid #ECEAE3;
-		border-radius: 12rpx;
-		padding: 16rpx 12rpx;
-		font-size: 24rpx;
-		text-align: center;
-		color: #4A4945;
-		overflow: hidden;
-		text-overflow: ellipsis;
-		white-space: nowrap;
-	}
-	.pop-actions {
-		display: flex;
-		gap: 16rpx;
-		margin-top: 36rpx;
-	}
-	.action-btn {
-		flex: 1;
-		margin: 0;
-		font-size: 28rpx;
-		line-height: 2.4;
-		padding: 0;
 	}
 </style>

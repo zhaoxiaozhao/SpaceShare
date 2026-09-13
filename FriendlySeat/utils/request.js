@@ -133,6 +133,7 @@ export const api = {
 	createSwap: (data) => request('/swaps', { method: 'POST', data }),
 	getSwaps: (venueId) => request(`/swaps?venueId=${venueId}`),
 	getRecentSwaps: (take) => request(`/swaps/recent?take=${take || 20}`),
+	getSwapBySeat: (seatId) => request(`/swaps/seat/${seatId}`),
 	getMySwaps: () => request('/swaps/mine'),
 	getRespondedSwaps: () => request('/swaps/responded'),
 	respondSwap: (id, data) => request(`/swaps/${id}/respond`, { method: 'POST', data }),

@@ -41,6 +41,13 @@ public class SwapController : ControllerBase
         return Ok(await _swap.GetRecentAsync(_currentUser.UserId!.Value, take <= 0 ? 20 : take, ct));
     }
 
+    /// <summary>某座位当前进行中的换座意向（座位详情页判断按钮）</summary>
+    [HttpGet("swaps/seat/{seatId:long}")]
+    public async Task<ActionResult<SeatSwapDto?>> GetBySeat(long seatId, CancellationToken ct)
+    {
+        return Ok(await _swap.GetBySeatAsync(seatId, _currentUser.UserId!.Value, ct));
+    }
+
     /// <summary>我发布的换座意向（含响应列表）</summary>
     [HttpGet("swaps/mine")]
     public async Task<ActionResult<List<SeatSwapDto>>> GetMine(CancellationToken ct)

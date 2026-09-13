@@ -146,6 +146,7 @@
 					</view>
 					<button v-if="s.status === 'Open' && p.status === 'Pending'" class="btn-primary small" @click="acceptSwap(s, p)">同意换座</button>
 				</view>
+				<text class="ok-tip" v-if="s.status === 'Matched'">已达成换座，请与对方线下对调座位</text>
 				<view class="res-actions" v-if="s.status === 'Open'">
 					<button class="btn-outline small" @click="cancelSwap(s)">取消意向</button>
 				</view>
@@ -155,11 +156,11 @@
 			<view class="card res-card" v-for="s in respondedSwaps" :key="'r' + s.id">
 				<view class="res-top">
 					<text class="res-seat">{{s.userNickname || '友邻'}} 的换座</text>
-					<text class="tag" :class="'rs-' + (s.myResponseStatus || '').toLowerCase()">{{myResponseText(s.myResponseStatus)}}</text>
+					<text class="tag" :class="'rs-' + respTagClass(s)">{{myResponseText(s)}}</text>
 				</view>
 				<text class="res-time">{{s.venueName}} · TA 的座位：{{s.seatCode}}</text>
 				<text class="res-time">想换到：{{wantText(s)}}</text>
-				<text class="ok-tip" v-if="s.myResponseStatus === 'Accepted'">对方已同意，可按双方位置线下物理交换</text>
+				<text class="ok-tip" v-if="s.status === 'Matched' && s.myResponseStatus === 'Accepted'">对方已同意，可按双方座位线下对调</text>
 			</view>
 
 			<view v-if="!mySwaps.length && !respondedSwaps.length" class="empty">暂无换座记录</view>
@@ -382,9 +383,14 @@
 				const map = { Pending: '待确认', Accepted: '已同意', Rejected: '未选中' }
 				return map[status] || status
 			},
-			myResponseText(status) {
+			myResponseText(s) {
+				if (s.status === 'Cancelled' || s.status === 'Expired') return '已失效'
 				const map = { Pending: '等待对方确认', Accepted: '已同意', Rejected: '未被选中' }
-				return map[status] || '已响应'
+				return map[s.myResponseStatus] || '已响应'
+			},
+			respTagClass(s) {
+				if (s.status === 'Cancelled' || s.status === 'Expired') return 'rejected'
+				return (s.myResponseStatus || '').toLowerCase()
 			},
 			acceptSwap(s, p) {
 				uni.showModal({

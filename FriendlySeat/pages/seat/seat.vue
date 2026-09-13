@@ -63,8 +63,47 @@
 		<!-- 换座 -->
 		<view class="section">
 			<view class="card">
-				<text class="share-note">想换个位置？发布你的换座意向，同场馆的友邻看到后可申请与你交换，双方确认后线下对调即可。</text>
-				<button class="btn-primary" style="margin-top:20rpx;" @click="openSwap">发起换座</button>
+				<template v-if="seatSwap && seatSwap.isMine">
+					<text class="share-note">你已在此座位发起换座，等待有缘的友邻与你交换。</text>
+					<button class="btn-outline" style="margin-top:20rpx;" @click="cancelSwap">取消换座</button>
+				</template>
+				<template v-else-if="seatSwap">
+					<text class="share-note">这里有友邻想换座，选择你自己的座位即可申请交换，双方确认后线下对调。</text>
+					<button class="btn-primary" style="margin-top:20rpx;" @click="openRespondSwap">同意换座</button>
+				</template>
+				<template v-else>
+					<text class="share-note">想换个位置？发布你的换座意向，同场馆的友邻看到后可申请与你交换，双方确认后线下对调即可。</text>
+					<button class="btn-primary" style="margin-top:20rpx;" @click="openSwap">发起换座</button>
+				</template>
+			</view>
+		</view>
+
+		<!-- 响应换座：选自己的座位 -->
+		<view v-if="showRespondSwap" class="swap-mask" @click="showRespondSwap = false">
+			<view class="swap-pop" @click.stop>
+				<text class="swap-pop-title">同意换座</text>
+				<view class="swap-pop-hint" v-if="seatSwap">对方座位 {{seatSwap.seatCode}} · 想换到 {{wantText(seatSwap)}}</view>
+				<text class="swap-lb">选择我的座位</text>
+				<view class="swap-loc-row">
+					<picker mode="selector" :range="respFloors" range-key="name" :value="resp.floor" @change="onResp('floor', $event)">
+						<view class="swap-pick">{{respFloorText}}</view>
+					</picker>
+					<picker mode="selector" :range="respAreas" range-key="name" :value="resp.area" @change="onResp('area', $event)">
+						<view class="swap-pick">{{respAreaText}}</view>
+					</picker>
+				</view>
+				<view class="swap-loc-row" style="margin-top: 14rpx;">
+					<picker mode="selector" :range="respZones" range-key="name" :value="resp.zone" @change="onResp('zone', $event)">
+						<view class="swap-pick">{{respZoneText}}</view>
+					</picker>
+					<picker mode="selector" :range="respSeats" range-key="name" :value="resp.seat" @change="onResp('seat', $event)">
+						<view class="swap-pick">{{respSeatText}}</view>
+					</picker>
+				</view>
+				<view class="swap-pop-actions">
+					<button class="btn-outline action-btn" @click="showRespondSwap = false">取消</button>
+					<button class="btn-primary action-btn" :loading="responding" @click="submitRespond">提交申请</button>
+				</view>
 			</view>
 		</view>
 
@@ -127,6 +166,10 @@
 				publishReasons: [],
 				durationIdx: 1,
 				swapping: false,
+				seatSwap: null,
+				showRespondSwap: false,
+				responding: false,
+				resp: { floor: 0, area: 0, zone: 0, seat: 0 },
 				want: { floor: 0, area: 0, zone: 0 },
 				reasonOptions: [
 					{ code: 'light', label: '光线问题' },
@@ -173,6 +216,55 @@
 			shareTags() {
 				const note = this.shares.length ? (this.shares[0].note || '') : ''
 				return note ? note.split(/\s+/).filter(Boolean) : []
+			},
+			respFloors() {
+				return this.swapVenue && this.swapVenue.floors ? this.swapVenue.floors : []
+			},
+			respFloor() {
+				return this.respFloors[this.resp.floor] || null
+			},
+			respAreas() {
+				const f = this.respFloor
+				if (!f || !f.areas || !f.areas.length) return [{ id: null, name: '全部区域' }]
+				return f.areas.map(a => ({ id: a.id, name: a.name }))
+			},
+			respArea() {
+				return this.respAreas[this.resp.area] || null
+			},
+			respZones() {
+				const f = this.respFloor
+				if (!f || !f.zones) return []
+				let zones = f.zones
+				if (this.respArea && this.respArea.id) zones = zones.filter(z => z.areaId === this.respArea.id)
+				const labels = this.zoneLabels()
+				return zones.map(z => ({ id: z.id, name: labels[z.id] || z.label || z.name }))
+			},
+			respZone() {
+				return this.respZones[this.resp.zone] || null
+			},
+			respSeats() {
+				if (!this.respZone || !this.respZone.id) return []
+				const f = this.respFloor
+				const z = f && f.zones ? f.zones.find(x => x.id === this.respZone.id) : null
+				if (!z || !z.seats) return []
+				const letter = (this.respZone.name || '').replace('区', '')
+				return z.seats.map(s => ({ id: s.id, name: `${letter}区-${(s.code || '').split('-').pop()}` }))
+			},
+			respFloorText() {
+				const o = this.respFloors[this.resp.floor]
+				return o ? o.name : '楼层'
+			},
+			respAreaText() {
+				const o = this.respAreas[this.resp.area]
+				return o ? o.name : '区域'
+			},
+			respZoneText() {
+				const o = this.respZones[this.resp.zone]
+				return o ? o.name : '区块'
+			},
+			respSeatText() {
+				const o = this.respSeats[this.resp.seat]
+				return o ? o.name : '座位'
 			}
 		},
 		methods: {
@@ -202,6 +294,11 @@
 						try {
 							this.myWaitlist = await api.getMyWaitlist()
 						} catch (e) {}
+						try {
+							this.seatSwap = await api.getSwapBySeat(this.id)
+						} catch (e) {
+							this.seatSwap = null
+						}
 					}
 				} catch (e) {
 					uni.showToast({ title: '加载失败', icon: 'none' })
@@ -390,11 +487,71 @@
 					})
 					this.showSwap = false
 					uni.showToast({ title: '已发布换座意向', icon: 'none' })
+					try { this.seatSwap = await api.getSwapBySeat(this.id) } catch (e) {}
 				} catch (e) {
 					uni.showToast({ title: (e && e.message) || '发布失败', icon: 'none' })
 				} finally {
 					this.swapping = false
 				}
+			},
+			async openRespondSwap() {
+				if (!this.checkLogin()) return
+				this.resp = { floor: 0, area: 0, zone: 0, seat: 0 }
+				this.showRespondSwap = true
+				this.loadSwapContext()
+			},
+			onResp(level, e) {
+				const v = Number(e.detail.value)
+				if (level === 'floor') {
+					this.resp.floor = v
+					this.resp.area = 0
+					this.resp.zone = 0
+					this.resp.seat = 0
+				} else if (level === 'area') {
+					this.resp.area = v
+					this.resp.zone = 0
+					this.resp.seat = 0
+				} else if (level === 'zone') {
+					this.resp.zone = v
+					this.resp.seat = 0
+				} else {
+					this.resp.seat = v
+				}
+			},
+			async submitRespond() {
+				if (this.responding || !this.seatSwap) return
+				const seat = this.respSeats[this.resp.seat]
+				if (!seat) {
+					uni.showToast({ title: '请选择你的座位', icon: 'none' })
+					return
+				}
+				this.responding = true
+				try {
+					await api.respondSwap(this.seatSwap.id, { seatId: seat.id })
+					this.showRespondSwap = false
+					uni.showModal({ title: '已提交', content: '申请已提交，等待对方确认后即可线下换座。', showCancel: false })
+				} catch (e) {
+					uni.showToast({ title: (e && e.message) || '提交失败', icon: 'none' })
+				} finally {
+					this.responding = false
+				}
+			},
+			cancelSwap() {
+				if (!this.seatSwap) return
+				uni.showModal({
+					title: '取消换座',
+					content: '确定取消你发起的换座意向吗？',
+					success: async (res) => {
+						if (!res.confirm) return
+						try {
+							await api.cancelSwap(this.seatSwap.id)
+							this.seatSwap = null
+							uni.showToast({ title: '已取消', icon: 'none' })
+						} catch (e) {
+							uni.showToast({ title: (e && e.message) || '操作失败', icon: 'none' })
+						}
+					}
+				})
 			},
 		}
 	}
