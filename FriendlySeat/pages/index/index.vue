@@ -52,15 +52,25 @@
 			<view class="card swap-card" v-for="s in swaps" :key="s.id" @click="goSwapSeat(s)">
 				<view class="swap-top">
 					<text class="swap-title">{{s.venueName}}</text>
-					<text class="remain">剩 {{remainMinutes(s.expireAt)}} 分</text>
+					<text class="remain">剩{{remainMinutes(s.expireAt)}}分钟</text>
 				</view>
-				<view class="swap-line"><text class="sv">{{s.seatCode}} → {{wantText(s)}}</text></view>
-				<view class="reasons">
+				<view class="swap-route">
+					<view class="route-node">
+						<text class="route-label">TA 的座位</text>
+						<text class="route-value">{{s.seatCode}}</text>
+					</view>
+					<text class="route-arrow">→</text>
+					<view class="route-node">
+						<text class="route-label">想换到</text>
+						<text class="route-value">{{wantText(s)}}</text>
+					</view>
+				</view>
+				<view class="reasons" v-if="s.reasons && s.reasons.length">
 					<text class="chip" v-for="r in s.reasons" :key="r">{{reasonLabel(r)}}</text>
 				</view>
 				<view class="swap-foot">
-					<text class="swap-hint">点击卡片查看座位</text>
-					<button class="btn-primary small" @click.stop="openRespond(s)">交换</button>
+					<text class="swap-hint">点击卡片查看座位详情</text>
+					<button class="btn-primary small" @click.stop="openRespond(s)">换座</button>
 				</view>
 			</view>
 		</view>
@@ -78,8 +88,9 @@
 		<!-- 响应换座 -->
 		<view v-if="showRespond" class="mask" @click="showRespond = false">
 			<view class="pop" @click.stop>
-				<text class="pop-title">交换座位</text>
-				<text class="pop-hint">选择你当前的座位，提交后等待对方确认。</text>
+				<text class="pop-title">响应换座</text>
+				<text class="pop-hint" v-if="currentSwap">TA 的座位 {{currentSwap.seatCode}} · 想换到 {{wantText(currentSwap)}}</text>
+				<text class="lb">我的座位</text>
 				<view class="loc-row">
 					<picker mode="selector" :range="respFloors" range-key="name" :value="resp.floor" @change="onResp('floor', $event)">
 						<view class="pick">{{respFloorText}}</view>
@@ -97,8 +108,8 @@
 					</picker>
 				</view>
 				<view class="pop-actions">
-					<button class="btn-outline small" @click="showRespond = false">取消</button>
-					<button class="btn-primary small" :loading="submitting" @click="submitRespond">快速提交</button>
+					<button class="btn-outline action-btn" @click="showRespond = false">取消</button>
+					<button class="btn-primary action-btn" :loading="submitting" @click="submitRespond">确认交换</button>
 				</view>
 			</view>
 		</view>
@@ -311,8 +322,8 @@
 				} catch (e) {}
 			},
 			wantText(s) {
-				const parts = [s.wantFloorName || '不限楼层', s.wantAreaName, s.wantZoneName].filter(Boolean)
-				return parts.join(' / ')
+				const parts = [s.wantFloorName, s.wantAreaName, s.wantZoneName].filter(Boolean)
+				return parts.length ? parts.join(' / ') : '不限'
 			},
 			reasonLabel(code) {
 				const o = this.reasonOptions.find(r => r.code === code)
@@ -538,27 +549,54 @@
 		display: flex;
 		justify-content: space-between;
 		align-items: center;
+		gap: 16rpx;
 	}
 	.swap-title {
+		flex: 1;
 		font-size: 28rpx;
 		font-weight: 600;
+		line-height: 1.4;
 	}
 	.remain {
+		flex-shrink: 0;
 		font-size: 22rpx;
 		color: #8A8A86;
+		background: #F5F4EF;
+		padding: 6rpx 14rpx;
+		border-radius: 999rpx;
 	}
-	.swap-line {
+	.swap-route {
 		display: flex;
-		margin-top: 10rpx;
+		align-items: center;
+		gap: 16rpx;
+		margin-top: 16rpx;
 	}
-	.sk {
-		width: 120rpx;
-		font-size: 24rpx;
-		color: #8A8A86;
-	}
-	.sv {
+	.route-node {
 		flex: 1;
+		min-width: 0;
+		background: #F8F7F3;
+		border-radius: 14rpx;
+		padding: 14rpx 18rpx;
+		display: flex;
+		flex-direction: column;
+		gap: 4rpx;
+	}
+	.route-label {
+		font-size: 20rpx;
+		color: #A5A39D;
+	}
+	.route-value {
 		font-size: 26rpx;
+		font-weight: 600;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+	.route-arrow {
+		flex-shrink: 0;
+		font-size: 30rpx;
+		font-weight: 700;
+		color: var(--primary);
 	}
 	.reasons {
 		display: flex;
@@ -586,6 +624,8 @@
 		justify-content: space-between;
 		align-items: center;
 		margin-top: 16rpx;
+		padding-top: 16rpx;
+		border-top: 1rpx solid #F0EEE8;
 	}
 	.swap-hint {
 		font-size: 20rpx;
@@ -617,13 +657,16 @@
 		font-size: 32rpx;
 		font-weight: 700;
 		display: block;
-		margin-bottom: 12rpx;
+		margin-bottom: 16rpx;
 	}
 	.pop-hint {
 		display: block;
-		font-size: 22rpx;
-		color: #8A8A86;
-		margin-bottom: 12rpx;
+		font-size: 24rpx;
+		color: var(--primary);
+		background: var(--primary-bg, #EAF3F1);
+		border-radius: 12rpx;
+		padding: 14rpx 18rpx;
+		margin-bottom: 8rpx;
 	}
 	.lb {
 		display: block;
@@ -633,19 +676,32 @@
 	}
 	.loc-row {
 		display: flex;
-		gap: 12rpx;
+		gap: 14rpx;
 	}
 	.pick {
-		background: var(--primary-bg, #EAF3F1);
+		flex: 1;
+		min-width: 0;
+		background: #F8F7F3;
+		border: 1rpx solid #ECEAE3;
 		border-radius: 12rpx;
-		padding: 14rpx 16rpx;
+		padding: 16rpx 12rpx;
 		font-size: 24rpx;
 		text-align: center;
+		color: #4A4945;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
 	}
 	.pop-actions {
 		display: flex;
-		justify-content: flex-end;
 		gap: 16rpx;
-		margin-top: 30rpx;
+		margin-top: 36rpx;
+	}
+	.action-btn {
+		flex: 1;
+		margin: 0;
+		font-size: 28rpx;
+		line-height: 2.4;
+		padding: 0;
 	}
 </style>
