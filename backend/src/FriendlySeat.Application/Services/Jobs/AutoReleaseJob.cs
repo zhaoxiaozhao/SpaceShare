@@ -42,38 +42,21 @@ public class AutoReleaseJob : IAutoReleaseJob
 
     public async Task RunAsync(CancellationToken ct = default)
     {
-        var rules = await _config.GetReservationRulesAsync(ct);
         var creditRules = await _config.GetCreditRulesAsync(ct);
         var now = DateTime.UtcNow;
-        var grace = TimeSpan.FromMinutes(rules.ArrivalGraceMinutes);
 
-        // 1. 处理到座超时：reserved 且超过宽限 → no_show
-        //    宽限从「预约开始时间」与「预约生效时间」中较晚者起算，避免临近分享结束的预约刚生成就被误判爽约
+        // 1. 处理到座超时：预约结束仍未确认到座 → no_show（到结束时间才判定为爽约）
         var overdueReservations = await _db.Reservations
             .Include(r => r.Seat)
-            .Where(r => r.Status == ReservationStatus.Reserved && (
-                (r.ReservedAt <= r.StartAt && r.StartAt.AddMinutes(rules.ArrivalGraceMinutes) < now) ||
-                (r.ReservedAt > r.StartAt && r.ReservedAt.AddMinutes(rules.ArrivalGraceMinutes) < now)))
+            .Where(r => r.Status == ReservationStatus.Reserved && r.EndAt < now)
             .ToListAsync(ct);
 
-        var releasedShareIds = new List<long>();
         foreach (var reservation in overdueReservations)
         {
             _logger.LogInformation("自动释放超时预约 {ReservationId}", reservation.Id);
 
             reservation.Status = ReservationStatus.NoShow;
             reservation.ExpiredAt = now;
-
-            if (reservation.ShareId.HasValue)
-            {
-                var share = await _db.SeatShares.FirstOrDefaultAsync(s => s.Id == reservation.ShareId.Value, ct);
-                if (share is not null && share.Status == SeatShareStatus.Reserved)
-                {
-                    share.Status = SeatShareStatus.Available;
-                    share.HoldForUserId = null;
-                    releasedShareIds.Add(reservation.ShareId.Value);
-                }
-            }
 
             // 扣信用
             await _credit.AdjustAsync(reservation.UserId, creditRules.NoShowPenalty, "爽约未到", "reservation", reservation.Id, ct);
@@ -89,15 +72,14 @@ public class AutoReleaseJob : IAutoReleaseJob
             }
 
             await _notifications.SendAsync(reservation.UserId, NotificationType.ReservationExpired,
-                "预约已超时释放", "你未在到座时间内确认到达，预约已自动释放。", null, ct);
+                "预约未到座", "预约已结束仍未确认到座，本单记为爽约。", null, ct);
         }
 
-        // 1.5 到座提醒：宽限剩余 ≤10 分钟仍未确认的预约，提醒用户尽快确认（每单只提醒一次）
-        var remindDeadline = now.AddMinutes(10);
+        // 1.5 到座提醒：预约已开始但未确认到座，提醒一次（结束仍未到座将视为爽约）
         var toRemind = await _db.Reservations
-            .Where(r => r.Status == ReservationStatus.Reserved && (
-                (r.ReservedAt <= r.StartAt && r.StartAt.AddMinutes(rules.ArrivalGraceMinutes) < remindDeadline) ||
-                (r.ReservedAt > r.StartAt && r.ReservedAt.AddMinutes(rules.ArrivalGraceMinutes) < remindDeadline)))
+            .Where(r => r.Status == ReservationStatus.Reserved
+                && r.StartAt <= now
+                && r.EndAt > now)
             .ToListAsync(ct);
 
         foreach (var reservation in toRemind)
@@ -108,23 +90,8 @@ public class AutoReleaseJob : IAutoReleaseJob
                 .AnyAsync(n => n.UserId == reservation.UserId && n.Data == dataTag, ct);
             if (alreadyReminded) continue;
 
-            var minutesLeft = reservation.ReservedAt > reservation.StartAt
-                ? (int)Math.Max(0, (reservation.ReservedAt.AddMinutes(rules.ArrivalGraceMinutes) - now).TotalMinutes)
-                : (int)Math.Max(0, (reservation.StartAt.AddMinutes(rules.ArrivalGraceMinutes) - now).TotalMinutes);
             await _notifications.SendAsync(reservation.UserId, NotificationType.ArrivalRequired,
-                "到座提醒", $"你预约的座位将在 {minutesLeft} 分钟后超时释放，如已到座请尽快在小程序确认。", dataTag, ct);
-        }
-
-        // 1.5 爽约释放后通知候补（座位已恢复可预约）
-        if (releasedShareIds.Count > 0)
-        {
-            await _db.SaveChangesAsync(ct);
-            foreach (var shareId in releasedShareIds.Distinct())
-            {
-                await NotifyNextWaitlistAsync(shareId, ct);
-                // 无具体座位候补队列时，由范围偏好自动代约兜底
-                await _reservationService.TryAutoBookPreferenceAsync(shareId, ct);
-            }
+                "到座提醒", "你预约的座位已开始计时，请尽快在小程序确认到座；预约结束仍未到座将视为爽约。", dataTag, ct);
         }
 
         // 2. 处理到座后未结束但超时：arrived 且超过 end → completed
