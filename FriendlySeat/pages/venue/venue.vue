@@ -858,10 +858,10 @@
 				return { transform: `rotate(${p.rotation || 0}deg)` }
 			},
 			goSeat(id) {
-				uni.navigateTo({ url: `/pages/seat/seat?id=${id}` })
+				uni.navigateTo({ url: `/pages/seat/seat?id=${id}&venueId=${this.id}` })
 			},
 			goReserve(share) {
-				uni.navigateTo({ url: `/pages/seat/seat?id=${share.seatId}&shareId=${share.id}` })
+				uni.navigateTo({ url: `/pages/seat/seat?id=${share.seatId}&shareId=${share.id}&venueId=${this.id}` })
 			},
 			openWaitlist() {
 				if (!this.venue) return

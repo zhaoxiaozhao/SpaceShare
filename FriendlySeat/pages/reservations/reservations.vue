@@ -353,7 +353,7 @@
 				})
 			},
 			goReservation(p) {
-				if (p.bookedSeatId) uni.navigateTo({ url: `/pages/seat/seat?id=${p.bookedSeatId}` })
+				if (p.bookedSeatId) uni.navigateTo({ url: `/pages/seat/seat?id=${p.bookedSeatId}&venueId=${p.venueId || ''}` })
 			},
 			swapStatusText(s) {
 				const map = { Open: '进行中', Matched: '已匹配', Cancelled: '已取消', Expired: '已过期' }

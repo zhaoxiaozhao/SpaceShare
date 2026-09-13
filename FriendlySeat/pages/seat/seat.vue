@@ -135,6 +135,7 @@
 		data() {
 			return {
 				id: null,
+				venueId: null,
 				seat: null,
 				shares: [],
 				mySession: null,
@@ -167,6 +168,7 @@
 		},
 		onLoad(options) {
 			this.id = options.id
+			this.venueId = options.venueId ? Number(options.venueId) : null
 		},
 		onShareAppMessage() {
 			const s = this.seat
@@ -304,14 +306,15 @@
 				this.loadSwapContext()
 			},
 			async loadSwapContext() {
+				const vid = this.venueId || (this.seat && this.seat.venueId) || null
 				try {
-					if (!this.swapVenue && this.seat && this.seat.venueId) {
-						this.swapVenue = await api.getVenue(this.seat.venueId)
+					if (!this.swapVenue && vid) {
+						this.swapVenue = await api.getVenue(vid)
 					}
 				} catch (e) {}
-				if (this.swapMode === 'respond') {
+				if (this.swapMode === 'respond' && vid) {
 					try {
-						const list = await api.getSwaps(this.seat.venueId)
+						const list = await api.getSwaps(vid)
 						this.openSwaps = list.filter(x => !x.isMine && !x.respondedByMe)
 					} catch (e) {
 						this.openSwaps = []

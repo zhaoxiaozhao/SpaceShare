@@ -86,6 +86,7 @@
 				nearby: [],
 				shares: [],
 				venueShares: [],
+				sharesVenueId: null,
 				season: getSeasonKey(),
 				swaps: [],
 				reasonOptions: [
@@ -142,6 +143,7 @@
 						const venueId = this.nearby[0].id
 						this.venueShares = await api.getVenueShares(venueId)
 						this.shares = this.venueShares.slice(0, 5)
+						this.sharesVenueId = venueId
 					}
 				} catch (e) {
 					try {
@@ -210,7 +212,8 @@
 				uni.navigateTo({ url: `/pages/venue/venue?id=${id}` })
 			},
 			goSeat(id) {
-				uni.navigateTo({ url: `/pages/seat/seat?id=${id}` })
+				const vid = this.sharesVenueId ? `&venueId=${this.sharesVenueId}` : ''
+				uni.navigateTo({ url: `/pages/seat/seat?id=${id}${vid}` })
 			},
 			async loadSwaps() {
 				if (!uni.getStorageSync('token')) return
