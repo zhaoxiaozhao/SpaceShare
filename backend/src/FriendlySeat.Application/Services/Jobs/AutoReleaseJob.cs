@@ -194,6 +194,15 @@ public class AutoReleaseJob : IAutoReleaseJob
             p.Status = WaitlistPreferenceStatus.Expired;
         }
 
+        // 5.6 过期换座意向：超过有效期仍未匹配 → Expired
+        var expiredSwaps = await _db.SeatSwapRequests
+            .Where(r => r.Status == SeatSwapStatus.Open && r.ExpireAt < now)
+            .ToListAsync(ct);
+        foreach (var s in expiredSwaps)
+        {
+            s.Status = SeatSwapStatus.Expired;
+        }
+
         await _db.SaveChangesAsync(ct);
 
         // 6. 风险晋升检查：风险分达到阈值自动升级处罚（可配置）

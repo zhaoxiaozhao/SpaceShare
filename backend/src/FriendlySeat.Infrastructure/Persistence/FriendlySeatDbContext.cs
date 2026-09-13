@@ -25,6 +25,8 @@ public class FriendlySeatDbContext : DbContext, IAppDbContext
     public DbSet<Reservation> Reservations => Set<Reservation>();
     public DbSet<ReservationWaitlist> ReservationWaitlists => Set<ReservationWaitlist>();
     public DbSet<WaitlistPreference> WaitlistPreferences => Set<WaitlistPreference>();
+    public DbSet<SeatSwapRequest> SeatSwapRequests => Set<SeatSwapRequest>();
+    public DbSet<SeatSwapResponse> SeatSwapResponses => Set<SeatSwapResponse>();
     public DbSet<CreditTransaction> CreditTransactions => Set<CreditTransaction>();
     public DbSet<RiskEvent> RiskEvents => Set<RiskEvent>();
     public DbSet<Report> Reports => Set<Report>();
@@ -99,6 +101,18 @@ public class FriendlySeatDbContext : DbContext, IAppDbContext
 
         modelBuilder.Entity<WaitlistPreference>()
             .HasIndex(p => new { p.UserId, p.Status });
+
+        modelBuilder.Entity<SeatSwapRequest>()
+            .HasIndex(r => new { r.VenueId, r.Status, r.CreatedAt });
+
+        modelBuilder.Entity<SeatSwapRequest>()
+            .HasIndex(r => new { r.UserId, r.Status });
+
+        modelBuilder.Entity<SeatSwapResponse>()
+            .HasIndex(r => new { r.RequestId, r.UserId });
+
+        modelBuilder.Entity<SeatSwapResponse>()
+            .HasIndex(r => r.UserId);
 
         modelBuilder.Entity<UserContact>()
             .HasIndex(c => new { c.UserId, c.ContactType });

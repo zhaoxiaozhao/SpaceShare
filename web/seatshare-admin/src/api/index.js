@@ -63,3 +63,8 @@ export const configApi = {
   all: () => request.get('/config'),
   update: (id, value) => request.put(`/config/${id}`, { value })
 }
+
+export const swapApi = {
+  list: (status) => request.get(`/swaps?status=${status || ''}`),
+  takeDown: (id) => request.post(`/swaps/${id}/take-down`)
+}

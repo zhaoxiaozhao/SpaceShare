@@ -206,3 +206,18 @@ public enum ReadingNoteType
     Highlight,
     Note
 }
+
+public enum SeatSwapStatus
+{
+    Open,
+    Matched,
+    Cancelled,
+    Expired
+}
+
+public enum SeatSwapResponseStatus
+{
+    Pending,
+    Accepted,
+    Rejected
+}

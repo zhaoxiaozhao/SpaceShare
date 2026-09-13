@@ -21,6 +21,8 @@ public interface IAppDbContext
     DbSet<Reservation> Reservations { get; }
     DbSet<ReservationWaitlist> ReservationWaitlists { get; }
     DbSet<WaitlistPreference> WaitlistPreferences { get; }
+    DbSet<SeatSwapRequest> SeatSwapRequests { get; }
+    DbSet<SeatSwapResponse> SeatSwapResponses { get; }
     DbSet<CreditTransaction> CreditTransactions { get; }
     DbSet<RiskEvent> RiskEvents { get; }
     DbSet<Report> Reports { get; }

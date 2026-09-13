@@ -289,6 +289,52 @@ CREATE TABLE `WaitlistPreferences` (
             logger.LogInformation("MySQL 补充 WaitlistPreferences.ExpireAt 列（候补截止时间）");
             await db.Database.ExecuteSqlRawAsync("ALTER TABLE `WaitlistPreferences` ADD COLUMN `ExpireAt` datetime(6) NULL;");
         }
+
+        // 换座意向表 SeatSwapRequests / SeatSwapResponses：已有库补建表
+        if (!await tableExists("SeatSwapRequests"))
+        {
+            logger.LogInformation("MySQL 补建换座意向表（SeatSwapRequests/SeatSwapResponses）");
+            await db.Database.ExecuteSqlRawAsync(@"
+CREATE TABLE `SeatSwapRequests` (
+  `Id` bigint NOT NULL AUTO_INCREMENT,
+  `UserId` bigint NOT NULL,
+  `VenueId` bigint NOT NULL,
+  `FloorId` bigint NULL,
+  `AreaId` bigint NULL,
+  `ZoneId` bigint NULL,
+  `WantFloorId` bigint NULL,
+  `WantAreaId` bigint NULL,
+  `WantZoneId` bigint NULL,
+  `Reasons` longtext NOT NULL,
+  `Status` int NOT NULL,
+  `CreatedAt` datetime(6) NOT NULL,
+  `ExpireAt` datetime(6) NOT NULL,
+  `MatchedAt` datetime(6) NULL,
+  `MatchedResponseId` bigint NULL,
+  PRIMARY KEY (`Id`),
+  KEY `IX_SeatSwapRequests_UserId_Status` (`UserId`, `Status`),
+  KEY `IX_SeatSwapRequests_VenueId_Status_CreatedAt` (`VenueId`, `Status`, `CreatedAt`),
+  CONSTRAINT `FK_SeatSwapRequests_Users_UserId` FOREIGN KEY (`UserId`) REFERENCES `Users` (`Id`) ON DELETE CASCADE,
+  CONSTRAINT `FK_SeatSwapRequests_Venues_VenueId` FOREIGN KEY (`VenueId`) REFERENCES `Venues` (`Id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
+
+            await db.Database.ExecuteSqlRawAsync(@"
+CREATE TABLE `SeatSwapResponses` (
+  `Id` bigint NOT NULL AUTO_INCREMENT,
+  `RequestId` bigint NOT NULL,
+  `UserId` bigint NOT NULL,
+  `FloorId` bigint NULL,
+  `AreaId` bigint NULL,
+  `ZoneId` bigint NULL,
+  `Status` int NOT NULL,
+  `CreatedAt` datetime(6) NOT NULL,
+  PRIMARY KEY (`Id`),
+  KEY `IX_SeatSwapResponses_RequestId_UserId` (`RequestId`, `UserId`),
+  KEY `IX_SeatSwapResponses_UserId` (`UserId`),
+  CONSTRAINT `FK_SeatSwapResponses_SeatSwapRequests_RequestId` FOREIGN KEY (`RequestId`) REFERENCES `SeatSwapRequests` (`Id`) ON DELETE CASCADE,
+  CONSTRAINT `FK_SeatSwapResponses_Users_UserId` FOREIGN KEY (`UserId`) REFERENCES `Users` (`Id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
+        }
     }
 
     // 检测某表中是否存在某列

@@ -15,6 +15,7 @@ const routes = [
       { path: 'reservations', component: () => import('../views/Reservations.vue'), meta: { title: '预约管理' } },
       { path: 'reports', component: () => import('../views/Reports.vue'), meta: { title: '举报管理' } },
       { path: 'config', component: () => import('../views/Config.vue'), meta: { title: '系统配置' } },
+      { path: 'swaps', component: () => import('../views/Swaps.vue'), meta: { title: '换座管理' } },
       { path: 'audit', component: () => import('../views/AuditLogs.vue'), meta: { title: '审计日志' } }
     ]
   }
