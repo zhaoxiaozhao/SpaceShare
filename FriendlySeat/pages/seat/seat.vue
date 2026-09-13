@@ -63,64 +63,42 @@
 		<!-- 换座 -->
 		<view class="section">
 			<view class="card">
-				<text class="share-note">想换个座位？标记你当前所在的座位发起换座，或响应同场馆其他友邻的换座需求。</text>
-				<view class="swap-btns">
-					<button class="btn-primary small" @click="openSwap('publish')">发起换座</button>
-					<button class="btn-outline small" @click="openSwap('respond')">响应换座</button>
-				</view>
+				<text class="share-note">想换个座位？发起换座后，同场馆的友邻可以与你交换，双方确认后线下换座。</text>
+				<button class="btn-primary" style="margin-top:20rpx;" @click="openSwap">发起换座</button>
 			</view>
 		</view>
 
 		<!-- 换座弹窗 -->
 		<view v-if="showSwap" class="swap-mask" @click="showSwap = false">
 			<view class="swap-pop" @click.stop>
-				<text class="swap-pop-title">{{swapMode === 'publish' ? '发起换座' : '响应换座'}}</text>
+				<text class="swap-pop-title">发起换座</text>
 				<text class="swap-pop-hint">平台仅提供信息撮合，免费自愿、线下自行交换，以场馆规定为准。</text>
 				<text class="swap-pop-sub">我的座位：{{seat.displayCode || seat.code}}</text>
 
-				<block v-if="swapMode === 'publish'">
-					<text class="swap-lb">期望换到（可不限）</text>
-					<view class="swap-loc-row">
-						<picker mode="selector" :range="floorList('want')" range-key="name" :value="want.floor" @change="onLoc('want', 'floor', $event)">
-							<view class="swap-pick">{{pickText('want', 'floor')}}</view>
-						</picker>
-						<picker mode="selector" :range="areaOptions('want')" range-key="name" :value="want.area" @change="onLoc('want', 'area', $event)">
-							<view class="swap-pick">{{pickText('want', 'area')}}</view>
-						</picker>
-						<picker mode="selector" :range="zoneOptions('want')" range-key="name" :value="want.zone" @change="onLoc('want', 'zone', $event)">
-							<view class="swap-pick">{{pickText('want', 'zone')}}</view>
-						</picker>
-					</view>
-					<text class="swap-lb">原因（客观因素，可多选）</text>
-					<view class="swap-reasons">
-						<text class="swap-chip" :class="{ on: publishReasons.includes(r.code) }" v-for="r in reasonOptions" :key="r.code" @click="toggleReason(r.code)">{{r.label}}</text>
-					</view>
-					<text class="swap-lb">有效期</text>
-					<view class="swap-reasons">
-						<text class="swap-chip" :class="{ on: durationIdx === i }" v-for="(d, i) in durationOptions" :key="d.value" @click="durationIdx = i">{{d.label}}</text>
-					</view>
-					<view class="swap-pop-actions">
-						<button class="btn-outline small" @click="showSwap = false">取消</button>
-						<button class="btn-primary small" :loading="swapping" @click="submitPublish">发布</button>
-					</view>
-				</block>
-
-				<block v-else>
-					<view v-if="openSwaps.length">
-						<view class="swap-req" v-for="s in openSwaps" :key="s.id">
-							<view class="swap-req-info">
-								<text class="swap-req-seat">TA 的座位：{{s.seatCode}}</text>
-								<text class="swap-req-want">想换到：{{wantText(s)}}</text>
-								<view class="swap-reasons"><text class="swap-chip" v-for="r in s.reasons" :key="r">{{reasonLabel(r)}}</text></view>
-							</view>
-							<button class="btn-primary small" @click="submitRespond(s)">和TA换</button>
-						</view>
-					</view>
-					<view v-else class="swap-empty">该场馆暂无换座需求</view>
-					<view class="swap-pop-actions">
-						<button class="btn-outline small" @click="showSwap = false">关闭</button>
-					</view>
-				</block>
+				<text class="swap-lb">期望换到（可不限）</text>
+				<view class="swap-loc-row">
+					<picker mode="selector" :range="floorList('want')" range-key="name" :value="want.floor" @change="onLoc('want', 'floor', $event)">
+						<view class="swap-pick">{{pickText('want', 'floor')}}</view>
+					</picker>
+					<picker mode="selector" :range="areaOptions('want')" range-key="name" :value="want.area" @change="onLoc('want', 'area', $event)">
+						<view class="swap-pick">{{pickText('want', 'area')}}</view>
+					</picker>
+					<picker mode="selector" :range="zoneOptions('want')" range-key="name" :value="want.zone" @change="onLoc('want', 'zone', $event)">
+						<view class="swap-pick">{{pickText('want', 'zone')}}</view>
+					</picker>
+				</view>
+				<text class="swap-lb">原因（客观因素，可多选）</text>
+				<view class="swap-reasons">
+					<text class="swap-chip" :class="{ on: publishReasons.includes(r.code) }" v-for="r in reasonOptions" :key="r.code" @click="toggleReason(r.code)">{{r.label}}</text>
+				</view>
+				<text class="swap-lb">有效期</text>
+				<view class="swap-reasons">
+					<text class="swap-chip" :class="{ on: durationIdx === i }" v-for="(d, i) in durationOptions" :key="d.value" @click="durationIdx = i">{{d.label}}</text>
+				</view>
+				<view class="swap-pop-actions">
+					<button class="btn-outline small" @click="showSwap = false">取消</button>
+					<button class="btn-primary small" :loading="swapping" @click="submitPublish">发布</button>
+				</view>
 			</view>
 		</view>
 	</view>
@@ -142,9 +120,7 @@
 				myWaitlist: [],
 				loading: false,
 				showSwap: false,
-				swapMode: 'publish',
 				swapVenue: null,
-				openSwaps: [],
 				publishReasons: [],
 				durationIdx: 1,
 				swapping: false,
@@ -296,9 +272,8 @@
 					uni.navigateTo({ url: `/pages/report/report?targetType=Seat&targetId=${this.id}` })
 				}
 			},
-			openSwap(mode) {
+			openSwap() {
 				if (!this.checkLogin()) return
-				this.swapMode = mode
 				this.publishReasons = []
 				this.durationIdx = 1
 				this.want = { floor: 0, area: 0, zone: 0 }
@@ -312,14 +287,6 @@
 						this.swapVenue = await api.getVenue(vid)
 					}
 				} catch (e) {}
-				if (this.swapMode === 'respond' && vid) {
-					try {
-						const list = await api.getSwaps(vid)
-						this.openSwaps = list.filter(x => !x.isMine && !x.respondedByMe)
-					} catch (e) {
-						this.openSwaps = []
-					}
-				}
 			},
 			floorList(ctx) {
 				const base = this.swapVenue && this.swapVenue.floors ? this.swapVenue.floors : []
@@ -426,19 +393,6 @@
 					this.swapping = false
 				}
 			},
-			async submitRespond(s) {
-				if (this.swapping) return
-				this.swapping = true
-				try {
-					await api.respondSwap(s.id, { seatId: Number(this.id) })
-					this.showSwap = false
-					uni.showToast({ title: '已提交，等待对方确认', icon: 'none' })
-				} catch (e) {
-					uni.showToast({ title: (e && e.message) || '提交失败', icon: 'none' })
-				} finally {
-					this.swapping = false
-				}
-			}
 		}
 	}
 </script>

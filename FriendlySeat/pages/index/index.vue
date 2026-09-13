@@ -49,17 +49,19 @@
 
 		<view v-if="swaps.length" class="section">
 			<text class="section-title">最近换座</text>
-			<view class="card swap-card" v-for="s in swaps" :key="s.id">
+			<view class="card swap-card" v-for="s in swaps" :key="s.id" @click="goSwapSeat(s)">
 				<view class="swap-top">
-					<text class="swap-title">{{s.userNickname || '友邻'}} · {{s.venueName}}</text>
+					<text class="swap-title">{{s.venueName}}</text>
 					<text class="remain">剩 {{remainMinutes(s.expireAt)}} 分</text>
 				</view>
-				<view class="swap-line"><text class="sk">TA 的座位</text><text class="sv">{{s.seatCode}}</text></view>
-				<view class="swap-line"><text class="sk">想换到</text><text class="sv">{{wantText(s)}}</text></view>
+				<view class="swap-line"><text class="sv">{{s.seatCode}} → {{wantText(s)}}</text></view>
 				<view class="reasons">
 					<text class="chip" v-for="r in s.reasons" :key="r">{{reasonLabel(r)}}</text>
 				</view>
-				<text class="swap-hint">想换座？在座位详情页发起或响应</text>
+				<view class="swap-foot">
+					<text class="swap-hint">点击卡片查看座位</text>
+					<button class="btn-primary small" @click.stop="openRespond(s)">交换</button>
+				</view>
 			</view>
 		</view>
 
@@ -71,6 +73,34 @@
 		<view class="fab" @click="goShare">
 			<view class="share-icon"></view>
 			<text>分享座位</text>
+		</view>
+
+		<!-- 响应换座 -->
+		<view v-if="showRespond" class="mask" @click="showRespond = false">
+			<view class="pop" @click.stop>
+				<text class="pop-title">交换座位</text>
+				<text class="pop-hint">选择你当前的座位，提交后等待对方确认。</text>
+				<view class="loc-row">
+					<picker mode="selector" :range="respFloors" range-key="name" :value="resp.floor" @change="onResp('floor', $event)">
+						<view class="pick">{{respFloorText}}</view>
+					</picker>
+					<picker mode="selector" :range="respAreas" range-key="name" :value="resp.area" @change="onResp('area', $event)">
+						<view class="pick">{{respAreaText}}</view>
+					</picker>
+				</view>
+				<view class="loc-row" style="margin-top: 12rpx;">
+					<picker mode="selector" :range="respZones" range-key="name" :value="resp.zone" @change="onResp('zone', $event)">
+						<view class="pick">{{respZoneText}}</view>
+					</picker>
+					<picker mode="selector" :range="respSeats" range-key="name" :value="resp.seat" @change="onResp('seat', $event)">
+						<view class="pick">{{respSeatText}}</view>
+					</picker>
+				</view>
+				<view class="pop-actions">
+					<button class="btn-outline small" @click="showRespond = false">取消</button>
+					<button class="btn-primary small" :loading="submitting" @click="submitRespond">快速提交</button>
+				</view>
+			</view>
 		</view>
 	</view>
 </template>
@@ -89,6 +119,11 @@
 				sharesVenueId: null,
 				season: getSeasonKey(),
 				swaps: [],
+				showRespond: false,
+				submitting: false,
+				currentSwap: null,
+				respondVenue: null,
+				resp: { floor: 0, area: 0, zone: 0, seat: 0 },
 				reasonOptions: [
 					{ code: 'light', label: '光线问题' },
 					{ code: 'cold', label: '位置偏冷' },
@@ -99,6 +134,60 @@
 					{ code: 'socket', label: '需要插座' },
 					{ code: 'other', label: '其他' }
 				]
+			}
+		},
+		computed: {
+			rv() {
+				return this.showRespond ? this.respondVenue : null
+			},
+			respFloors() {
+				return this.rv && this.rv.floors ? this.rv.floors : []
+			},
+			respFloor() {
+				return this.respFloors[this.resp.floor] || null
+			},
+			respAreas() {
+				const f = this.respFloor
+				if (!f || !f.areas || !f.areas.length) return [{ id: null, name: '全部区域' }]
+				return f.areas.map(a => ({ id: a.id, name: a.name }))
+			},
+			respArea() {
+				return this.respAreas[this.resp.area] || null
+			},
+			respZones() {
+				const f = this.respFloor
+				if (!f || !f.zones) return []
+				let zones = f.zones
+				if (this.respArea && this.respArea.id) zones = zones.filter(z => z.areaId === this.respArea.id)
+				const labels = this.zoneLabels()
+				return zones.map(z => ({ id: z.id, name: labels[z.id] || z.label || z.name }))
+			},
+			respZone() {
+				return this.respZones[this.resp.zone] || null
+			},
+			respSeats() {
+				if (!this.respZone || !this.respZone.id) return []
+				const f = this.respFloor
+				const z = f && f.zones ? f.zones.find(x => x.id === this.respZone.id) : null
+				if (!z || !z.seats) return []
+				const letter = (this.respZone.name || '').replace('区', '')
+				return z.seats.map(s => ({ id: s.id, name: `${letter}区-${(s.code || '').split('-').pop()}` }))
+			},
+			respFloorText() {
+				const o = this.respFloors[this.resp.floor]
+				return o ? o.name : '楼层'
+			},
+			respAreaText() {
+				const o = this.respAreas[this.resp.area]
+				return o ? o.name : '区域'
+			},
+			respZoneText() {
+				const o = this.respZones[this.resp.zone]
+				return o ? o.name : '区块'
+			},
+			respSeatText() {
+				const o = this.respSeats[this.resp.seat]
+				return o ? o.name : '座位'
 			}
 		},
 		onShow() {
@@ -231,6 +320,73 @@
 			},
 			remainMinutes(expireAt) {
 				return Math.max(0, Math.round((new Date(expireAt).getTime() - Date.now()) / 60000))
+			},
+			zoneLabels() {
+				const map = {}
+				const v = this.rv
+				if (!v || !v.floors) return map
+				const orderZones = (zs) => zs.slice().sort((a, b) =>
+					(a.sortOrder - b.sortOrder) || ((a.offsetX || 0) - (b.offsetX || 0)) || (a.id - b.id))
+				for (const f of v.floors) {
+					const ordered = []
+					const areas = (f.areas || []).slice().sort((a, b) => a.sortOrder - b.sortOrder)
+					for (const a of areas) {
+						ordered.push(...orderZones((f.zones || []).filter(z => z.areaId === a.id)))
+					}
+					ordered.push(...orderZones((f.zones || []).filter(z => !z.areaId)))
+					ordered.forEach((z, i) => { map[z.id] = String.fromCharCode(65 + i) + '区' })
+				}
+				return map
+			},
+			goSwapSeat(s) {
+				uni.navigateTo({ url: `/pages/seat/seat?id=${s.seatId}&venueId=${s.venueId}` })
+			},
+			async openRespond(s) {
+				if (!uni.getStorageSync('token')) {
+					uni.navigateTo({ url: '/pages/login/login' })
+					return
+				}
+				this.currentSwap = s
+				this.resp = { floor: 0, area: 0, zone: 0, seat: 0 }
+				this.showRespond = true
+				try { this.respondVenue = await api.getVenue(s.venueId) } catch (e) { this.respondVenue = null }
+			},
+			onResp(level, e) {
+				const v = Number(e.detail.value)
+				if (level === 'floor') {
+					this.resp.floor = v
+					this.resp.area = 0
+					this.resp.zone = 0
+					this.resp.seat = 0
+				} else if (level === 'area') {
+					this.resp.area = v
+					this.resp.zone = 0
+					this.resp.seat = 0
+				} else if (level === 'zone') {
+					this.resp.zone = v
+					this.resp.seat = 0
+				} else {
+					this.resp.seat = v
+				}
+			},
+			async submitRespond() {
+				if (this.submitting || !this.currentSwap) return
+				const seat = this.respSeats[this.resp.seat]
+				if (!seat) {
+					uni.showToast({ title: '请选择你的座位', icon: 'none' })
+					return
+				}
+				this.submitting = true
+				try {
+					await api.respondSwap(this.currentSwap.id, { seatId: seat.id })
+					this.showRespond = false
+					uni.showToast({ title: '已提交，等待对方确认', icon: 'none' })
+					this.loadSwaps()
+				} catch (e) {
+					uni.showToast({ title: (e && e.message) || '提交失败', icon: 'none' })
+				} finally {
+					this.submitting = false
+				}
 			}
 		}
 	}
