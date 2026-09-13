@@ -20,9 +20,7 @@ namespace FriendlySeat.Infrastructure.Persistence.Migrations
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     UserId = table.Column<long>(type: "bigint", nullable: false),
                     VenueId = table.Column<long>(type: "bigint", nullable: false),
-                    FloorId = table.Column<long>(type: "bigint", nullable: true),
-                    AreaId = table.Column<long>(type: "bigint", nullable: true),
-                    ZoneId = table.Column<long>(type: "bigint", nullable: true),
+                    SeatId = table.Column<long>(type: "bigint", nullable: false),
                     WantFloorId = table.Column<long>(type: "bigint", nullable: true),
                     WantAreaId = table.Column<long>(type: "bigint", nullable: true),
                     WantZoneId = table.Column<long>(type: "bigint", nullable: true),
@@ -36,6 +34,12 @@ namespace FriendlySeat.Infrastructure.Persistence.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_SeatSwapRequests", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_SeatSwapRequests_Seats_SeatId",
+                        column: x => x.SeatId,
+                        principalTable: "Seats",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_SeatSwapRequests_Users_UserId",
                         column: x => x.UserId,
@@ -58,9 +62,7 @@ namespace FriendlySeat.Infrastructure.Persistence.Migrations
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     RequestId = table.Column<long>(type: "bigint", nullable: false),
                     UserId = table.Column<long>(type: "bigint", nullable: false),
-                    FloorId = table.Column<long>(type: "bigint", nullable: true),
-                    AreaId = table.Column<long>(type: "bigint", nullable: true),
-                    ZoneId = table.Column<long>(type: "bigint", nullable: true),
+                    SeatId = table.Column<long>(type: "bigint", nullable: false),
                     Status = table.Column<int>(type: "integer", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
                 },
@@ -74,12 +76,23 @@ namespace FriendlySeat.Infrastructure.Persistence.Migrations
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
+                        name: "FK_SeatSwapResponses_Seats_SeatId",
+                        column: x => x.SeatId,
+                        principalTable: "Seats",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
                         name: "FK_SeatSwapResponses_Users_UserId",
                         column: x => x.UserId,
                         principalTable: "Users",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_SeatSwapRequests_SeatId",
+                table: "SeatSwapRequests",
+                column: "SeatId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_SeatSwapRequests_UserId_Status",
@@ -95,6 +108,11 @@ namespace FriendlySeat.Infrastructure.Persistence.Migrations
                 name: "IX_SeatSwapResponses_RequestId_UserId",
                 table: "SeatSwapResponses",
                 columns: new[] { "RequestId", "UserId" });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_SeatSwapResponses_SeatId",
+                table: "SeatSwapResponses",
+                column: "SeatId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_SeatSwapResponses_UserId",

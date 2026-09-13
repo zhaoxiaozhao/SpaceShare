@@ -352,6 +352,9 @@ public class VenueService
         {
             Id = seat.Id,
             ZoneId = seat.ZoneId,
+            VenueId = venue?.Id ?? 0,
+            FloorId = seat.Zone?.FloorId ?? 0,
+            AreaId = seat.Zone?.AreaId,
             Code = seat.Code,
             Type = seat.Type.ToString(),
             PositionX = seat.PositionX,

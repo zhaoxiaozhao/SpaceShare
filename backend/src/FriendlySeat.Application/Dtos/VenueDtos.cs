@@ -159,6 +159,16 @@ public class SeatDto
 {
     public long Id { get; set; }
     public long ZoneId { get; set; }
+
+    /// <summary>所属场馆 Id</summary>
+    public long VenueId { get; set; }
+
+    /// <summary>所属楼层 Id</summary>
+    public long FloorId { get; set; }
+
+    /// <summary>所属区域 Id（可空）</summary>
+    public long? AreaId { get; set; }
+
     public string Code { get; set; } = string.Empty;
 
     /// <summary>展示编号（B区-002）</summary>

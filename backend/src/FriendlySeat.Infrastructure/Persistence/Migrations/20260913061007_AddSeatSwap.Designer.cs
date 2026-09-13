@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace FriendlySeat.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(FriendlySeatDbContext))]
-    [Migration("20260913051635_AddSeatSwap")]
+    [Migration("20260913061007_AddSeatSwap")]
     partial class AddSeatSwap
     {
         /// <inheritdoc />
@@ -1026,17 +1026,11 @@ namespace FriendlySeat.Infrastructure.Persistence.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
 
-                    b.Property<long?>("AreaId")
-                        .HasColumnType("bigint");
-
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<DateTime>("ExpireAt")
                         .HasColumnType("timestamp with time zone");
-
-                    b.Property<long?>("FloorId")
-                        .HasColumnType("bigint");
 
                     b.Property<DateTime?>("MatchedAt")
                         .HasColumnType("timestamp with time zone");
@@ -1047,6 +1041,9 @@ namespace FriendlySeat.Infrastructure.Persistence.Migrations
                     b.Property<string>("Reasons")
                         .IsRequired()
                         .HasColumnType("text");
+
+                    b.Property<long>("SeatId")
+                        .HasColumnType("bigint");
 
                     b.Property<int>("Status")
                         .HasColumnType("integer");
@@ -1066,10 +1063,9 @@ namespace FriendlySeat.Infrastructure.Persistence.Migrations
                     b.Property<long?>("WantZoneId")
                         .HasColumnType("bigint");
 
-                    b.Property<long?>("ZoneId")
-                        .HasColumnType("bigint");
-
                     b.HasKey("Id");
+
+                    b.HasIndex("SeatId");
 
                     b.HasIndex("UserId", "Status");
 
@@ -1086,16 +1082,13 @@ namespace FriendlySeat.Infrastructure.Persistence.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
 
-                    b.Property<long?>("AreaId")
-                        .HasColumnType("bigint");
-
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<long?>("FloorId")
+                    b.Property<long>("RequestId")
                         .HasColumnType("bigint");
 
-                    b.Property<long>("RequestId")
+                    b.Property<long>("SeatId")
                         .HasColumnType("bigint");
 
                     b.Property<int>("Status")
@@ -1104,10 +1097,9 @@ namespace FriendlySeat.Infrastructure.Persistence.Migrations
                     b.Property<long>("UserId")
                         .HasColumnType("bigint");
 
-                    b.Property<long?>("ZoneId")
-                        .HasColumnType("bigint");
-
                     b.HasKey("Id");
+
+                    b.HasIndex("SeatId");
 
                     b.HasIndex("UserId");
 
@@ -1854,6 +1846,12 @@ namespace FriendlySeat.Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("FriendlySeat.Domain.Entities.SeatSwapRequest", b =>
                 {
+                    b.HasOne("FriendlySeat.Domain.Entities.Seat", "Seat")
+                        .WithMany()
+                        .HasForeignKey("SeatId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("FriendlySeat.Domain.Entities.User", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
@@ -1865,6 +1863,8 @@ namespace FriendlySeat.Infrastructure.Persistence.Migrations
                         .HasForeignKey("VenueId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("Seat");
 
                     b.Navigation("User");
 
@@ -1879,6 +1879,12 @@ namespace FriendlySeat.Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("FriendlySeat.Domain.Entities.Seat", "Seat")
+                        .WithMany()
+                        .HasForeignKey("SeatId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("FriendlySeat.Domain.Entities.User", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
@@ -1886,6 +1892,8 @@ namespace FriendlySeat.Infrastructure.Persistence.Migrations
                         .IsRequired();
 
                     b.Navigation("Request");
+
+                    b.Navigation("Seat");
 
                     b.Navigation("User");
                 });

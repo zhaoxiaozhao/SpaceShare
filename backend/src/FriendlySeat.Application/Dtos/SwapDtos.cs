@@ -2,11 +2,8 @@ namespace FriendlySeat.Application.Dtos;
 
 public class SeatSwapCreateRequest
 {
-    public long VenueId { get; set; }
-
-    public long? FloorId { get; set; }
-    public long? AreaId { get; set; }
-    public long? ZoneId { get; set; }
+    /// <summary>发布者当前座位</summary>
+    public long SeatId { get; set; }
 
     public long? WantFloorId { get; set; }
     public long? WantAreaId { get; set; }
@@ -21,9 +18,8 @@ public class SeatSwapCreateRequest
 
 public class SeatSwapRespondRequest
 {
-    public long? FloorId { get; set; }
-    public long? AreaId { get; set; }
-    public long? ZoneId { get; set; }
+    /// <summary>响应者当前座位</summary>
+    public long SeatId { get; set; }
 }
 
 public class SeatSwapResponseDto
@@ -31,11 +27,10 @@ public class SeatSwapResponseDto
     public long Id { get; set; }
     public long UserId { get; set; }
     public string UserNickname { get; set; } = string.Empty;
-    public long? FloorId { get; set; }
+    public long SeatId { get; set; }
+    public string SeatCode { get; set; } = string.Empty;
     public string? FloorName { get; set; }
-    public long? AreaId { get; set; }
     public string? AreaName { get; set; }
-    public long? ZoneId { get; set; }
     public string? ZoneName { get; set; }
     public string Status { get; set; } = string.Empty;
     public DateTime CreatedAt { get; set; }
@@ -50,11 +45,10 @@ public class SeatSwapDto
     public long VenueId { get; set; }
     public string VenueName { get; set; } = string.Empty;
 
-    public long? FloorId { get; set; }
+    public long SeatId { get; set; }
+    public string SeatCode { get; set; } = string.Empty;
     public string? FloorName { get; set; }
-    public long? AreaId { get; set; }
     public string? AreaName { get; set; }
-    public long? ZoneId { get; set; }
     public string? ZoneName { get; set; }
 
     public long? WantFloorId { get; set; }

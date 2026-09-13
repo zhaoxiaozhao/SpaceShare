@@ -299,9 +299,7 @@ CREATE TABLE `SeatSwapRequests` (
   `Id` bigint NOT NULL AUTO_INCREMENT,
   `UserId` bigint NOT NULL,
   `VenueId` bigint NOT NULL,
-  `FloorId` bigint NULL,
-  `AreaId` bigint NULL,
-  `ZoneId` bigint NULL,
+  `SeatId` bigint NOT NULL,
   `WantFloorId` bigint NULL,
   `WantAreaId` bigint NULL,
   `WantZoneId` bigint NULL,
@@ -312,8 +310,10 @@ CREATE TABLE `SeatSwapRequests` (
   `MatchedAt` datetime(6) NULL,
   `MatchedResponseId` bigint NULL,
   PRIMARY KEY (`Id`),
+  KEY `IX_SeatSwapRequests_SeatId` (`SeatId`),
   KEY `IX_SeatSwapRequests_UserId_Status` (`UserId`, `Status`),
   KEY `IX_SeatSwapRequests_VenueId_Status_CreatedAt` (`VenueId`, `Status`, `CreatedAt`),
+  CONSTRAINT `FK_SeatSwapRequests_Seats_SeatId` FOREIGN KEY (`SeatId`) REFERENCES `Seats` (`Id`) ON DELETE CASCADE,
   CONSTRAINT `FK_SeatSwapRequests_Users_UserId` FOREIGN KEY (`UserId`) REFERENCES `Users` (`Id`) ON DELETE CASCADE,
   CONSTRAINT `FK_SeatSwapRequests_Venues_VenueId` FOREIGN KEY (`VenueId`) REFERENCES `Venues` (`Id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
@@ -323,15 +323,15 @@ CREATE TABLE `SeatSwapResponses` (
   `Id` bigint NOT NULL AUTO_INCREMENT,
   `RequestId` bigint NOT NULL,
   `UserId` bigint NOT NULL,
-  `FloorId` bigint NULL,
-  `AreaId` bigint NULL,
-  `ZoneId` bigint NULL,
+  `SeatId` bigint NOT NULL,
   `Status` int NOT NULL,
   `CreatedAt` datetime(6) NOT NULL,
   PRIMARY KEY (`Id`),
   KEY `IX_SeatSwapResponses_RequestId_UserId` (`RequestId`, `UserId`),
+  KEY `IX_SeatSwapResponses_SeatId` (`SeatId`),
   KEY `IX_SeatSwapResponses_UserId` (`UserId`),
   CONSTRAINT `FK_SeatSwapResponses_SeatSwapRequests_RequestId` FOREIGN KEY (`RequestId`) REFERENCES `SeatSwapRequests` (`Id`) ON DELETE CASCADE,
+  CONSTRAINT `FK_SeatSwapResponses_Seats_SeatId` FOREIGN KEY (`SeatId`) REFERENCES `Seats` (`Id`) ON DELETE CASCADE,
   CONSTRAINT `FK_SeatSwapResponses_Users_UserId` FOREIGN KEY (`UserId`) REFERENCES `Users` (`Id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
         }

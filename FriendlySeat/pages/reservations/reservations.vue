@@ -133,7 +133,7 @@
 					<text class="res-seat">{{s.venueName}}</text>
 					<text class="tag" :class="'status-' + s.status.toLowerCase()">{{swapStatusText(s.status)}}</text>
 				</view>
-				<text class="res-time">当前位置：{{locText(s)}}</text>
+				<text class="res-time">我的座位：{{s.seatCode}}</text>
 				<text class="res-time">想换到：{{wantText(s)}}</text>
 				<view class="chips"><text class="chip" v-for="r in s.reasons" :key="r">{{reasonLabel(r)}}</text></view>
 
@@ -141,7 +141,7 @@
 				<view class="resp-row" v-for="p in (s.responses || [])" :key="p.id">
 					<view class="resp-info">
 						<text class="resp-nick">{{p.userNickname || '友邻'}}</text>
-						<text class="resp-loc">{{respLocText(p)}}</text>
+						<text class="resp-loc">响应座位：{{p.seatCode}}</text>
 						<text class="resp-status" :class="'rs-' + p.status.toLowerCase()">{{respStatusText(p.status)}}</text>
 					</view>
 					<button v-if="s.status === 'Open' && p.status === 'Pending'" class="btn-primary small" @click="acceptSwap(s, p)">同意换座</button>
@@ -157,7 +157,7 @@
 					<text class="res-seat">{{s.userNickname || '友邻'}} 的换座</text>
 					<text class="tag" :class="'rs-' + (s.myResponseStatus || '').toLowerCase()">{{myResponseText(s.myResponseStatus)}}</text>
 				</view>
-				<text class="res-time">{{s.venueName}} · 当前位置：{{locText(s)}}</text>
+				<text class="res-time">{{s.venueName}} · TA 的座位：{{s.seatCode}}</text>
 				<text class="res-time">想换到：{{wantText(s)}}</text>
 				<text class="ok-tip" v-if="s.myResponseStatus === 'Accepted'">对方已同意，可按双方位置线下物理交换</text>
 			</view>

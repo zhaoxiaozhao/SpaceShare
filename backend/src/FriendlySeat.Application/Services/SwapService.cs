@@ -6,8 +6,8 @@ using Microsoft.EntityFrameworkCore;
 namespace FriendlySeat.Application.Services;
 
 /// <summary>
-/// 换座意向撮合：用户发布"我在哪、想换到哪"，他人自愿响应并提交自己的位置，发布者确认后线下物理交换。
-/// 免费、无聊天、无联系方式，平台仅提供信息撮合，以场馆规定为准。
+/// 换座意向撮合：用户在座位详情页标记自己的座位并发布"想换到哪"，他人自愿响应并提交自己的座位，
+/// 发布者确认后线下物理交换。免费、无聊天、无联系方式，平台仅提供信息撮合，以场馆规定为准。
 /// </summary>
 public class SwapService
 {
@@ -28,13 +28,12 @@ public class SwapService
     {
         var now = DateTime.UtcNow;
 
-        var venue = await _db.Venues.FirstOrDefaultAsync(v => v.Id == request.VenueId, ct)
-            ?? throw AppException.NotFound("场馆不存在");
-        if (venue.Status != EntityStatus.Active)
-            throw AppException.BadRequest("venue_inactive", "场馆未开放");
+        var seat = await _db.Seats.Include(s => s.Zone!).ThenInclude(z => z.Floor!).ThenInclude(f => f.Venue)
+            .FirstOrDefaultAsync(s => s.Id == request.SeatId, ct)
+            ?? throw AppException.NotFound("座位不存在");
+        var venueId = seat.Zone!.Floor!.VenueId;
 
-        await ValidateLocationAsync(request.VenueId, request.FloorId, request.AreaId, request.ZoneId, ct);
-        await ValidateLocationAsync(request.VenueId, request.WantFloorId, request.WantAreaId, request.WantZoneId, ct);
+        await ValidateWantLocationAsync(venueId, request.WantFloorId, request.WantAreaId, request.WantZoneId, ct);
 
         var reasons = (request.Reasons ?? new List<string>())
             .Where(r => ValidReasons.Contains(r))
@@ -54,10 +53,8 @@ public class SwapService
         var entity = new SeatSwapRequest
         {
             UserId = userId,
-            VenueId = request.VenueId,
-            FloorId = request.FloorId,
-            AreaId = request.AreaId,
-            ZoneId = request.ZoneId,
+            VenueId = venueId,
+            SeatId = seat.Id,
             WantFloorId = request.WantFloorId,
             WantAreaId = request.WantAreaId,
             WantZoneId = request.WantZoneId,
@@ -81,25 +78,7 @@ public class SwapService
             .Take(100)
             .ToListAsync(ct);
 
-        var idList = list.Select(r => r.Id).ToList();
-        var myResponses = await _db.SeatSwapResponses
-            .Where(x => x.UserId == viewerUserId && idList.Contains(x.RequestId))
-            .Select(x => new { x.RequestId, x.Status })
-            .ToListAsync(ct);
-        var myResponseMap = myResponses
-            .GroupBy(x => x.RequestId)
-            .ToDictionary(g => g.Key, g => g.First().Status);
-
-        var dtos = await BuildDtosAsync(list, viewerUserId, includeResponses: false, ct);
-        foreach (var d in dtos)
-        {
-            if (myResponseMap.TryGetValue(d.Id, out var st))
-            {
-                d.RespondedByMe = true;
-                d.MyResponseStatus = st.ToString();
-            }
-        }
-        return dtos;
+        return await BuildViewerAwareAsync(list, viewerUserId, ct);
     }
 
     /// <summary>最近换座意向（跨场馆，供首页展示）</summary>
@@ -112,25 +91,7 @@ public class SwapService
             .Take(Math.Clamp(take, 1, 50))
             .ToListAsync(ct);
 
-        var idList = list.Select(r => r.Id).ToList();
-        var myResponses = await _db.SeatSwapResponses
-            .Where(x => x.UserId == viewerUserId && idList.Contains(x.RequestId))
-            .Select(x => new { x.RequestId, x.Status })
-            .ToListAsync(ct);
-        var myResponseMap = myResponses
-            .GroupBy(x => x.RequestId)
-            .ToDictionary(g => g.Key, g => g.First().Status);
-
-        var dtos = await BuildDtosAsync(list, viewerUserId, includeResponses: false, ct);
-        foreach (var d in dtos)
-        {
-            if (myResponseMap.TryGetValue(d.Id, out var st))
-            {
-                d.RespondedByMe = true;
-                d.MyResponseStatus = st.ToString();
-            }
-        }
-        return dtos;
+        return await BuildViewerAwareAsync(list, viewerUserId, ct);
     }
 
     public async Task<List<SeatSwapDto>> GetMineAsync(long userId, CancellationToken ct = default)
@@ -180,7 +141,11 @@ public class SwapService
         if (req.Status != SeatSwapStatus.Open || req.ExpireAt <= now)
             throw AppException.BadRequest("swap_closed", "该换座意向已结束");
 
-        await ValidateLocationAsync(req.VenueId, request.FloorId, request.AreaId, request.ZoneId, ct);
+        var seat = await _db.Seats.Include(s => s.Zone!).ThenInclude(z => z.Floor)
+            .FirstOrDefaultAsync(s => s.Id == request.SeatId, ct)
+            ?? throw AppException.NotFound("座位不存在");
+        if (seat.Zone!.Floor!.VenueId != req.VenueId)
+            throw AppException.BadRequest("venue_mismatch", "只能和同场馆的座位交换");
 
         var existing = await _db.SeatSwapResponses
             .FirstOrDefaultAsync(x => x.RequestId == requestId && x.UserId == userId, ct);
@@ -190,25 +155,21 @@ public class SwapService
             {
                 RequestId = requestId,
                 UserId = userId,
-                FloorId = request.FloorId,
-                AreaId = request.AreaId,
-                ZoneId = request.ZoneId,
+                SeatId = seat.Id,
                 Status = SeatSwapResponseStatus.Pending,
                 CreatedAt = now
             });
         }
         else
         {
-            existing.FloorId = request.FloorId;
-            existing.AreaId = request.AreaId;
-            existing.ZoneId = request.ZoneId;
+            existing.SeatId = seat.Id;
             existing.Status = SeatSwapResponseStatus.Pending;
             existing.CreatedAt = now;
         }
         await _db.SaveChangesAsync(ct);
 
         await _notifications.SendAsync(req.UserId, NotificationType.System,
-            "有人想和你换座", "有人愿意与你换座并提交了位置，去确认一下吧。", null, ct);
+            "有人想和你换座", "有人愿意与你换座并标记了座位，去确认一下吧。", null, ct);
 
         return await GetDtoAsync(requestId, userId, includeResponses: true, ct) ?? throw AppException.NotFound();
     }
@@ -241,7 +202,7 @@ public class SwapService
         await _db.SaveChangesAsync(ct);
 
         await _notifications.SendAsync(chosen.UserId, NotificationType.System,
-            "对方已同意换座", "对方已同意与你交换座位，可以按双方位置进行线下物理交换了。", null, ct);
+            "对方已同意换座", "对方已同意与你交换座位，可以按双方座位进行线下物理交换了。", null, ct);
 
         return await GetDtoAsync(requestId, userId, includeResponses: true, ct) ?? throw AppException.NotFound();
     }
@@ -292,7 +253,7 @@ public class SwapService
 
     // ---- 内部辅助 ----
 
-    private async Task ValidateLocationAsync(long venueId, long? floorId, long? areaId, long? zoneId, CancellationToken ct)
+    private async Task ValidateWantLocationAsync(long venueId, long? floorId, long? areaId, long? zoneId, CancellationToken ct)
     {
         if (floorId.HasValue)
         {
@@ -311,6 +272,31 @@ public class SwapService
         }
     }
 
+    private async Task<List<SeatSwapDto>> BuildViewerAwareAsync(List<SeatSwapRequest> list, long viewerUserId, CancellationToken ct)
+    {
+        var dtos = await BuildDtosAsync(list, viewerUserId, includeResponses: false, ct);
+        if (list.Count == 0) return dtos;
+
+        var idList = list.Select(r => r.Id).ToList();
+        var myResponses = await _db.SeatSwapResponses
+            .Where(x => x.UserId == viewerUserId && idList.Contains(x.RequestId))
+            .Select(x => new { x.RequestId, x.Status })
+            .ToListAsync(ct);
+        var map = myResponses
+            .GroupBy(x => x.RequestId)
+            .ToDictionary(g => g.Key, g => g.First().Status);
+
+        foreach (var d in dtos)
+        {
+            if (map.TryGetValue(d.Id, out var st))
+            {
+                d.RespondedByMe = true;
+                d.MyResponseStatus = st.ToString();
+            }
+        }
+        return dtos;
+    }
+
     private async Task<SeatSwapDto?> GetDtoAsync(long id, long viewerUserId, bool includeResponses, CancellationToken ct)
     {
         var entity = await _db.SeatSwapRequests.FirstOrDefaultAsync(r => r.Id == id, ct);
@@ -324,27 +310,19 @@ public class SwapService
     {
         if (list.Count == 0) return new List<SeatSwapDto>();
 
-        var floorIds = list.Select(r => r.FloorId).Concat(list.Select(r => r.WantFloorId))
-            .Where(id => id.HasValue).Select(id => id!.Value).Distinct().ToList();
-        var areaIds = list.Select(r => r.AreaId).Concat(list.Select(r => r.WantAreaId))
-            .Where(id => id.HasValue).Select(id => id!.Value).Distinct().ToList();
-        var zoneIds = list.Select(r => r.ZoneId).Concat(list.Select(r => r.WantZoneId))
-            .Where(id => id.HasValue).Select(id => id!.Value).Distinct().ToList();
+        var wantFloorIds = list.Select(r => r.WantFloorId).Where(i => i.HasValue).Select(i => i!.Value).Distinct().ToList();
+        var wantAreaIds = list.Select(r => r.WantAreaId).Where(i => i.HasValue).Select(i => i!.Value).Distinct().ToList();
+        var wantZoneIds = list.Select(r => r.WantZoneId).Where(i => i.HasValue).Select(i => i!.Value).Distinct().ToList();
         var venueIds = list.Select(r => r.VenueId).Distinct().ToList();
         var userIds = list.Select(r => r.UserId).Distinct().ToList();
 
-        var floorNames = await _db.Floors.Where(f => floorIds.Contains(f.Id))
-            .ToDictionaryAsync(f => f.Id, f => f.Name, ct);
-        var areaNames = await _db.Areas.Where(a => areaIds.Contains(a.Id))
-            .ToDictionaryAsync(a => a.Id, a => a.Name, ct);
-        var zoneNames = await _db.Zones.Where(z => zoneIds.Contains(z.Id))
-            .ToDictionaryAsync(z => z.Id, z => z.Name, ct);
-        var venueNames = await _db.Venues.Where(v => venueIds.Contains(v.Id))
-            .ToDictionaryAsync(v => v.Id, v => v.Name, ct);
-        var nicknames = await _db.Users.Where(u => userIds.Contains(u.Id))
-            .ToDictionaryAsync(u => u.Id, u => u.Nickname ?? "", ct);
+        var wantFloorNames = await _db.Floors.Where(f => wantFloorIds.Contains(f.Id)).ToDictionaryAsync(f => f.Id, f => f.Name, ct);
+        var wantAreaNames = await _db.Areas.Where(a => wantAreaIds.Contains(a.Id)).ToDictionaryAsync(a => a.Id, a => a.Name, ct);
+        var wantZoneNames = await _db.Zones.Where(z => wantZoneIds.Contains(z.Id)).ToDictionaryAsync(z => z.Id, z => z.Name, ct);
+        var venueNames = await _db.Venues.Where(v => venueIds.Contains(v.Id)).ToDictionaryAsync(v => v.Id, v => v.Name, ct);
+        var nicknames = await _db.Users.Where(u => userIds.Contains(u.Id)).ToDictionaryAsync(u => u.Id, u => u.Nickname ?? "", ct);
 
-        // 响应：仅当需要时加载
+        // 座位信息（发布者座位 + 响应座位）
         var responseEntities = new List<SeatSwapResponse>();
         if (includeResponses)
         {
@@ -355,27 +333,19 @@ public class SwapService
                 .ToListAsync(ct);
         }
 
-        var respFloorNames = new Dictionary<long, string>();
-        var respAreaNames = new Dictionary<long, string>();
-        var respZoneNames = new Dictionary<long, string>();
-        var respNicknames = new Dictionary<long, string>();
-        if (responseEntities.Count > 0)
-        {
-            var rfIds = responseEntities.Select(x => x.FloorId).Where(i => i.HasValue).Select(i => i!.Value).Distinct().ToList();
-            var raIds = responseEntities.Select(x => x.AreaId).Where(i => i.HasValue).Select(i => i!.Value).Distinct().ToList();
-            var rzIds = responseEntities.Select(x => x.ZoneId).Where(i => i.HasValue).Select(i => i!.Value).Distinct().ToList();
-            var ruIds = responseEntities.Select(x => x.UserId).Distinct().ToList();
-            respFloorNames = await _db.Floors.Where(f => rfIds.Contains(f.Id)).ToDictionaryAsync(f => f.Id, f => f.Name, ct);
-            respAreaNames = await _db.Areas.Where(a => raIds.Contains(a.Id)).ToDictionaryAsync(a => a.Id, a => a.Name, ct);
-            respZoneNames = await _db.Zones.Where(z => rzIds.Contains(z.Id)).ToDictionaryAsync(z => z.Id, z => z.Name, ct);
-            respNicknames = await _db.Users.Where(u => ruIds.Contains(u.Id)).ToDictionaryAsync(u => u.Id, u => u.Nickname ?? "", ct);
-        }
+        var seatIds = list.Select(r => r.SeatId).Concat(responseEntities.Select(x => x.SeatId)).Distinct().ToList();
+        var seatInfos = await LoadSeatInfosAsync(seatIds, ct);
+        var responseUserIds = responseEntities.Select(x => x.UserId).Distinct().ToList();
+        var responseNicknames = await _db.Users.Where(u => responseUserIds.Contains(u.Id))
+            .ToDictionaryAsync(u => u.Id, u => u.Nickname ?? "", ct);
 
-        string? Name(Dictionary<long, string> map, long? id) => id.HasValue && map.TryGetValue(id.Value, out var v) ? v : null;
+        string? WantName(Dictionary<long, string> map, long? id) => id.HasValue && map.TryGetValue(id.Value, out var v) ? v : null;
+        SeatInfo? Seat(long id) => seatInfos.TryGetValue(id, out var v) ? v : null;
 
         var result = new List<SeatSwapDto>();
         foreach (var r in list)
         {
+            var seat = Seat(r.SeatId);
             var dto = new SeatSwapDto
             {
                 Id = r.Id,
@@ -383,18 +353,17 @@ public class SwapService
                 UserNickname = nicknames.TryGetValue(r.UserId, out var nn) ? nn : "",
                 VenueId = r.VenueId,
                 VenueName = venueNames.TryGetValue(r.VenueId, out var vn) ? vn : "",
-                FloorId = r.FloorId,
-                FloorName = Name(floorNames, r.FloorId),
-                AreaId = r.AreaId,
-                AreaName = Name(areaNames, r.AreaId),
-                ZoneId = r.ZoneId,
-                ZoneName = Name(zoneNames, r.ZoneId),
+                SeatId = r.SeatId,
+                SeatCode = seat?.Code ?? "",
+                FloorName = seat?.FloorName,
+                AreaName = seat?.AreaName,
+                ZoneName = seat?.ZoneName,
                 WantFloorId = r.WantFloorId,
-                WantFloorName = Name(floorNames, r.WantFloorId),
+                WantFloorName = WantName(wantFloorNames, r.WantFloorId),
                 WantAreaId = r.WantAreaId,
-                WantAreaName = Name(areaNames, r.WantAreaId),
+                WantAreaName = WantName(wantAreaNames, r.WantAreaId),
                 WantZoneId = r.WantZoneId,
-                WantZoneName = Name(zoneNames, r.WantZoneId),
+                WantZoneName = WantName(wantZoneNames, r.WantZoneId),
                 Reasons = string.IsNullOrEmpty(r.Reasons)
                     ? new List<string>()
                     : r.Reasons.Split(',', StringSplitOptions.RemoveEmptyEntries).ToList(),
@@ -409,20 +378,23 @@ public class SwapService
             {
                 dto.Responses = responseEntities
                     .Where(x => x.RequestId == r.Id)
-                    .Select(x => new SeatSwapResponseDto
+                    .Select(x =>
                     {
-                        Id = x.Id,
-                        UserId = x.UserId,
-                        UserNickname = respNicknames.TryGetValue(x.UserId, out var rn) ? rn : "",
-                        FloorId = x.FloorId,
-                        FloorName = Name(respFloorNames, x.FloorId),
-                        AreaId = x.AreaId,
-                        AreaName = Name(respAreaNames, x.AreaId),
-                        ZoneId = x.ZoneId,
-                        ZoneName = Name(respZoneNames, x.ZoneId),
-                        Status = x.Status.ToString(),
-                        CreatedAt = x.CreatedAt,
-                        IsMine = x.UserId == viewerUserId
+                        var rs = Seat(x.SeatId);
+                        return new SeatSwapResponseDto
+                        {
+                            Id = x.Id,
+                            UserId = x.UserId,
+                            UserNickname = responseNicknames.TryGetValue(x.UserId, out var rn) ? rn : "",
+                            SeatId = x.SeatId,
+                            SeatCode = rs?.Code ?? "",
+                            FloorName = rs?.FloorName,
+                            AreaName = rs?.AreaName,
+                            ZoneName = rs?.ZoneName,
+                            Status = x.Status.ToString(),
+                            CreatedAt = x.CreatedAt,
+                            IsMine = x.UserId == viewerUserId
+                        };
                     })
                     .ToList();
             }
@@ -430,5 +402,45 @@ public class SwapService
             result.Add(dto);
         }
         return result;
+    }
+
+    private async Task<Dictionary<long, SeatInfo>> LoadSeatInfosAsync(List<long> seatIds, CancellationToken ct)
+    {
+        var result = new Dictionary<long, SeatInfo>();
+        if (seatIds.Count == 0) return result;
+
+        var seats = await _db.Seats.Where(s => seatIds.Contains(s.Id))
+            .Select(s => new { s.Id, s.Code, s.ZoneId })
+            .ToListAsync(ct);
+        var zoneIds = seats.Select(s => s.ZoneId).Distinct().ToList();
+        var zones = await _db.Zones.Where(z => zoneIds.Contains(z.Id))
+            .Select(z => new { z.Id, z.Name, z.FloorId, z.AreaId })
+            .ToListAsync(ct);
+        var zoneMap = zones.ToDictionary(z => z.Id);
+        var floorIds = zones.Select(z => z.FloorId).Distinct().ToList();
+        var areaIds = zones.Where(z => z.AreaId.HasValue).Select(z => z.AreaId!.Value).Distinct().ToList();
+        var floorNames = await _db.Floors.Where(f => floorIds.Contains(f.Id)).ToDictionaryAsync(f => f.Id, f => f.Name, ct);
+        var areaNames = await _db.Areas.Where(a => areaIds.Contains(a.Id)).ToDictionaryAsync(a => a.Id, a => a.Name, ct);
+
+        foreach (var s in seats)
+        {
+            var info = new SeatInfo { Code = s.Code };
+            if (zoneMap.TryGetValue(s.ZoneId, out var z))
+            {
+                info.ZoneName = z.Name;
+                if (floorNames.TryGetValue(z.FloorId, out var fn)) info.FloorName = fn;
+                if (z.AreaId.HasValue && areaNames.TryGetValue(z.AreaId.Value, out var an)) info.AreaName = an;
+            }
+            result[s.Id] = info;
+        }
+        return result;
+    }
+
+    private class SeatInfo
+    {
+        public string Code { get; set; } = string.Empty;
+        public string? FloorName { get; set; }
+        public string? AreaName { get; set; }
+        public string? ZoneName { get; set; }
     }
 }
