@@ -8,10 +8,12 @@ namespace FriendlySeat.Application.Services;
 public class ReportService
 {
     private readonly IAppDbContext _db;
+    private readonly INotificationService _notifications;
 
-    public ReportService(IAppDbContext db)
+    public ReportService(IAppDbContext db, INotificationService notifications)
     {
         _db = db;
+        _notifications = notifications;
     }
 
     public async Task<ReportDto> CreateAsync(long reporterId, ReportCreateRequest request, CancellationToken ct = default)
@@ -40,6 +42,18 @@ public class ReportService
                     .Select(r => (long?)r.UserId)
                     .FirstOrDefaultAsync(ct);
             }
+            else if (targetType == ReportTargetType.Activity)
+            {
+                var activity = await _db.Activities
+                    .Where(a => a.Id == request.TargetId.Value)
+                    .Select(a => new { a.CreatorUserId })
+                    .FirstOrDefaultAsync(ct);
+                if (activity is null)
+                    throw AppException.NotFound("活动不存在");
+                if (activity.CreatorUserId == reporterId)
+                    throw AppException.BadRequest("cannot_report_own", "不能举报自己发布的活动");
+                targetUserId = activity.CreatorUserId;
+            }
         }
 
         var report = new Report
@@ -56,6 +70,21 @@ public class ReportService
         };
         _db.Reports.Add(report);
         await _db.SaveChangesAsync(ct);
+
+        // 活动被举报：退回待审核（对其他用户不可见）
+        if (targetType == ReportTargetType.Activity && request.TargetId.HasValue)
+        {
+            var activity = await _db.Activities.FirstOrDefaultAsync(a => a.Id == request.TargetId.Value, ct);
+            if (activity is not null && activity.Status == ActivityStatus.Published)
+            {
+                activity.Status = ActivityStatus.PendingReview;
+                activity.UpdatedAt = DateTime.UtcNow;
+                await _db.SaveChangesAsync(ct);
+                await _notifications.SendAsync(activity.CreatorUserId, NotificationType.System,
+                    "活动被举报，已退回审核",
+                    $"你发布的活动「{activity.Title}」被举报，已暂时下架并退回审核。", null, ct);
+            }
+        }
 
         // 保存后重新查询，带出举报人/被举报人昵称
         return await _db.Reports

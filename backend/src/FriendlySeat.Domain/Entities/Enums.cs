@@ -100,7 +100,8 @@ public enum ReportTargetType
     Reservation,
     User,
     Review,
-    Feedback
+    Feedback,
+    Activity
 }
 
 public enum ReportStatus

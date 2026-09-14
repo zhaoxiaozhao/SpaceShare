@@ -65,6 +65,7 @@
 		</view>
 
 		<button class="btn-outline share-btn" open-type="share">分享给好友 / 朋友圈</button>
+		<text class="report-link" v-if="!a.isMine" @click="report">举报该活动</text>
 	</view>
 	<view v-else class="empty">活动不存在或已结束</view>
 </template>
@@ -159,6 +160,10 @@
 					uni.previewImage({ urls: [this.a.coverImage] })
 				}
 			},
+			report() {
+				const nick = encodeURIComponent(this.a.creatorNickname || '')
+				uni.navigateTo({ url: `/pages/report/report?targetType=Activity&targetId=${this.id}&targetUserId=${this.a.creatorUserId}&targetNickname=${nick}` })
+			},
 			async signup() {
 				try {
 					await api.signupActivity(this.id)
@@ -220,6 +225,13 @@
 	.share-btn {
 		width: 100%;
 		margin-top: 8rpx;
+	}
+	.report-link {
+		display: block;
+		text-align: center;
+		font-size: 24rpx;
+		color: #B0AEA8;
+		margin-top: 28rpx;
 	}
 	.part-head {
 		display: flex;

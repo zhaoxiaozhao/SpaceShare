@@ -51,10 +51,17 @@
 				targetId: null,
 				targetUserId: null,
 				targetNickname: '',
-				reasons: ['虚假座位', '座位不存在', '座位被占用', '座位交易', '恶意占座', '联系方式违规', '其他'],
 				reason: '',
 				description: '',
 				reports: []
+			}
+		},
+		computed: {
+			reasons() {
+				if (this.targetType === 'Activity') {
+					return ['虚假活动', '内容违规', '广告导流', '联系方式违规', '涉嫌诈骗', '其他']
+				}
+				return ['虚假座位', '座位不存在', '座位被占用', '座位交易', '恶意占座', '联系方式违规', '其他']
 			}
 		},
 		onLoad(options) {
