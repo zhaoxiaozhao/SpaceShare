@@ -34,6 +34,14 @@ public class SharesController : ControllerBase
         return Ok(await _shares.GetMySharesAsync(_currentUser.UserId!.Value, ct));
     }
 
+    /// <summary>跨场馆最近分享（首页「最近分享」更多列表）</summary>
+    [HttpGet("recent")]
+    [AllowAnonymous]
+    public async Task<ActionResult<List<SeatShareDto>>> GetRecent([FromQuery] int take, CancellationToken ct)
+    {
+        return Ok(await _shares.GetRecentSharesAsync(take <= 0 ? 30 : take, ct));
+    }
+
     [HttpGet("{id:long}")]
     [AllowAnonymous]
     public async Task<ActionResult<ShareDetailDto>> Get(long id, CancellationToken ct)

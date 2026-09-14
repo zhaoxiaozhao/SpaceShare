@@ -103,6 +103,23 @@ public class ShareService
         return await GetShareDtoAsync(share.Id, ct) ?? throw AppException.NotFound();
     }
 
+    /// <summary>跨场馆最近分享（首页「最近分享的座位」更多列表用）</summary>
+    public async Task<List<SeatShareDto>> GetRecentSharesAsync(int take, CancellationToken ct = default)
+    {
+        var now = DateTime.UtcNow;
+        var limit = Math.Clamp(take, 1, 50);
+        var seatIds = await _db.SeatShares
+            .Where(s => s.Status == SeatShareStatus.Available && s.EndAt > now)
+            .OrderByDescending(s => s.CreatedAt)
+            .Select(s => s.SeatId)
+            .Distinct()
+            .Take(limit)
+            .ToListAsync(ct);
+
+        var shares = await GetSharesBySeatIdsAsync(seatIds, ct);
+        return shares.OrderByDescending(s => s.CreatedAt).Take(limit).ToList();
+    }
+
     public async Task<List<SeatShareDto>> GetSharesBySeatIdsAsync(List<long> seatIds, CancellationToken ct = default)
     {
         if (seatIds.Count == 0) return new List<SeatShareDto>();

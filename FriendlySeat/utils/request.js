@@ -111,6 +111,7 @@ export const api = {
 	getSeat: (id) => request(`/seats/${id}`, { auth: false }),
 	getShares: (id) => request(`/seats/${id}/shares`, { auth: false }),
 	getVenueShares: (id) => request(`/venues/${id}/shares`, { auth: false }),
+	getRecentShares: (take) => request(`/shares/recent?take=${take || 30}`, { auth: false }),
 	checkIn: (data) => request('/sessions/check-in', { method: 'POST', data }),
 	getMySession: () => request('/sessions/my'),
 	endSession: () => request('/sessions/end', { method: 'POST' }),

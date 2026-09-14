@@ -17,8 +17,11 @@
 		</view>
 
 		<view v-if="nearby.length" class="section">
-			<text class="section-title">附近场馆</text>
-			<view class="card venue-card" v-for="v in nearby" :key="v.id" @click="goVenue(v.id)">
+			<view class="sec-head">
+				<text class="section-title">附近场馆</text>
+				<text class="sec-more" @click="goVenues">更多 ›</text>
+			</view>
+			<view class="card venue-card" v-for="v in nearby.slice(0, 3)" :key="v.id" @click="goVenue(v.id)">
 				<view class="venue-main">
 					<text class="venue-name">{{v.name}}</text>
 					<view class="venue-addr-row">
@@ -35,7 +38,10 @@
 		</view>
 
 		<view v-if="shares.length" class="section">
-			<text class="section-title">最近分享的座位</text>
+			<view class="sec-head">
+				<text class="section-title">最近分享的座位</text>
+				<text class="sec-more" @click="goSharesList">更多 ›</text>
+			</view>
 			<view class="card share-card" v-for="s in shares" :key="s.id" @click="goSeat(s.seatId)">
 				<view class="share-top">
 					<text class="share-seat">{{s.displayCode || s.seatCode}}</text>
@@ -48,8 +54,11 @@
 		</view>
 
 		<view v-if="swaps.length" class="section">
-			<text class="section-title">最近换座</text>
-			<view class="card swap-card" v-for="s in swaps" :key="s.id" @click="goSwapSeat(s)">
+			<view class="sec-head">
+				<text class="section-title">最近换座</text>
+				<text class="sec-more" @click="goSwapList">更多 ›</text>
+			</view>
+			<view class="card swap-card" v-for="s in swaps.slice(0, 3)" :key="s.id" @click="goSwapSeat(s)">
 				<view class="swap-head">
 					<text class="swap-title">{{s.venueName}}</text>
 					<text class="remain">剩{{remainMinutes(s.expireAt)}}分钟</text>
@@ -161,7 +170,7 @@
 					if (this.nearby.length) {
 						const venueId = this.nearby[0].id
 						this.venueShares = await api.getVenueShares(venueId)
-						this.shares = this.venueShares.slice(0, 5)
+						this.shares = this.venueShares.slice(0, 3)
 						this.sharesVenueId = venueId
 					}
 				} catch (e) {
@@ -270,6 +279,15 @@
 			},
 			goActivities() {
 				uni.switchTab({ url: '/pages/activity/activity' })
+			},
+			goVenues() {
+				uni.navigateTo({ url: '/pages/venues/venues' })
+			},
+			goSharesList() {
+				uni.navigateTo({ url: '/pages/shares/list' })
+			},
+			goSwapList() {
+				uni.navigateTo({ url: '/pages/swap/list' })
 			}
 		}
 	}

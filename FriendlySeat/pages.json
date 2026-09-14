@@ -64,6 +64,20 @@
 			}
 		},
 		{
+			"path": "pages/shares/list",
+			"style": {
+				"navigationBarTitleText": "最近分享",
+				"enablePullDownRefresh": true
+			}
+		},
+		{
+			"path": "pages/swap/list",
+			"style": {
+				"navigationBarTitleText": "最近换座",
+				"enablePullDownRefresh": true
+			}
+		},
+		{
 			"path": "pages/my/my",
 			"style": {
 				"navigationBarTitleText": "我的"
