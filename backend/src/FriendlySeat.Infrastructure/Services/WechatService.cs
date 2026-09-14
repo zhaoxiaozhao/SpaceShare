@@ -11,6 +11,9 @@ public class WechatOptions
 {
     public string AppId { get; set; } = string.Empty;
     public string AppSecret { get; set; } = string.Empty;
+
+    /// <summary>微信云开发/云托管环境 ID（用于把云存储 fileID 换成可访问链接）</summary>
+    public string CloudEnv { get; set; } = string.Empty;
 }
 
 public class WechatService : IWechatService
@@ -172,6 +175,30 @@ public class WechatService : IWechatService
         }
     }
 
+    public async Task<string> GetTempFileUrlAsync(string fileId, CancellationToken ct = default)
+    {
+        if (string.IsNullOrWhiteSpace(fileId) || !fileId.StartsWith("cloud://")) return fileId ?? string.Empty;
+        if (string.IsNullOrEmpty(_options.CloudEnv)) return string.Empty;
+
+        var token = await GetAccessTokenAsync(ct);
+        if (string.IsNullOrEmpty(token)) return string.Empty;
+
+        try
+        {
+            var url = $"https://api.weixin.qq.com/tcb/batchdownloadfile?access_token={Uri.EscapeDataString(token)}";
+            var payload = new { env = _options.CloudEnv, file_list = new[] { new { fileid = fileId, max_age = 7200 } } };
+            var resp = await _http.PostAsJsonAsync(url, payload, ct);
+            var result = await resp.Content.ReadFromJsonAsync<TcbBatchDownloadResponse>(ct);
+            var item = result?.FileList?.FirstOrDefault();
+            return item?.DownloadUrl ?? string.Empty;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "获取云存储临时链接失败 fileId={FileId}", fileId);
+            return string.Empty;
+        }
+    }
+
     // access_token 有效期 7200s，提前缓存 7000s
     private async Task<string?> GetAccessTokenAsync(CancellationToken ct)
     {
@@ -235,5 +262,19 @@ public class WechatService : IWechatService
     {
         [JsonPropertyName("errcode")] public int ErrCode { get; set; }
         [JsonPropertyName("errmsg")] public string? ErrMsg { get; set; }
+    }
+
+    private class TcbBatchDownloadResponse
+    {
+        [JsonPropertyName("errcode")] public int ErrCode { get; set; }
+        [JsonPropertyName("errmsg")] public string? ErrMsg { get; set; }
+        [JsonPropertyName("file_list")] public List<TcbFileItem>? FileList { get; set; }
+    }
+
+    private class TcbFileItem
+    {
+        [JsonPropertyName("fileid")] public string? FileId { get; set; }
+        [JsonPropertyName("download_url")] public string? DownloadUrl { get; set; }
+        [JsonPropertyName("status")] public int Status { get; set; }
     }
 }

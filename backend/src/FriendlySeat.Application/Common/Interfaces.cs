@@ -49,6 +49,9 @@ public interface IWechatService
 
     /// <summary>图片内容安全检测（imgSecCheck，传入图片 https 地址，内部下载后校验）。未配置/异常返回 Skip。</summary>
     Task<ContentCheckResult> ImgSecCheckUrlAsync(string imageUrl, CancellationToken ct = default);
+
+    /// <summary>把微信云存储 fileID 换成可访问的临时 https 链接（未配置或失败返回空串）。</summary>
+    Task<string> GetTempFileUrlAsync(string fileId, CancellationToken ct = default);
 }
 
 public enum ContentCheckStatus { Pass, Risky, Skip }

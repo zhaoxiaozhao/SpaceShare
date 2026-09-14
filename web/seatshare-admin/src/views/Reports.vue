@@ -26,6 +26,19 @@
           <el-tag :type="row.status === 'Pending' ? 'warning' : 'info'">{{ statusText(row.status) }}</el-tag>
         </template>
       </el-table-column>
+      <el-table-column label="证据" width="90">
+        <template #default="{ row }">
+          <el-image
+            v-if="row.evidenceUrl"
+            :src="row.evidenceUrl"
+            :preview-src-list="[row.evidenceUrl]"
+            preview-teleported
+            fit="cover"
+            style="width: 56px; height: 56px; border-radius: 6px"
+          />
+          <span v-else class="muted">-</span>
+        </template>
+      </el-table-column>
       <el-table-column label="操作" width="180" fixed="right">
         <template #default="{ row }">
           <el-dropdown @command="(cmd) => handle(row, cmd)">

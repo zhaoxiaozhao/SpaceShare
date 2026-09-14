@@ -21,6 +21,12 @@
 			<view class="card">
 				<text class="form-label">详细描述</text>
 				<textarea class="form-textarea" v-model="description" maxlength="100" placeholder="请描述具体情况（选填，100字以内）" />
+				<text class="form-label" style="margin-top:24rpx;">图片证据（选填）</text>
+				<view class="evidence-box">
+					<image v-if="evidenceUrl" class="evidence-img" :src="evidenceUrl" mode="aspectFill" @click="previewEvidence" />
+					<view v-else class="evidence-empty" @click="chooseEvidence">＋ 上传图片</view>
+					<text v-if="evidenceUrl" class="evidence-remove" @click="evidenceUrl = ''">删除</text>
+				</view>
 				<button class="btn-primary" style="margin-top:30rpx;" @click="submit">提交举报</button>
 			</view>
 		</view>
@@ -43,6 +49,7 @@
 <script>
 	import { api } from '../../utils/request.js'
 	import { formatTime, statusText } from '../../utils/format.js'
+	import { uploadImage, getTempFileUrl } from '../../utils/profile.js'
 
 	export default {
 		data() {
@@ -53,6 +60,7 @@
 				targetNickname: '',
 				reason: '',
 				description: '',
+				evidenceUrl: '',
 				reports: []
 			}
 		},
@@ -83,6 +91,31 @@
 			onReason(e) {
 				this.reason = e.detail.value
 			},
+			chooseEvidence() {
+				uni.chooseImage({
+					count: 1,
+					sizeType: ['compressed'],
+					sourceType: ['album', 'camera'],
+					success: async (res) => {
+						const filePath = res.tempFilePaths && res.tempFilePaths[0]
+						if (!filePath) return
+						uni.showLoading({ title: '上传中', mask: true })
+						try {
+							this.evidenceUrl = await uploadImage(filePath, 'reports')
+						} catch (e) {
+							uni.showToast({ title: '上传失败，请重试', icon: 'none' })
+						} finally {
+							uni.hideLoading()
+						}
+					}
+				})
+			},
+			async previewEvidence() {
+				if (!this.evidenceUrl) return
+				let url = this.evidenceUrl
+				try { url = (await getTempFileUrl(this.evidenceUrl)) || this.evidenceUrl } catch (e) {}
+				uni.previewImage({ urls: [url] })
+			},
 			async loadReports() {
 				try {
 					this.reports = await api.getMyReports()
@@ -99,7 +132,8 @@
 						targetId: this.targetId,
 						targetUserId: this.targetUserId,
 						reason: this.reason,
-						description: this.description
+						description: this.description,
+						evidenceUrl: this.evidenceUrl || undefined
 					})
 					uni.showToast({ title: '举报已提交', icon: 'success' })
 					setTimeout(() => uni.navigateBack(), 800)
@@ -135,6 +169,38 @@
 		padding: 20rpx;
 		font-size: 28rpx;
 		box-sizing: border-box;
+	}
+	.evidence-box {
+		position: relative;
+		width: 320rpx;
+		height: 320rpx;
+	}
+	.evidence-img {
+		width: 320rpx;
+		height: 320rpx;
+		border-radius: 12rpx;
+	}
+	.evidence-empty {
+		width: 320rpx;
+		height: 320rpx;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		background: #F7F5EF;
+		border: 1rpx dashed #DAD7CE;
+		border-radius: 12rpx;
+		color: #A5A39D;
+		font-size: 28rpx;
+	}
+	.evidence-remove {
+		position: absolute;
+		right: 12rpx;
+		bottom: 12rpx;
+		font-size: 22rpx;
+		color: #fff;
+		background: rgba(0, 0, 0, 0.5);
+		padding: 4rpx 16rpx;
+		border-radius: 999rpx;
 	}
 	.target-box {
 		background: #F7F5EF;

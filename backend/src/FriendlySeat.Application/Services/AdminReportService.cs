@@ -13,14 +13,16 @@ public class AdminReportService
     private readonly ConfigService _config;
     private readonly INotificationService _notifications;
     private readonly ReservationService _reservationService;
+    private readonly IWechatService _wechat;
 
-    public AdminReportService(IAppDbContext db, IAuditService audit, ConfigService config, INotificationService notifications, ReservationService reservationService)
+    public AdminReportService(IAppDbContext db, IAuditService audit, ConfigService config, INotificationService notifications, ReservationService reservationService, IWechatService wechat)
     {
         _db = db;
         _audit = audit;
         _config = config;
         _notifications = notifications;
         _reservationService = reservationService;
+        _wechat = wechat;
     }
 
     public async Task<List<ReportDto>> GetReportsAsync(string? status, CancellationToken ct = default)
@@ -31,7 +33,7 @@ public class AdminReportService
             query = query.Where(r => r.Status == parsed);
         }
 
-        return await query
+        var list = await query
             .OrderByDescending(r => r.CreatedAt)
             .Take(200)
             .Select(r => new ReportDto
@@ -50,6 +52,14 @@ public class AdminReportService
                 CreatedAt = r.CreatedAt
             })
             .ToListAsync(ct);
+
+        // 云存储 fileID → 临时 https 链接（供管理端网页查看）
+        foreach (var dto in list.Where(d => !string.IsNullOrEmpty(d.EvidenceUrl) && d.EvidenceUrl!.StartsWith("cloud://")))
+        {
+            dto.EvidenceUrl = await _wechat.GetTempFileUrlAsync(dto.EvidenceUrl!, ct);
+        }
+
+        return list;
     }
 
     public async Task HandleAsync(long reportId, ReportStatus status, string? note, long operatorId, CancellationToken ct = default)
