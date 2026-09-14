@@ -11,9 +11,7 @@
 					<text class="status" :class="'st-' + book.status">{{statusText(book.status)}}</text>
 					<text class="meta" v-if="book.totalMinutes">已读 {{book.totalMinutes}} 分钟</text>
 				</view>
-				<picker :range="venueNames" @change="onVenueChange">
-					<text class="venue" :class="{ 'venue-editable': true }">📍 {{book.venueName || '选择阅读场馆'}} ›</text>
-				</picker>
+				<OptionPicker :range="venueNames" :value="-1" :placeholder="book.venueName || '选择阅读场馆'" title="选择阅读场馆" @change="onVenueChange" />
 			</view>
 		</view>
 
@@ -163,8 +161,7 @@
 					} catch (e) {}
 				}
 			},
-			async onVenueChange(e) {
-				const idx = Number(e.detail.value)
+			async onVenueChange(idx) {
 				const v = this.venues[idx]
 				if (!v) return
 				try {

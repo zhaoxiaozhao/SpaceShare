@@ -116,13 +116,11 @@
 					<input class="num-input" type="number" v-model="editForm.totalPages" placeholder="可选" />
 				</view>
 				<input class="modal-input" v-model="editForm.lastPosition" placeholder="上次阅读位置，如：第3章" />
-				<picker class="venue-picker" :range="venueNames" @change="onVenueChange">
-					<view class="venue-picker-box">
-						<text class="venue-picker-label">常阅读场馆</text>
-						<text class="venue-picker-value" :class="{ none: !editForm.venueName }">{{editForm.venueName || '选择（可选）'}}</text>
-						<text class="venue-picker-clear" v-if="editForm.venueId" @click.stop="clearVenue">清除</text>
-					</view>
-				</picker>
+				<view class="venue-picker-row">
+					<text class="venue-picker-label">常阅读场馆</text>
+					<OptionPicker :range="venueNames" :value="-1" :placeholder="editForm.venueName || '选择（可选）'" title="选择阅读场馆" @change="onVenueChange" />
+					<text class="venue-picker-clear" v-if="editForm.venueId" @click="clearVenue">清除</text>
+				</view>
 				<view class="modal-actions">
 					<button class="btn-outline small" @click="editVisible = false">取消</button>
 					<button class="btn-primary small" @click="saveBook">保存</button>
@@ -242,8 +240,7 @@
 					: { title: '', author: '', coverUrl: '', venueId: null, venueName: '', status: 'WantToRead', currentProgress: 0, totalPages: '', lastPosition: '' }
 				this.editVisible = true
 			},
-			onVenueChange(e) {
-				const idx = Number(e.detail.value)
+			onVenueChange(idx) {
 				const v = this.venues[idx]
 				if (v) {
 					this.editForm.venueId = v.id
@@ -372,7 +369,7 @@
 	.num-label { font-size: 24rpx; color: #8A8A86; }
 	.num-input { width: 110rpx; background: #F7F5EF; border-radius: 8rpx; padding: 10rpx; text-align: center; font-size: 26rpx; }
 	.modal-actions { display: flex; gap: 16rpx; justify-content: flex-end; margin-top: 10rpx; }
-	.venue-picker { margin-bottom: 16rpx; }
+	.venue-picker-row { display: flex; align-items: center; gap: 12rpx; margin-bottom: 16rpx; }
 	.venue-picker-box { background: #F7F5EF; border-radius: 12rpx; padding: 16rpx 20rpx; display: flex; align-items: center; gap: 12rpx; }
 	.venue-picker-label { font-size: 26rpx; color: #55554F; }
 	.venue-picker-value { flex: 1; font-size: 26rpx; color: var(--primary); text-align: right; }

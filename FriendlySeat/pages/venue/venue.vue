@@ -249,27 +249,19 @@
 				<text class="wl-hint">提交后系统自动盯，有人释放座位时自动帮您预约。</text>
 				<view class="wl-row">
 					<text class="wl-label">候补偏好</text>
-					<picker :range="wlPrefs" :value="wlPrefIndex" @change="wlPrefIndex = $event.detail.value">
-						<view class="wl-value">{{wlPrefs[wlPrefIndex]}}</view>
-					</picker>
+					<OptionPicker :range="wlPrefs" :value="wlPrefIndex" title="候补偏好" @change="wlPrefIndex = $event" />
 				</view>
 				<view class="wl-row">
 					<text class="wl-label">楼层</text>
-					<picker :range="wlFloorTabs" :value="wlFloorIndex" range-key="name" @change="onWlFloorChange">
-						<view class="wl-value">{{wlFloorTabs[wlFloorIndex].name}}</view>
-					</picker>
+					<OptionPicker :range="wlFloorTabs" range-key="name" :value="wlFloorIndex" title="选择楼层" @change="onWlFloorChange" />
 				</view>
 				<view class="wl-row" v-if="wlAreas.length">
 					<text class="wl-label">区域</text>
-					<picker :range="wlAreas" :value="wlAreaIndex" @change="wlAreaIndex = $event.detail.value">
-						<view class="wl-value">{{wlAreas[wlAreaIndex]}}</view>
-					</picker>
+					<OptionPicker :range="wlAreas" :value="wlAreaIndex" title="选择区域" @change="wlAreaIndex = $event" />
 				</view>
 				<view class="wl-row">
 					<text class="wl-label">候补截止</text>
-					<picker :range="wlExpireOptions" :value="wlExpireIndex" @change="onWlExpireChange">
-						<view class="wl-value">{{wlExpireOptions[wlExpireIndex]}}</view>
-					</picker>
+					<OptionPicker :range="wlExpireOptions" :value="wlExpireIndex" title="候补截止" @change="onWlExpireChange" />
 				</view>
 				<view class="wl-row" v-if="wlExpireOptions[wlExpireIndex] === '自定义'">
 					<text class="wl-label">截止时间</text>
@@ -874,12 +866,12 @@
 				this.wlCustomTime = ''
 				this.wlPicker = true
 			},
-			onWlFloorChange(e) {
-				this.wlFloorIndex = Number(e.detail.value)
+			onWlFloorChange(idx) {
+				this.wlFloorIndex = Number(idx)
 				this.wlAreaIndex = 0
 			},
-			onWlExpireChange(e) {
-				this.wlExpireIndex = Number(e.detail.value)
+			onWlExpireChange(idx) {
+				this.wlExpireIndex = Number(idx)
 				if (this.wlExpireOptions[this.wlExpireIndex] === '自定义' && !this.wlCustomTime) {
 					const t = new Date(Date.now() + 60 * 60 * 1000)
 					const pad = (n) => (n < 10 ? '0' + n : '' + n)

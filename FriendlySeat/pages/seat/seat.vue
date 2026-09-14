@@ -88,20 +88,12 @@
 				<text class="swap-pop-hint">对方座位 {{seatSwap.seatCode}} · 想换到 {{wantText(seatSwap)}}</text>
 				<text class="swap-lb">选择我的座位</text>
 				<view class="swap-loc-row">
-					<picker mode="selector" :range="respFloors" range-key="name" :value="resp.floor" @change="onResp('floor', $event)">
-						<view class="swap-pick">{{respFloorText}}</view>
-					</picker>
-					<picker mode="selector" :range="respAreas" range-key="name" :value="resp.area" @change="onResp('area', $event)">
-						<view class="swap-pick">{{respAreaText}}</view>
-					</picker>
+					<OptionPicker :range="respFloors" range-key="name" :value="resp.floor" title="选择楼层" @change="onResp('floor', $event)" />
+					<OptionPicker :range="respAreas" range-key="name" :value="resp.area" title="选择区域" @change="onResp('area', $event)" />
 				</view>
 				<view class="swap-loc-row" style="margin-top: 14rpx;">
-					<picker mode="selector" :range="respZones" range-key="name" :value="resp.zone" @change="onResp('zone', $event)">
-						<view class="swap-pick">{{respZoneText}}</view>
-					</picker>
-					<picker mode="selector" :range="respSeats" range-key="name" :value="resp.seat" @change="onResp('seat', $event)">
-						<view class="swap-pick">{{respSeatText}}</view>
-					</picker>
+					<OptionPicker :range="respZones" range-key="name" :value="resp.zone" title="选择区块" @change="onResp('zone', $event)" />
+					<OptionPicker :range="respSeats" range-key="name" :value="resp.seat" title="选择座位" @change="onResp('seat', $event)" />
 				</view>
 				<view class="swap-pop-actions">
 					<button class="btn-outline action-btn" @click="showRespondSwap = false">取消</button>
@@ -121,15 +113,9 @@
 
 				<text class="swap-lb">期望换到（可不限）</text>
 				<view class="swap-loc-row">
-					<picker mode="selector" :range="floorList('want')" range-key="name" :value="want.floor" @change="onLoc('want', 'floor', $event)">
-						<view class="swap-pick">{{pickText('want', 'floor')}}</view>
-					</picker>
-					<picker mode="selector" :range="areaOptions('want')" range-key="name" :value="want.area" @change="onLoc('want', 'area', $event)">
-						<view class="swap-pick">{{pickText('want', 'area')}}</view>
-					</picker>
-					<picker mode="selector" :range="zoneOptions('want')" range-key="name" :value="want.zone" @change="onLoc('want', 'zone', $event)">
-						<view class="swap-pick">{{pickText('want', 'zone')}}</view>
-					</picker>
+					<OptionPicker :range="floorList('want')" range-key="name" :value="want.floor" title="选择楼层" @change="onLoc('want', 'floor', $event)" />
+					<OptionPicker :range="areaOptions('want')" range-key="name" :value="want.area" title="选择区域" @change="onLoc('want', 'area', $event)" />
+					<OptionPicker :range="zoneOptions('want')" range-key="name" :value="want.zone" title="选择区块" @change="onLoc('want', 'zone', $event)" />
 				</view>
 				<text class="swap-lb">原因（客观因素，可多选）</text>
 				<view class="swap-reasons">
@@ -450,8 +436,8 @@
 				const o = this.zoneOptions(ctx)[this.want.zone]
 				return o ? o.name : '不限区块'
 			},
-			onLoc(ctx, level, e) {
-				const v = Number(e.detail.value)
+			onLoc(ctx, level, idx) {
+				const v = Number(idx)
 				if (level === 'floor') {
 					this.want.floor = v
 					this.want.area = 0
@@ -510,8 +496,8 @@
 				this.showRespondSwap = true
 				this.loadSwapContext()
 			},
-			onResp(level, e) {
-				const v = Number(e.detail.value)
+			onResp(level, idx) {
+				const v = Number(idx)
 				if (level === 'floor') {
 					this.resp.floor = v
 					this.resp.area = 0

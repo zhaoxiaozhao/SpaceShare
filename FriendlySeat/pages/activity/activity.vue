@@ -9,7 +9,8 @@
 
 		<view v-if="tab === 'discover'" class="cats">
 			<text class="cat" :class="{ on: category === '' }" @click="setCategory('')">全部</text>
-			<text class="cat" :class="{ on: category === c.code }" v-for="c in categoryOptions" :key="c.code" @click="setCategory(c.code)">{{c.label}}</text>
+			<text class="cat" :class="{ on: category === c.code }" v-for="c in visibleCats" :key="c.code" @click="setCategory(c.code)">{{c.label}}</text>
+			<text class="cat cat-toggle" @click="catsExpanded = !catsExpanded">{{catsExpanded ? '收起' : '展开'}}</text>
 		</view>
 
 		<view v-if="list.length">
@@ -43,6 +44,7 @@
 			return {
 				tab: 'discover',
 				category: '',
+				catsExpanded: false,
 				discover: [],
 				joined: [],
 				mine: [],
@@ -50,6 +52,9 @@
 			}
 		},
 		computed: {
+			visibleCats() {
+				return this.catsExpanded ? this.categoryOptions : this.categoryOptions.slice(0, 8)
+			},
 			list() {
 				if (this.tab === 'discover') return this.discover
 				if (this.tab === 'joined') return this.joined
@@ -148,6 +153,11 @@
 	.cat.on {
 		background: var(--primary);
 		color: #fff;
+	}
+	.cat-toggle {
+		background: transparent;
+		color: var(--primary);
+		padding: 8rpx 10rpx;
 	}
 	.act-card {
 		margin-top: 16rpx;

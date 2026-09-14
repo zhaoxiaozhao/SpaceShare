@@ -6,14 +6,10 @@
 			<input class="inp" v-model="form.title" placeholder="例如：周末读书分享会" :maxlength="50" />
 
 			<text class="lb">分类</text>
-			<picker mode="selector" :range="categoryOptions" range-key="label" :value="categoryIdx" @change="categoryIdx = Number($event.detail.value)">
-				<view class="pick">{{categoryOptions[categoryIdx].label}}</view>
-			</picker>
+			<OptionPicker :range="categoryOptions" range-key="label" :value="categoryIdx" title="选择分类" @change="categoryIdx = $event" />
 
 			<text class="lb">场馆（可选）</text>
-			<picker mode="selector" :range="venueOptions" range-key="name" :value="venueIdx" @change="onVenueChange">
-				<view class="pick">{{venueOptions[venueIdx] ? venueOptions[venueIdx].name : '不关联场馆'}}</view>
-			</picker>
+			<OptionPicker :range="venueOptions" range-key="name" :value="venueIdx" title="选择场馆" placeholder="不关联场馆" @change="venueIdx = $event" />
 
 			<text class="lb">具体地点（可选）</text>
 			<input class="inp" v-model="form.locationText" placeholder="例如：3F 主空间 A区" :maxlength="50" />
