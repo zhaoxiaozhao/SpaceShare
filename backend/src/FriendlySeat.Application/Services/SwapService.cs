@@ -15,6 +15,9 @@ public class SwapService
         { "light", "cold", "hot", "noise", "together", "window", "socket", "other" };
     private static readonly int[] AllowedDurations = { 30, 60, 120 };
 
+    /// <summary>匹配达成后该座位的锁定时间（分钟），期间不可再发起/响应换座</summary>
+    private const int MatchedLockMinutes = 30;
+
     private readonly IAppDbContext _db;
     private readonly INotificationService _notifications;
 
@@ -43,6 +46,14 @@ public class SwapService
             throw AppException.BadRequest("reason_required", "请选择至少一个换座原因");
 
         var duration = AllowedDurations.Contains(request.DurationMinutes) ? request.DurationMinutes : 60;
+
+        // 该座位已有进行中的换座，或刚完成换座仍在锁定期
+        var lockCutoff = now.AddMinutes(-MatchedLockMinutes);
+        var seatBusy = await _db.SeatSwapRequests.AnyAsync(r => r.SeatId == seat.Id &&
+            ((r.Status == SeatSwapStatus.Open && r.ExpireAt > now) ||
+             (r.Status == SeatSwapStatus.Matched && r.MatchedAt != null && r.MatchedAt > lockCutoff)), ct);
+        if (seatBusy)
+            throw AppException.Conflict("seat_swap_busy", "该座位已有进行中的换座，请稍后再试");
 
         // 同一用户同时只允许一条进行中的换座意向
         var hasOpen = await _db.SeatSwapRequests
@@ -94,12 +105,15 @@ public class SwapService
         return await BuildViewerAwareAsync(list, viewerUserId, ct);
     }
 
-    /// <summary>取某座位当前进行中的换座意向（供座位详情页判断按钮）</summary>
+    /// <summary>取某座位当前换座意向（进行中，或刚匹配仍在锁定期的），供座位详情页判断按钮</summary>
     public async Task<SeatSwapDto?> GetBySeatAsync(long seatId, long viewerUserId, CancellationToken ct = default)
     {
         var now = DateTime.UtcNow;
+        var lockCutoff = now.AddMinutes(-MatchedLockMinutes);
         var entity = await _db.SeatSwapRequests
-            .Where(r => r.SeatId == seatId && r.Status == SeatSwapStatus.Open && r.ExpireAt > now)
+            .Where(r => r.SeatId == seatId &&
+                ((r.Status == SeatSwapStatus.Open && r.ExpireAt > now) ||
+                 (r.Status == SeatSwapStatus.Matched && r.MatchedAt != null && r.MatchedAt > lockCutoff)))
             .OrderByDescending(r => r.CreatedAt)
             .FirstOrDefaultAsync(ct);
         if (entity is null) return null;

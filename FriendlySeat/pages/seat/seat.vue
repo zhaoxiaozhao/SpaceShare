@@ -63,7 +63,10 @@
 		<!-- 换座 -->
 		<view class="section">
 			<view class="card">
-				<template v-if="seatSwap && seatSwap.isMine">
+				<template v-if="seatSwap && seatSwap.status === 'Matched'">
+					<text class="share-note">该座位刚完成换座，短时间内不可再发起或响应换座。</text>
+				</template>
+				<template v-else-if="seatSwap && seatSwap.isMine">
 					<text class="share-note">你已在此座位发起换座，等待有缘的友邻与你交换。</text>
 					<button class="btn-outline" style="margin-top:20rpx;" @click="cancelSwap">取消换座</button>
 				</template>
