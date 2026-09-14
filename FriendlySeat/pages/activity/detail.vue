@@ -47,11 +47,10 @@
 <script>
 	import { api } from '../../utils/request.js'
 	import { formatTime } from '../../utils/format.js'
-	import { getPageStyle } from '../../utils/theme.js'
 
 	export default {
 		data() {
-			return { id: null, a: null, pageThemeStyle: getPageStyle() }
+			return { id: null, a: null }
 		},
 		computed: {
 			signupClosedText() {
