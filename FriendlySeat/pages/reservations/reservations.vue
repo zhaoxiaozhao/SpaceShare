@@ -524,7 +524,7 @@
 		font-size: 26rpx;
 		font-weight: 600;
 		color: #8A8A86;
-		margin: 24rpx 0 12rpx;
+		margin: 24rpx 20rpx 12rpx;
 	}
 	.chips {
 		display: flex;
