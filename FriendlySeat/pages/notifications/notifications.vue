@@ -66,13 +66,13 @@
 					uni.showToast({ title: '已全部标为已读', icon: 'none' })
 				} catch (e) {}
 			},
-			// 设置底部导航「通知」tab 的未读角标（index=2）
+			// 设置底部导航「通知」tab 的未读角标（index=3）
 			setTabBarBadge(count) {
 				try {
 					if (count > 0) {
-						uni.setTabBarBadge({ index: 2, text: count > 99 ? '99+' : String(count) })
+						uni.setTabBarBadge({ index: 3, text: count > 99 ? '99+' : String(count) })
 					} else {
-						uni.removeTabBarBadge({ index: 2 })
+						uni.removeTabBarBadge({ index: 3 })
 					}
 				} catch (e) {}
 			}

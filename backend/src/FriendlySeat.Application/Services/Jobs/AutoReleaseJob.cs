@@ -203,6 +203,15 @@ public class AutoReleaseJob : IAutoReleaseJob
             s.Status = SeatSwapStatus.Expired;
         }
 
+        // 5.7 已结束活动：已发布且结束时间已过 → Finished
+        var endedActivities = await _db.Activities
+            .Where(a => a.Status == ActivityStatus.Published && a.EndAt < now)
+            .ToListAsync(ct);
+        foreach (var a in endedActivities)
+        {
+            a.Status = ActivityStatus.Finished;
+        }
+
         await _db.SaveChangesAsync(ct);
 
         // 6. 风险晋升检查：风险分达到阈值自动升级处罚（可配置）

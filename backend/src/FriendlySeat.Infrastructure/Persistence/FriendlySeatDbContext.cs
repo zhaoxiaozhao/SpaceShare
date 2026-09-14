@@ -27,6 +27,8 @@ public class FriendlySeatDbContext : DbContext, IAppDbContext
     public DbSet<WaitlistPreference> WaitlistPreferences => Set<WaitlistPreference>();
     public DbSet<SeatSwapRequest> SeatSwapRequests => Set<SeatSwapRequest>();
     public DbSet<SeatSwapResponse> SeatSwapResponses => Set<SeatSwapResponse>();
+    public DbSet<Activity> Activities => Set<Activity>();
+    public DbSet<ActivitySignup> ActivitySignups => Set<ActivitySignup>();
     public DbSet<CreditTransaction> CreditTransactions => Set<CreditTransaction>();
     public DbSet<RiskEvent> RiskEvents => Set<RiskEvent>();
     public DbSet<Report> Reports => Set<Report>();
@@ -113,6 +115,24 @@ public class FriendlySeatDbContext : DbContext, IAppDbContext
 
         modelBuilder.Entity<SeatSwapResponse>()
             .HasIndex(r => r.UserId);
+
+        modelBuilder.Entity<Activity>()
+            .HasIndex(a => new { a.Status, a.StartAt });
+
+        modelBuilder.Entity<Activity>()
+            .HasIndex(a => new { a.CreatorUserId, a.Status });
+
+        modelBuilder.Entity<Activity>()
+            .HasOne(a => a.Creator)
+            .WithMany()
+            .HasForeignKey(a => a.CreatorUserId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<ActivitySignup>()
+            .HasIndex(s => new { s.ActivityId, s.Status });
+
+        modelBuilder.Entity<ActivitySignup>()
+            .HasIndex(s => new { s.UserId, s.Status });
 
         modelBuilder.Entity<UserContact>()
             .HasIndex(c => new { c.UserId, c.ContactType });

@@ -16,6 +16,7 @@ const routes = [
       { path: 'reports', component: () => import('../views/Reports.vue'), meta: { title: '举报管理' } },
       { path: 'config', component: () => import('../views/Config.vue'), meta: { title: '系统配置' } },
       { path: 'swaps', component: () => import('../views/Swaps.vue'), meta: { title: '换座管理' } },
+      { path: 'activities', component: () => import('../views/Activities.vue'), meta: { title: '活动管理' } },
       { path: 'audit', component: () => import('../views/AuditLogs.vue'), meta: { title: '审计日志' } }
     ]
   }

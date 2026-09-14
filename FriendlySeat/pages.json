@@ -45,6 +45,25 @@
 			}
 		},
 		{
+			"path": "pages/activity/activity",
+			"style": {
+				"navigationBarTitleText": "活动",
+				"enablePullDownRefresh": true
+			}
+		},
+		{
+			"path": "pages/activity/detail",
+			"style": {
+				"navigationBarTitleText": "活动详情"
+			}
+		},
+		{
+			"path": "pages/activity/edit",
+			"style": {
+				"navigationBarTitleText": "发布活动"
+			}
+		},
+		{
 			"path": "pages/my/my",
 			"style": {
 				"navigationBarTitleText": "我的"
@@ -171,6 +190,12 @@
 				"text": "预约",
 				"iconPath": "static/tabbar/reserve.png",
 				"selectedIconPath": "static/tabbar/reserve-active.png"
+			},
+			{
+				"pagePath": "pages/activity/activity",
+				"text": "活动",
+				"iconPath": "static/tabbar/activity.png",
+				"selectedIconPath": "static/tabbar/activity-active.png"
 			},
 			{
 				"pagePath": "pages/notifications/notifications",

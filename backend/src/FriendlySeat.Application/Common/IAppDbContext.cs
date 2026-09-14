@@ -23,6 +23,8 @@ public interface IAppDbContext
     DbSet<WaitlistPreference> WaitlistPreferences { get; }
     DbSet<SeatSwapRequest> SeatSwapRequests { get; }
     DbSet<SeatSwapResponse> SeatSwapResponses { get; }
+    DbSet<Activity> Activities { get; }
+    DbSet<ActivitySignup> ActivitySignups { get; }
     DbSet<CreditTransaction> CreditTransactions { get; }
     DbSet<RiskEvent> RiskEvents { get; }
     DbSet<Report> Reports { get; }

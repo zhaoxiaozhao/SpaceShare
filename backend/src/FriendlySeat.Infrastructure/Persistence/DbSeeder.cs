@@ -335,6 +335,51 @@ CREATE TABLE `SeatSwapResponses` (
   CONSTRAINT `FK_SeatSwapResponses_Users_UserId` FOREIGN KEY (`UserId`) REFERENCES `Users` (`Id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
         }
+
+        // 活动表 Activities / ActivitySignups：已有库补建表
+        if (!await tableExists("Activities"))
+        {
+            logger.LogInformation("MySQL 补建活动表（Activities/ActivitySignups）");
+            await db.Database.ExecuteSqlRawAsync(@"
+CREATE TABLE `Activities` (
+  `Id` bigint NOT NULL AUTO_INCREMENT,
+  `CreatorUserId` bigint NOT NULL,
+  `Title` longtext NOT NULL,
+  `Category` longtext NOT NULL,
+  `VenueId` bigint NULL,
+  `LocationText` longtext NULL,
+  `StartAt` datetime(6) NOT NULL,
+  `EndAt` datetime(6) NOT NULL,
+  `SignupDeadline` datetime(6) NULL,
+  `Capacity` int NOT NULL,
+  `Description` longtext NOT NULL,
+  `Status` int NOT NULL,
+  `ReviewRemark` longtext NULL,
+  `ReviewedAt` datetime(6) NULL,
+  `CreatedAt` datetime(6) NOT NULL,
+  `UpdatedAt` datetime(6) NOT NULL,
+  PRIMARY KEY (`Id`),
+  KEY `IX_Activities_CreatorUserId_Status` (`CreatorUserId`, `Status`),
+  KEY `IX_Activities_Status_StartAt` (`Status`, `StartAt`),
+  KEY `IX_Activities_VenueId` (`VenueId`),
+  CONSTRAINT `FK_Activities_Users_CreatorUserId` FOREIGN KEY (`CreatorUserId`) REFERENCES `Users` (`Id`) ON DELETE CASCADE,
+  CONSTRAINT `FK_Activities_Venues_VenueId` FOREIGN KEY (`VenueId`) REFERENCES `Venues` (`Id`) ON DELETE RESTRICT
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
+
+            await db.Database.ExecuteSqlRawAsync(@"
+CREATE TABLE `ActivitySignups` (
+  `Id` bigint NOT NULL AUTO_INCREMENT,
+  `ActivityId` bigint NOT NULL,
+  `UserId` bigint NOT NULL,
+  `Status` int NOT NULL,
+  `CreatedAt` datetime(6) NOT NULL,
+  PRIMARY KEY (`Id`),
+  KEY `IX_ActivitySignups_ActivityId_Status` (`ActivityId`, `Status`),
+  KEY `IX_ActivitySignups_UserId_Status` (`UserId`, `Status`),
+  CONSTRAINT `FK_ActivitySignups_Activities_ActivityId` FOREIGN KEY (`ActivityId`) REFERENCES `Activities` (`Id`) ON DELETE CASCADE,
+  CONSTRAINT `FK_ActivitySignups_Users_UserId` FOREIGN KEY (`UserId`) REFERENCES `Users` (`Id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
+        }
     }
 
     // 检测某表中是否存在某列

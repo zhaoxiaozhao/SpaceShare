@@ -68,3 +68,9 @@ export const swapApi = {
   list: (status) => request.get(`/swaps?status=${status || ''}`),
   takeDown: (id) => request.post(`/swaps/${id}/take-down`)
 }
+
+export const activityApi = {
+  list: (status) => request.get(`/activities?status=${status || ''}`),
+  review: (id, approve, remark) => request.post(`/activities/${id}/review`, { approve, remark }),
+  takeDown: (id) => request.post(`/activities/${id}/take-down`)
+}

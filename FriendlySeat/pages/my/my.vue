@@ -102,9 +102,9 @@
 			setTabBarBadge(count) {
 				try {
 					if (count > 0) {
-						uni.setTabBarBadge({ index: 2, text: count > 99 ? '99+' : String(count) })
+						uni.setTabBarBadge({ index: 3, text: count > 99 ? '99+' : String(count) })
 					} else {
-						uni.removeTabBarBadge({ index: 2 })
+						uni.removeTabBarBadge({ index: 3 })
 					}
 				} catch (e) {}
 			},

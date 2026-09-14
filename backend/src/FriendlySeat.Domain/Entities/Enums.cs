@@ -221,3 +221,18 @@ public enum SeatSwapResponseStatus
     Accepted,
     Rejected
 }
+
+public enum ActivityStatus
+{
+    PendingReview,
+    Published,
+    Rejected,
+    Cancelled,
+    Finished
+}
+
+public enum ActivitySignupStatus
+{
+    Joined,
+    Cancelled
+}
