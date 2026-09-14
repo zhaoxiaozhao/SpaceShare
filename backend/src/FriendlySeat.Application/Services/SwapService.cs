@@ -11,8 +11,6 @@ namespace FriendlySeat.Application.Services;
 /// </summary>
 public class SwapService
 {
-    private static readonly string[] ValidReasons =
-        { "light", "cold", "hot", "noise", "together", "window", "socket", "other" };
     private static readonly int[] AllowedDurations = { 30, 60, 120 };
 
     /// <summary>匹配达成后该座位的锁定时间（分钟），期间不可再发起/响应换座</summary>
@@ -20,11 +18,13 @@ public class SwapService
 
     private readonly IAppDbContext _db;
     private readonly INotificationService _notifications;
+    private readonly ConfigOptionsService _configOptions;
 
-    public SwapService(IAppDbContext db, INotificationService notifications)
+    public SwapService(IAppDbContext db, INotificationService notifications, ConfigOptionsService configOptions)
     {
         _db = db;
         _notifications = notifications;
+        _configOptions = configOptions;
     }
 
     public async Task<SeatSwapDto> CreateAsync(long userId, SeatSwapCreateRequest request, CancellationToken ct = default)
@@ -38,8 +38,9 @@ public class SwapService
 
         await ValidateWantLocationAsync(venueId, request.WantFloorId, request.WantAreaId, request.WantZoneId, ct);
 
+        var reasonCodes = (await _configOptions.GetSwapReasonsAsync(ct)).Select(r => r.Code).ToHashSet();
         var reasons = (request.Reasons ?? new List<string>())
-            .Where(r => ValidReasons.Contains(r))
+            .Where(r => reasonCodes.Contains(r))
             .Distinct()
             .ToList();
         if (reasons.Count == 0)

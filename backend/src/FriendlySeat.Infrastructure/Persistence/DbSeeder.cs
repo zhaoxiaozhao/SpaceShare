@@ -1,3 +1,4 @@
+using FriendlySeat.Application.Services;
 using FriendlySeat.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -55,7 +56,10 @@ public static class DbSeeder
                 new SystemConfig { Category = ConfigCategory.NotificationTemplates, ConfigKey = "waitlist_available", Value = "", Description = "候补成功通知 模板ID" },
                 new SystemConfig { Category = ConfigCategory.NotificationTemplates, ConfigKey = "credit_changed", Value = "", Description = "信用变更通知 模板ID" },
                 new SystemConfig { Category = ConfigCategory.NotificationTemplates, ConfigKey = "report_result", Value = "", Description = "举报处理结果通知 模板ID" },
-                new SystemConfig { Category = ConfigCategory.NotificationTemplates, ConfigKey = "system", Value = "", Description = "系统通知 模板ID" }
+                new SystemConfig { Category = ConfigCategory.NotificationTemplates, ConfigKey = "system", Value = "", Description = "系统通知 模板ID" },
+                new SystemConfig { Category = ConfigCategory.ActivityCategories, ConfigKey = "list", Value = ConfigOptionsService.DefaultActivityCategories, Description = "活动分类（JSON 数组）" },
+                new SystemConfig { Category = ConfigCategory.SwapReasons, ConfigKey = "list", Value = ConfigOptionsService.DefaultSwapReasons, Description = "换座原因（JSON 数组）" },
+                new SystemConfig { Category = ConfigCategory.SeatTags, ConfigKey = "list", Value = ConfigOptionsService.DefaultSeatTags, Description = "座位标签（JSON 数组）" }
             });
             await db.SaveChangesAsync();
         }
@@ -149,6 +153,11 @@ public static class DbSeeder
             });
             await db.SaveChangesAsync();
         }
+
+        // 可配置选项（活动分类/换座原因/座位标签）：确保存在
+        await EnsureConfigRowAsync(db, ConfigCategory.ActivityCategories, ConfigOptionsService.DefaultActivityCategories, "活动分类（JSON 数组）");
+        await EnsureConfigRowAsync(db, ConfigCategory.SwapReasons, ConfigOptionsService.DefaultSwapReasons, "换座原因（JSON 数组）");
+        await EnsureConfigRowAsync(db, ConfigCategory.SeatTags, ConfigOptionsService.DefaultSeatTags, "座位标签（JSON 数组）");
 
         logger.LogInformation("数据库初始化完成");
     }
@@ -420,5 +429,19 @@ CREATE TABLE `ActivitySignups` (
         {
             if (open) await conn.CloseAsync();
         }
+    }
+
+    // 确保某配置分类存在一行默认配置（ConfigKey=list）
+    private static async Task EnsureConfigRowAsync(FriendlySeatDbContext db, ConfigCategory category, string value, string description)
+    {
+        if (await db.SystemConfigs.AnyAsync(c => c.Category == category)) return;
+        db.SystemConfigs.Add(new SystemConfig
+        {
+            Category = category,
+            ConfigKey = "list",
+            Value = value,
+            Description = description
+        });
+        await db.SaveChangesAsync();
     }
 }

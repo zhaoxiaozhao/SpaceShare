@@ -171,6 +171,7 @@
 <script>
 	import { api } from '../../utils/request.js'
 	import { formatTime, statusText } from '../../utils/format.js'
+	import { getAppOptions, optionLabel } from '../../utils/options.js'
 
 	export default {
 		data() {
@@ -330,8 +331,8 @@
 				uni.navigateTo({ url: `/pages/seat/seat?id=${w.seatId}` })
 			},
 			prefText(p) {
-				const map = { none: '不限', window: '靠窗', socket: '有插座', quiet: '安静' }
-				return map[p] || p || '不限'
+				if (!p || p === 'none') return '不限'
+				return optionLabel(getAppOptions().seatTags, p)
 			},
 			prefStatusText(s) {
 				const map = { Active: '候补中', Booked: '已预约', Cancelled: '已取消', Expired: '已过期' }
@@ -361,11 +362,7 @@
 				return map[s] || s
 			},
 			reasonLabel(code) {
-				const map = {
-					light: '光线问题', cold: '位置偏冷', hot: '位置偏热', noise: '附近有人交谈',
-					together: '想与同伴相邻', window: '想靠窗', socket: '需要插座', other: '其他'
-				}
-				return map[code] || code
+				return optionLabel(getAppOptions().swapReasons, code)
 			},
 			locText(s) {
 				const parts = [s.floorName, s.areaName, s.zoneName].filter(Boolean)

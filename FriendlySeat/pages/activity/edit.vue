@@ -69,7 +69,7 @@
 <script>
 	import { api } from '../../utils/request.js'
 	import { uploadImage, getTempFileUrl } from '../../utils/profile.js'
-	import { ACTIVITY_CATEGORIES } from '../../utils/activity.js'
+	import { getActivityCategories } from '../../utils/activity.js'
 
 	function pad(n) { return n < 10 ? '0' + n : '' + n }
 	function parts(iso) {
@@ -85,7 +85,6 @@
 				id: null,
 				submitting: false,
 				form: { title: '', locationText: '', capacity: 20, description: '', coverImage: '' },
-				categoryOptions: ACTIVITY_CATEGORIES,
 				categoryIdx: 0,
 				venueOptions: [{ id: null, name: '不关联场馆' }],
 				venueIdx: 0,
@@ -96,6 +95,11 @@
 				endTime: '12:00',
 				deadlineDate: '',
 				deadlineTime: '23:59'
+			}
+		},
+		computed: {
+			categoryOptions() {
+				return getActivityCategories()
 			}
 		},
 		onLoad(options) {

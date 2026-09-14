@@ -71,13 +71,13 @@
 	import { api } from '../../utils/request.js'
 	import { subscribeFor } from '../../utils/subscribe.js'
 	import { formatTime } from '../../utils/format.js'
+	import { getAppOptions } from '../../utils/options.js'
 
 	export default {
 		data() {
 			return {
 				seatId: null,
 				seatInfo: null,
-				noteOptions: ['靠窗', '有插座', '安静', '光线好'],
 				selectedTags: [],
 				duration: 1,
 					customTime: '', // 自定义预计离开时刻 "HH:mm"
@@ -85,6 +85,10 @@
 				}
 			},
 		computed: {
+			// 座位标签（后台可配置）
+			noteOptions() {
+				return getAppOptions().seatTags.map(t => t.label)
+			},
 			durationOptions() {
 				return [1, 2, 3, 4, 5, 6, 7, 8]
 			},

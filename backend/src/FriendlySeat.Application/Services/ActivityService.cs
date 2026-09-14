@@ -10,20 +10,19 @@ namespace FriendlySeat.Application.Services;
 /// </summary>
 public class ActivityService
 {
-    private static readonly string[] ValidCategories =
-        { "reading", "lecture", "exhibition", "study", "kaoyan", "kaogong", "ai", "coding", "sharing", "workshop", "film", "music", "art", "sports", "competition", "volunteer", "other" };
-
     private readonly IAppDbContext _db;
     private readonly INotificationService _notifications;
     private readonly SensitiveWordService _sensitive;
     private readonly IWechatService _wechat;
+    private readonly ConfigOptionsService _configOptions;
 
-    public ActivityService(IAppDbContext db, INotificationService notifications, SensitiveWordService sensitive, IWechatService wechat)
+    public ActivityService(IAppDbContext db, INotificationService notifications, SensitiveWordService sensitive, IWechatService wechat, ConfigOptionsService configOptions)
     {
         _db = db;
         _notifications = notifications;
         _sensitive = sensitive;
         _wechat = wechat;
+        _configOptions = configOptions;
     }
 
     public async Task<ActivityDto> CreateAsync(long userId, ActivityCreateRequest request, CancellationToken ct = default)
@@ -36,7 +35,7 @@ public class ActivityService
         {
             CreatorUserId = userId,
             Title = request.Title.Trim(),
-            Category = ValidCategories.Contains(request.Category) ? request.Category : "other",
+            Category = await ResolveCategoryAsync(request.Category, ct),
             VenueId = request.VenueId,
             LocationText = string.IsNullOrWhiteSpace(request.LocationText) ? null : request.LocationText.Trim(),
             StartAt = request.StartAt,
@@ -68,7 +67,7 @@ public class ActivityService
         await EnsureContentSafeAsync(userId, request, ct);
 
         activity.Title = request.Title.Trim();
-        activity.Category = ValidCategories.Contains(request.Category) ? request.Category : "other";
+        activity.Category = await ResolveCategoryAsync(request.Category, ct);
         activity.VenueId = request.VenueId;
         activity.LocationText = string.IsNullOrWhiteSpace(request.LocationText) ? null : request.LocationText.Trim();
         activity.StartAt = request.StartAt;
@@ -103,8 +102,11 @@ public class ActivityService
     {
         var now = DateTime.UtcNow;
         var q = _db.Activities.Where(a => a.Status == ActivityStatus.Published && a.EndAt > now);
-        if (!string.IsNullOrWhiteSpace(category) && ValidCategories.Contains(category))
-            q = q.Where(a => a.Category == category);
+        if (!string.IsNullOrWhiteSpace(category))
+        {
+            var codes = (await _configOptions.GetActivityCategoriesAsync(ct)).Select(c => c.Code).ToHashSet();
+            if (codes.Contains(category)) q = q.Where(a => a.Category == category);
+        }
 
         var list = await q.OrderBy(a => a.StartAt).Take(100).ToListAsync(ct);
         return await BuildDtosAsync(list, viewerUserId, includeSignups: false, ct);
@@ -237,6 +239,14 @@ public class ActivityService
     }
 
     // ---- 内部辅助 ----
+
+    private async Task<string> ResolveCategoryAsync(string? category, CancellationToken ct)
+    {
+        var cats = await _configOptions.GetActivityCategoriesAsync(ct);
+        var codes = cats.Select(c => c.Code).ToHashSet();
+        if (!string.IsNullOrWhiteSpace(category) && codes.Contains(category)) return category!;
+        return codes.Contains("other") ? "other" : (cats.FirstOrDefault()?.Code ?? "other");
+    }
 
     private async Task EnsureContentSafeAsync(long userId, ActivityCreateRequest request, CancellationToken ct)
     {

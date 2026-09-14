@@ -103,6 +103,7 @@ public static class DependencyInjection
         services.AddScoped<IAppDbContext>(sp => sp.GetRequiredService<FriendlySeatDbContext>());
 
         services.AddScoped<ConfigService>();
+        services.AddScoped<ConfigOptionsService>();
         services.AddScoped<AuthService>();
         services.AddScoped<UserService>();
         services.AddScoped<VenueService>();

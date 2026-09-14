@@ -160,7 +160,10 @@ public enum ConfigCategory
     ArrivalRules,
     ImageRules,
     SensitiveWords,
-    NotificationTemplates
+    NotificationTemplates,
+    ActivityCategories,
+    SwapReasons,
+    SeatTags
 }
 
 public enum StudyType

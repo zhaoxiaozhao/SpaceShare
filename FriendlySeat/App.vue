@@ -2,6 +2,7 @@
 	import { api } from './utils/request.js'
 	import { CLOUD_ENV, USE_CLOUD } from './utils/config.js'
 	import { getTheme, getSeasonKey } from './utils/theme.js'
+	import { refreshAppOptions } from './utils/options.js'
 
 	export default {
 		onLaunch: function() {
@@ -21,6 +22,9 @@
 
 			// 四季主题：动态设置底部导航颜色与图标（页面内容色由 page-meta 注入变量）
 			this.applySeasonTheme()
+
+			// 拉取可配置选项（活动分类/换座原因/座位标签）
+			refreshAppOptions()
 
 			const token = uni.getStorageSync('token')
 			if (token) {

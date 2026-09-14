@@ -136,6 +136,7 @@
 
 <script>
 	import { api } from '../../utils/request.js'
+	import { getAppOptions } from '../../utils/options.js'
 	import { formatTime, statusText } from '../../utils/format.js'
 	import { subscribeFor } from '../../utils/subscribe.js'
 
@@ -159,15 +160,6 @@
 				responding: false,
 				resp: { floor: 0, area: 0, zone: 0, seat: 0 },
 				want: { floor: 0, area: 0, zone: 0 },
-				reasonOptions: [
-					{ code: 'light', label: '光线问题' },
-					{ code: 'cold', label: '位置偏冷' },
-					{ code: 'hot', label: '位置偏热' },
-					{ code: 'noise', label: '附近有人交谈' },
-					{ code: 'window', label: '想靠窗' },
-					{ code: 'socket', label: '需要插座' },
-					{ code: 'other', label: '其他' }
-				],
 				durationOptions: [
 					{ label: '30分钟', value: 30 },
 					{ label: '1小时', value: 60 },
@@ -199,6 +191,10 @@
 			this.load()
 		},
 		computed: {
+			// 换座原因（后台可配置）
+			reasonOptions() {
+				return getAppOptions().swapReasons
+			},
 			// 统一的座位编号展示：楼层-区块区-序号（如 3F-A区-001）
 			seatCodeText() {
 				const s = this.seat

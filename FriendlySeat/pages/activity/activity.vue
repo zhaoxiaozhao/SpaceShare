@@ -37,7 +37,7 @@
 <script>
 	import { api } from '../../utils/request.js'
 	import { formatTime } from '../../utils/format.js'
-	import { ACTIVITY_CATEGORIES, activityCategoryLabel } from '../../utils/activity.js'
+	import { getActivityCategories, activityCategoryLabel } from '../../utils/activity.js'
 
 	export default {
 		data() {
@@ -47,11 +47,13 @@
 				catsExpanded: false,
 				discover: [],
 				joined: [],
-				mine: [],
-				categoryOptions: ACTIVITY_CATEGORIES
+				mine: []
 			}
 		},
 		computed: {
+			categoryOptions() {
+				return getActivityCategories()
+			},
 			visibleCats() {
 				return this.catsExpanded ? this.categoryOptions : this.categoryOptions.slice(0, 8)
 			},

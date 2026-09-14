@@ -158,6 +158,7 @@ export const api = {
 	markNotificationsRead: () => request('/me/notifications/read', { method: 'POST' }),
 	getUnreadCount: () => request('/me/notifications/unread-count'),
 	getSubscribeTemplates: () => request('/me/subscribe-templates'),
+	getAppOptions: () => request('/options', { auth: false }),
 	getAds: (placement) => request(`/ads?placement=${placement || 'home_feed'}`, { auth: false }),
 	createReport: (data) => request('/reports', { method: 'POST', data }),
 	getMyReports: () => request('/reports/my'),

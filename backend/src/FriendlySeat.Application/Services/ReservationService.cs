@@ -599,6 +599,7 @@ public class ReservationService
             "window" => seat.Window,
             "socket" => seat.PowerSocket,
             "quiet" => seat.QuietLevel == 3,
+            "light" => seat.LightLevel == 3,
             _ => true
         };
     }

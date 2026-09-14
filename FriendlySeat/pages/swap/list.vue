@@ -23,21 +23,17 @@
 
 <script>
 	import { api } from '../../utils/request.js'
+	import { getAppOptions } from '../../utils/options.js'
 
 	export default {
 		data() {
 			return {
-				list: [],
-				reasonOptions: [
-					{ code: 'light', label: '光线问题' },
-					{ code: 'cold', label: '位置偏冷' },
-					{ code: 'hot', label: '位置偏热' },
-					{ code: 'noise', label: '附近有人交谈' },
-					{ code: 'together', label: '想与同伴相邻' },
-					{ code: 'window', label: '想靠窗' },
-					{ code: 'socket', label: '需要插座' },
-					{ code: 'other', label: '其他' }
-				]
+				list: []
+			}
+		},
+		computed: {
+			reasonOptions() {
+				return getAppOptions().swapReasons
 			}
 		},
 		onLoad() {

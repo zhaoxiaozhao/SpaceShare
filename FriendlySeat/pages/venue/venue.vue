@@ -282,6 +282,7 @@
 	import { api } from '../../utils/request.js'
 	import { formatTime, statusText } from '../../utils/format.js'
 	import { getTheme } from '../../utils/theme.js'
+	import { getAppOptions } from '../../utils/options.js'
 	import { subscribeFor } from '../../utils/subscribe.js'
 
 	export default {
@@ -299,7 +300,6 @@
 				wlFloorIndex: 0,
 				wlAreaIndex: 0,
 				wlSubmitting: false,
-				wlPrefs: ['不限', '靠窗', '有插座', '安静'],
 				wlExpireIndex: 1,
 				wlExpireOptions: ['1小时后', '2小时后', '3小时后', '4小时后', '今天结束', '自定义'],
 				wlCustomTime: ''
@@ -308,6 +308,10 @@
 		computed: {
 			seasonPrimary() {
 				return getTheme().primary
+			},
+			// 候补偏好选项：不限 + 可配置座位标签
+			wlPrefs() {
+				return ['不限'].concat(getAppOptions().seatTags.map(t => t.label))
 			},
 			waitlistIconStyle() {
 				return this.seasonIconBg(`<path fill='none' stroke='${this.seasonPrimary}' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round' d='M12 6v6l4 2'/><circle cx='12' cy='12' r='9' fill='none' stroke='${this.seasonPrimary}' stroke-width='1.8'/>`)
@@ -897,7 +901,8 @@
 				if (this.wlSubmitting) return
 				const floor = this.wlFloorTabs[this.wlFloorIndex] || null
 				const areaName = this.wlAreas[this.wlAreaIndex] || '全部区域'
-				const prefMap = { '不限': 'none', '靠窗': 'window', '有插座': 'socket', '安静': 'quiet' }
+				const prefLabel = this.wlPrefs[this.wlPrefIndex]
+				const prefCode = prefLabel === '不限' ? 'none' : ((getAppOptions().seatTags.find(t => t.label === prefLabel) || {}).code || 'none')
 				let areaId = null
 				if (floor && floor.id) {
 					const fullFloor = this.venue.floors.find(f => f.id === floor.id)
@@ -922,7 +927,7 @@
 					venueId: Number(this.id),
 					floorId: floor && floor.id ? floor.id : null,
 					areaId,
-					preference: prefMap[this.wlPrefs[this.wlPrefIndex]] || 'none',
+					preference: prefCode,
 					expireAt: expireAt.toISOString()
 				}).then(() => {
 					this.wlPicker = false
