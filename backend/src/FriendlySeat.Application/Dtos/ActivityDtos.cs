@@ -11,6 +11,9 @@ public class ActivityCreateRequest
     public DateTime? SignupDeadline { get; set; }
     public int Capacity { get; set; } = 20;
     public string Description { get; set; } = string.Empty;
+
+    /// <summary>活动海报（微信云存储 fileID）</summary>
+    public string? CoverImage { get; set; }
 }
 
 public class ActivityReviewRequest
@@ -44,6 +47,10 @@ public class ActivityDto
     public int Capacity { get; set; }
     public int SignupCount { get; set; }
     public string Description { get; set; } = string.Empty;
+
+    /// <summary>活动海报（微信云存储 fileID）</summary>
+    public string? CoverImage { get; set; }
+
     public string Status { get; set; } = string.Empty;
     public string? ReviewRemark { get; set; }
     public DateTime CreatedAt { get; set; }

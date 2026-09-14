@@ -10,13 +10,18 @@ export function randomNickname() {
 }
 
 export function uploadAvatar(filePath) {
+	return uploadImage(filePath, 'avatars')
+}
+
+// 通用：上传图片到云存储，返回 fileID
+export function uploadImage(filePath, folder = 'uploads') {
 	return new Promise((resolve, reject) => {
 		if (!wx || !wx.cloud) {
 			reject(new Error('当前环境不支持云存储'))
 			return
 		}
 		const ext = (filePath.match(/\.(\w+)$/) || [, 'png'])[1]
-		const cloudPath = `avatars/${Date.now()}-${Math.floor(Math.random() * 100000)}.${ext}`
+		const cloudPath = `${folder}/${Date.now()}-${Math.floor(Math.random() * 100000)}.${ext}`
 		wx.cloud.uploadFile({
 			cloudPath,
 			filePath,
@@ -25,6 +30,31 @@ export function uploadAvatar(filePath) {
 			},
 			success: (res) => resolve(res.fileID),
 			fail: (err) => reject(err)
+		})
+	})
+}
+
+// 云存储 fileID 转临时 https 链接（用于分享卡片图片等）
+export function getTempFileUrl(fileID) {
+	return new Promise((resolve) => {
+		if (!fileID || !wx || !wx.cloud) {
+			resolve('')
+			return
+		}
+		if (!String(fileID).startsWith('cloud://')) {
+			resolve(fileID)
+			return
+		}
+		wx.cloud.getTempFileURL({
+			fileList: [fileID],
+			config: {
+				env: CLOUD_ENV
+			},
+			success: (res) => {
+				const f = res.fileList && res.fileList[0]
+				resolve(f && f.tempFileURL ? f.tempFileURL : '')
+			},
+			fail: () => resolve('')
 		})
 	})
 }

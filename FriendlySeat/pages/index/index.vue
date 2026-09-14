@@ -80,6 +80,7 @@
 				<text class="sec-more" @click="goActivities">更多</text>
 			</view>
 			<view class="card act-card" v-for="a in activities" :key="a.id" @click="goActivity(a.id)">
+				<image v-if="a.coverImage" class="act-cover" :src="a.coverImage" mode="aspectFill" />
 				<text class="act-title">{{a.title}}</text>
 				<text class="act-meta">{{formatTime(a.startAt)}}<text v-if="a.venueName"> · {{a.venueName}}</text></text>
 				<view class="act-top">
@@ -444,6 +445,12 @@
 	}
 	.act-card {
 		margin-top: 12rpx;
+	}
+	.act-cover {
+		width: 100%;
+		height: 260rpx;
+		border-radius: 12rpx;
+		margin-bottom: 14rpx;
 	}
 	.act-top {
 		display: flex;

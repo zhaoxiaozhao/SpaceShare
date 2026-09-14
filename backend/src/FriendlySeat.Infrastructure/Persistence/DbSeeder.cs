@@ -353,6 +353,7 @@ CREATE TABLE `Activities` (
   `SignupDeadline` datetime(6) NULL,
   `Capacity` int NOT NULL,
   `Description` longtext NOT NULL,
+  `CoverImage` longtext NULL,
   `Status` int NOT NULL,
   `ReviewRemark` longtext NULL,
   `ReviewedAt` datetime(6) NULL,
@@ -379,6 +380,13 @@ CREATE TABLE `ActivitySignups` (
   CONSTRAINT `FK_ActivitySignups_Activities_ActivityId` FOREIGN KEY (`ActivityId`) REFERENCES `Activities` (`Id`) ON DELETE CASCADE,
   CONSTRAINT `FK_ActivitySignups_Users_UserId` FOREIGN KEY (`UserId`) REFERENCES `Users` (`Id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
+        }
+
+        // Activities.CoverImage 列（活动海报）：已有表补列
+        if (await tableExists("Activities") && !await ColumnExistsAsync(db, "Activities", "CoverImage"))
+        {
+            logger.LogInformation("MySQL 补充 Activities.CoverImage 列（活动海报）");
+            await db.Database.ExecuteSqlRawAsync("ALTER TABLE `Activities` ADD COLUMN `CoverImage` longtext NULL;");
         }
     }
 

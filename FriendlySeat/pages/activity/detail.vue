@@ -2,6 +2,7 @@
 	<page-meta :page-style="pageThemeStyle" />
 	<view class="page" v-if="a">
 		<view class="card">
+			<image v-if="a.coverImage" class="cover" :src="a.coverImage" mode="aspectFill" @click="previewCover" />
 			<view class="act-top">
 				<text class="act-cat">{{categoryLabel(a.category)}}</text>
 				<text class="act-status" :class="'st-' + a.status.toLowerCase()">{{statusText(a.status)}}</text>
@@ -40,6 +41,8 @@
 				<button v-else class="btn-outline" disabled>{{signupClosedText}}</button>
 			</template>
 		</view>
+
+		<button class="btn-outline share-btn" open-type="share">分享给好友 / 朋友圈</button>
 	</view>
 	<view v-else class="empty">活动不存在或已结束</view>
 </template>
@@ -47,10 +50,11 @@
 <script>
 	import { api } from '../../utils/request.js'
 	import { formatTime } from '../../utils/format.js'
+	import { getTempFileUrl } from '../../utils/profile.js'
 
 	export default {
 		data() {
-			return { id: null, a: null }
+			return { id: null, a: null, shareImage: '' }
 		},
 		computed: {
 			signupClosedText() {
@@ -68,13 +72,26 @@
 		},
 		onShareAppMessage() {
 			const a = this.a
-			return { title: a ? a.title : '友邻座活动', path: `/pages/activity/detail?id=${this.id}` }
+			return {
+				title: a ? a.title : '友邻座活动',
+				path: `/pages/activity/detail?id=${this.id}`,
+				imageUrl: this.shareImage || undefined
+			}
+		},
+		onShareTimeline() {
+			const a = this.a
+			return {
+				title: a ? a.title : '友邻座活动',
+				query: `id=${this.id}`,
+				imageUrl: this.shareImage || undefined
+			}
 		},
 		methods: {
 			formatTime,
 			async load() {
 				try {
 					this.a = await api.getActivity(this.id)
+					this.shareImage = await getTempFileUrl(this.a && this.a.coverImage)
 				} catch (e) {
 					this.a = null
 				}
@@ -92,6 +109,11 @@
 			},
 			edit() {
 				uni.navigateTo({ url: `/pages/activity/edit?id=${this.id}` })
+			},
+			previewCover() {
+				if (this.a && this.a.coverImage) {
+					uni.previewImage({ urls: [this.a.coverImage] })
+				}
 			},
 			async signup() {
 				try {
@@ -144,6 +166,16 @@
 	}
 	.card {
 		margin-bottom: 20rpx;
+	}
+	.cover {
+		width: 100%;
+		height: 340rpx;
+		border-radius: 14rpx;
+		margin-bottom: 20rpx;
+	}
+	.share-btn {
+		width: 100%;
+		margin-top: 8rpx;
 	}
 	.act-top {
 		display: flex;

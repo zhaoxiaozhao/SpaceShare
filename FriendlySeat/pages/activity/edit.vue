@@ -54,6 +54,13 @@
 
 			<text class="lb">活动介绍</text>
 			<textarea class="area" v-model="form.description" placeholder="介绍一下活动内容、适合人群、注意事项等" :maxlength="1000" />
+
+			<text class="lb">活动海报（可选，用于分享）</text>
+			<view class="cover-box">
+				<image v-if="form.coverImage" class="cover-img" :src="form.coverImage" mode="aspectFill" @click="chooseCover" />
+				<view v-else class="cover-empty" @click="chooseCover">＋ 上传海报</view>
+				<text v-if="form.coverImage" class="cover-remove" @click="removeCover">删除</text>
+			</view>
 		</view>
 
 		<view class="actions">
@@ -66,6 +73,7 @@
 
 <script>
 	import { api } from '../../utils/request.js'
+	import { uploadImage } from '../../utils/profile.js'
 
 	function pad(n) { return n < 10 ? '0' + n : '' + n }
 	function parts(iso) {
@@ -80,7 +88,7 @@
 			return {
 				id: null,
 				submitting: false,
-				form: { title: '', locationText: '', capacity: 20, description: '' },
+				form: { title: '', locationText: '', capacity: 20, description: '', coverImage: '' },
 				categoryOptions: [
 					{ code: 'reading', label: '读书' },
 					{ code: 'lecture', label: '讲座' },
@@ -119,6 +127,7 @@
 					this.form.locationText = a.locationText || ''
 					this.form.capacity = a.capacity
 					this.form.description = a.description || ''
+					this.form.coverImage = a.coverImage || ''
 					this.categoryIdx = Math.max(0, this.categoryOptions.findIndex(c => c.code === a.category))
 					if (a.venueId) {
 						const i = this.venueOptions.findIndex(v => v.id === a.venueId)
@@ -137,6 +146,28 @@
 			},
 			onVenueChange(e) {
 				this.venueIdx = Number(e.detail.value)
+			},
+			chooseCover() {
+				uni.chooseImage({
+					count: 1,
+					sizeType: ['compressed'],
+					sourceType: ['album', 'camera'],
+					success: async (res) => {
+						const filePath = res.tempFilePaths && res.tempFilePaths[0]
+						if (!filePath) return
+						uni.showLoading({ title: '上传中', mask: true })
+						try {
+							this.form.coverImage = await uploadImage(filePath, 'activities')
+						} catch (e) {
+							uni.showToast({ title: '上传失败，请重试', icon: 'none' })
+						} finally {
+							uni.hideLoading()
+						}
+					}
+				})
+			},
+			removeCover() {
+				this.form.coverImage = ''
 			},
 			clearDeadline() {
 				this.deadlineDate = ''
@@ -174,7 +205,8 @@
 					endAt: endAt.toISOString(),
 					signupDeadline: this.deadlineDate ? this.combine(this.deadlineDate, this.deadlineTime).toISOString() : null,
 					capacity,
-					description: this.form.description
+					description: this.form.description,
+					coverImage: this.form.coverImage || null
 				}
 				this.submitting = true
 				try {
@@ -217,6 +249,39 @@
 		min-height: 180rpx;
 		width: 100%;
 		box-sizing: border-box;
+	}
+	.cover-box {
+		position: relative;
+		width: 100%;
+		height: 300rpx;
+		border-radius: 14rpx;
+		overflow: hidden;
+	}
+	.cover-img {
+		width: 100%;
+		height: 300rpx;
+	}
+	.cover-empty {
+		width: 100%;
+		height: 300rpx;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		background: #F8F7F3;
+		border: 1rpx dashed #DAD7CE;
+		border-radius: 14rpx;
+		color: #A5A39D;
+		font-size: 28rpx;
+	}
+	.cover-remove {
+		position: absolute;
+		right: 16rpx;
+		bottom: 16rpx;
+		font-size: 24rpx;
+		color: #fff;
+		background: rgba(0, 0, 0, 0.5);
+		padding: 6rpx 20rpx;
+		border-radius: 999rpx;
 	}
 	.row {
 		display: flex;

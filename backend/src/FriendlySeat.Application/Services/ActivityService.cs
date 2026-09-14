@@ -38,6 +38,7 @@ public class ActivityService
             SignupDeadline = request.SignupDeadline,
             Capacity = request.Capacity,
             Description = request.Description?.Trim() ?? string.Empty,
+            CoverImage = string.IsNullOrWhiteSpace(request.CoverImage) ? null : request.CoverImage.Trim(),
             Status = ActivityStatus.PendingReview,
             CreatedAt = now,
             UpdatedAt = now
@@ -68,6 +69,7 @@ public class ActivityService
         activity.SignupDeadline = request.SignupDeadline;
         activity.Capacity = request.Capacity;
         activity.Description = request.Description?.Trim() ?? string.Empty;
+        activity.CoverImage = string.IsNullOrWhiteSpace(request.CoverImage) ? null : request.CoverImage.Trim();
         activity.Status = ActivityStatus.PendingReview;
         activity.ReviewRemark = null;
         activity.UpdatedAt = DateTime.UtcNow;
@@ -316,6 +318,7 @@ public class ActivityService
                 Capacity = a.Capacity,
                 SignupCount = count,
                 Description = a.Description,
+                CoverImage = a.CoverImage,
                 Status = a.Status.ToString(),
                 ReviewRemark = a.ReviewRemark,
                 CreatedAt = a.CreatedAt,

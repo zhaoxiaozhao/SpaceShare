@@ -30,6 +30,9 @@ public class Activity
 
     public string Description { get; set; } = string.Empty;
 
+    /// <summary>活动海报/封面（微信云存储 fileID）</summary>
+    public string? CoverImage { get; set; }
+
     public ActivityStatus Status { get; set; } = ActivityStatus.PendingReview;
 
     /// <summary>审核备注（驳回原因等）</summary>

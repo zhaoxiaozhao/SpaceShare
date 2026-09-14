@@ -14,6 +14,7 @@
 
 		<view v-if="list.length">
 			<view class="card act-card" v-for="a in list" :key="a.id" @click="goDetail(a.id)">
+				<image v-if="a.coverImage" class="act-cover" :src="a.coverImage" mode="aspectFill" />
 				<view class="act-top">
 					<text class="act-cat" :class="'cat-' + a.category">{{categoryLabel(a.category)}}</text>
 					<text class="act-status" :class="'st-' + a.status.toLowerCase()">{{statusText(a.status)}}</text>
@@ -156,6 +157,12 @@
 	}
 	.act-card {
 		margin-top: 16rpx;
+	}
+	.act-cover {
+		width: 100%;
+		height: 300rpx;
+		border-radius: 12rpx;
+		margin-bottom: 16rpx;
 	}
 	.act-top {
 		display: flex;
