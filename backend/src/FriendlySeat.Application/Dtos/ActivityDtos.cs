@@ -14,6 +14,9 @@ public class ActivityCreateRequest
 
     /// <summary>活动海报（微信云存储 fileID）</summary>
     public string? CoverImage { get; set; }
+
+    /// <summary>海报的临时 https 地址（仅用于服务端图片内容安全检测，不入库）</summary>
+    public string? CoverImageUrl { get; set; }
 }
 
 public class ActivityReviewRequest

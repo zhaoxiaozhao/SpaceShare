@@ -1,3 +1,4 @@
+using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Json.Serialization;
 using FriendlySeat.Application.Common;
@@ -98,6 +99,79 @@ public class WechatService : IWechatService
         }
     }
 
+    public async Task<ContentCheckResult> MsgSecCheckAsync(string openId, int scene, string content, CancellationToken ct = default)
+    {
+        if (string.IsNullOrWhiteSpace(content)) return ContentCheckResult.Pass();
+        if (string.IsNullOrEmpty(openId)) return ContentCheckResult.Skip("no_openid");
+
+        var token = await GetAccessTokenAsync(ct);
+        if (string.IsNullOrEmpty(token)) return ContentCheckResult.Skip("no_token");
+
+        try
+        {
+            var url = $"https://api.weixin.qq.com/wxa/msg_sec_check?access_token={Uri.EscapeDataString(token)}";
+            var payload = new { version = 2, openid = openId, scene, content };
+            var resp = await _http.PostAsJsonAsync(url, payload, ct);
+            var result = await resp.Content.ReadFromJsonAsync<MsgSecCheckResponse>(ct);
+            if (result is null) return ContentCheckResult.Skip("empty");
+            if (result.ErrCode == 87014) return ContentCheckResult.Risky("risky");
+            if (result.ErrCode != 0)
+            {
+                _logger.LogWarning("msgSecCheck 返回错误 {ErrCode} {ErrMsg}", result.ErrCode, result.ErrMsg);
+                return ContentCheckResult.Skip($"err_{result.ErrCode}");
+            }
+            var suggest = result.Result?.Suggest;
+            if (suggest == "risky" || suggest == "review") return ContentCheckResult.Risky(suggest);
+            return ContentCheckResult.Pass();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "msgSecCheck 调用异常");
+            return ContentCheckResult.Skip("exception");
+        }
+    }
+
+    public async Task<ContentCheckResult> ImgSecCheckUrlAsync(string imageUrl, CancellationToken ct = default)
+    {
+        if (string.IsNullOrWhiteSpace(imageUrl)) return ContentCheckResult.Pass();
+
+        var token = await GetAccessTokenAsync(ct);
+        if (string.IsNullOrEmpty(token)) return ContentCheckResult.Skip("no_token");
+
+        try
+        {
+            var bytes = await _http.GetByteArrayAsync(imageUrl, ct);
+            if (bytes.Length == 0) return ContentCheckResult.Skip("empty_image");
+
+            var ext = "png";
+            var dot = imageUrl.LastIndexOf('.');
+            if (dot >= 0 && imageUrl.Length - dot <= 5) ext = imageUrl.Substring(dot + 1).ToLowerInvariant();
+            var contentType = ext switch { "jpg" or "jpeg" => "image/jpeg", "gif" => "image/gif", _ => "image/png" };
+
+            using var form = new MultipartFormDataContent();
+            var fileContent = new ByteArrayContent(bytes);
+            fileContent.Headers.ContentType = new MediaTypeHeaderValue(contentType);
+            form.Add(fileContent, "media", $"image.{ext}");
+
+            var url = $"https://api.weixin.qq.com/wxa/img_sec_check?access_token={Uri.EscapeDataString(token)}";
+            var resp = await _http.PostAsync(url, form, ct);
+            var result = await resp.Content.ReadFromJsonAsync<ImgSecCheckResponse>(ct);
+            if (result is null) return ContentCheckResult.Skip("empty");
+            if (result.ErrCode == 87014) return ContentCheckResult.Risky("risky");
+            if (result.ErrCode != 0)
+            {
+                _logger.LogWarning("imgSecCheck 返回错误 {ErrCode} {ErrMsg}", result.ErrCode, result.ErrMsg);
+                return ContentCheckResult.Skip($"err_{result.ErrCode}");
+            }
+            return ContentCheckResult.Pass();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "imgSecCheck 调用异常");
+            return ContentCheckResult.Skip("exception");
+        }
+    }
+
     // access_token 有效期 7200s，提前缓存 7000s
     private async Task<string?> GetAccessTokenAsync(CancellationToken ct)
     {
@@ -139,6 +213,25 @@ public class WechatService : IWechatService
     }
 
     private class SubscribeMessageResponse
+    {
+        [JsonPropertyName("errcode")] public int ErrCode { get; set; }
+        [JsonPropertyName("errmsg")] public string? ErrMsg { get; set; }
+    }
+
+    private class MsgSecCheckResponse
+    {
+        [JsonPropertyName("errcode")] public int ErrCode { get; set; }
+        [JsonPropertyName("errmsg")] public string? ErrMsg { get; set; }
+        [JsonPropertyName("result")] public MsgSecCheckResult? Result { get; set; }
+    }
+
+    private class MsgSecCheckResult
+    {
+        [JsonPropertyName("suggest")] public string? Suggest { get; set; }
+        [JsonPropertyName("label")] public int Label { get; set; }
+    }
+
+    private class ImgSecCheckResponse
     {
         [JsonPropertyName("errcode")] public int ErrCode { get; set; }
         [JsonPropertyName("errmsg")] public string? ErrMsg { get; set; }

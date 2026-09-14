@@ -16,19 +16,21 @@ public class ActivityService
     private readonly IAppDbContext _db;
     private readonly INotificationService _notifications;
     private readonly SensitiveWordService _sensitive;
+    private readonly IWechatService _wechat;
 
-    public ActivityService(IAppDbContext db, INotificationService notifications, SensitiveWordService sensitive)
+    public ActivityService(IAppDbContext db, INotificationService notifications, SensitiveWordService sensitive, IWechatService wechat)
     {
         _db = db;
         _notifications = notifications;
         _sensitive = sensitive;
+        _wechat = wechat;
     }
 
     public async Task<ActivityDto> CreateAsync(long userId, ActivityCreateRequest request, CancellationToken ct = default)
     {
         var now = DateTime.UtcNow;
         await ValidateAsync(request, ct);
-        await EnsureNoSensitiveAsync(request, ct);
+        await EnsureContentSafeAsync(userId, request, ct);
 
         var entity = new Activity
         {
@@ -63,7 +65,7 @@ public class ActivityService
             throw AppException.BadRequest("activity_locked", "活动已发布或已结束，无法编辑");
 
         await ValidateAsync(request, ct);
-        await EnsureNoSensitiveAsync(request, ct);
+        await EnsureContentSafeAsync(userId, request, ct);
 
         activity.Title = request.Title.Trim();
         activity.Category = ValidCategories.Contains(request.Category) ? request.Category : "other";
@@ -236,11 +238,33 @@ public class ActivityService
 
     // ---- 内部辅助 ----
 
-    private async Task EnsureNoSensitiveAsync(ActivityCreateRequest request, CancellationToken ct)
+    private async Task EnsureContentSafeAsync(long userId, ActivityCreateRequest request, CancellationToken ct)
     {
+        // 1) 本地敏感词兜底
         var hit = await _sensitive.FirstHitAsync(new[] { request.Title, request.Description, request.LocationText }, ct);
         if (hit is not null)
             throw AppException.BadRequest("content_sensitive", $"内容包含敏感词「{hit}」，请修改后重试");
+
+        // 2) 微信文本内容安全（msgSecCheck v2）
+        var openId = await _db.Users.Where(u => u.Id == userId).Select(u => u.OpenId).FirstOrDefaultAsync(ct);
+        if (!string.IsNullOrEmpty(openId))
+        {
+            foreach (var text in new[] { request.Title, request.Description, request.LocationText })
+            {
+                if (string.IsNullOrWhiteSpace(text)) continue;
+                var r = await _wechat.MsgSecCheckAsync(openId!, 2, text!, ct);
+                if (r.Status == ContentCheckStatus.Risky)
+                    throw AppException.BadRequest("content_risky", "内容未通过安全检测，请修改后重试");
+            }
+        }
+
+        // 3) 微信图片内容安全（imgSecCheck）
+        if (!string.IsNullOrWhiteSpace(request.CoverImageUrl))
+        {
+            var r = await _wechat.ImgSecCheckUrlAsync(request.CoverImageUrl!, ct);
+            if (r.Status == ContentCheckStatus.Risky)
+                throw AppException.BadRequest("image_risky", "海报未通过安全检测，请更换后重试");
+        }
     }
 
     private static Task ValidateAsync(ActivityCreateRequest request, CancellationToken ct)

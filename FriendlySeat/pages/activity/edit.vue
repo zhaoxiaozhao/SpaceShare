@@ -68,7 +68,7 @@
 
 <script>
 	import { api } from '../../utils/request.js'
-	import { uploadImage } from '../../utils/profile.js'
+	import { uploadImage, getTempFileUrl } from '../../utils/profile.js'
 	import { ACTIVITY_CATEGORIES } from '../../utils/activity.js'
 
 	function pad(n) { return n < 10 ? '0' + n : '' + n }
@@ -186,6 +186,10 @@
 					uni.showToast({ title: '请填写报名名额', icon: 'none' })
 					return
 				}
+				let coverImageUrl = null
+				if (this.form.coverImage) {
+					try { coverImageUrl = await getTempFileUrl(this.form.coverImage) } catch (e) {}
+				}
 				const payload = {
 					title: this.form.title.trim(),
 					category: this.categoryOptions[this.categoryIdx].code,
@@ -196,7 +200,8 @@
 					signupDeadline: this.deadlineDate ? this.combine(this.deadlineDate, this.deadlineTime).toISOString() : null,
 					capacity,
 					description: this.form.description,
-					coverImage: this.form.coverImage || null
+					coverImage: this.form.coverImage || null,
+					coverImageUrl
 				}
 				this.submitting = true
 				try {
