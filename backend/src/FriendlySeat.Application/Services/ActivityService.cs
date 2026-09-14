@@ -11,7 +11,7 @@ namespace FriendlySeat.Application.Services;
 public class ActivityService
 {
     private static readonly string[] ValidCategories =
-        { "reading", "lecture", "exhibition", "study", "sharing", "workshop", "film", "music", "art", "sports", "competition", "volunteer", "other" };
+        { "reading", "lecture", "exhibition", "study", "kaoyan", "kaogong", "ai", "coding", "sharing", "workshop", "film", "music", "art", "sports", "competition", "volunteer", "other" };
 
     private readonly IAppDbContext _db;
     private readonly INotificationService _notifications;

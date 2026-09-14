@@ -82,9 +82,10 @@ function tagType(s) {
 }
 function categoryText(c) {
   const map = {
-    reading: '读书', lecture: '讲座', exhibition: '展览', study: '自习', sharing: '分享交流',
-    workshop: '工作坊', film: '观影', music: '音乐', art: '艺术', sports: '运动',
-    competition: '比赛', volunteer: '志愿', other: '其他'
+    reading: '读书', lecture: '讲座', exhibition: '展览', study: '自习',
+    kaoyan: '考研', kaogong: '考公', ai: 'AI', coding: '编程',
+    sharing: '分享交流', workshop: '工作坊', film: '观影', music: '音乐', art: '艺术',
+    sports: '运动', competition: '比赛', volunteer: '志愿', other: '其他'
   }
   return map[c] || '其他'
 }
