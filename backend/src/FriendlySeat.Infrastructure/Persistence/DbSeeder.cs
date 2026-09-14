@@ -137,6 +137,19 @@ public static class DbSeeder
             logger.LogInformation("已生成示例城市、场馆与座位数据");
         }
 
+        // 敏感词兜底配置：确保存在一行（空值=使用代码内置默认词表）
+        if (!await db.SystemConfigs.AnyAsync(c => c.Category == ConfigCategory.SensitiveWords))
+        {
+            db.SystemConfigs.Add(new SystemConfig
+            {
+                Category = ConfigCategory.SensitiveWords,
+                ConfigKey = "words",
+                Value = "",
+                Description = "敏感词（英文逗号或换行分隔，留空则用内置默认词表）"
+            });
+            await db.SaveChangesAsync();
+        }
+
         logger.LogInformation("数据库初始化完成");
     }
 

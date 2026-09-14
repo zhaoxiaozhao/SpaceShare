@@ -111,6 +111,7 @@ public static class DependencyInjection
         services.AddScoped<WaitlistService>();
         services.AddScoped<SwapService>();
         services.AddScoped<ActivityService>();
+        services.AddScoped<SensitiveWordService>();
         services.AddScoped<CreditService>();
         services.AddScoped<ReportService>();
         services.AddScoped<DonationService>();
