@@ -19,7 +19,7 @@
 		<view v-if="nearby.length" class="section">
 			<view class="sec-head">
 				<text class="section-title">附近场馆</text>
-				<text class="sec-more" @click="goVenues">更多 ›</text>
+				<text class="sec-more" @click="goVenues">更多</text>
 			</view>
 			<view class="card venue-card" v-for="v in nearby.slice(0, 3)" :key="v.id" @click="goVenue(v.id)">
 				<view class="venue-main">
@@ -40,7 +40,7 @@
 		<view v-if="shares.length" class="section">
 			<view class="sec-head">
 				<text class="section-title">最近分享的座位</text>
-				<text class="sec-more" @click="goSharesList">更多 ›</text>
+				<text class="sec-more" @click="goSharesList">更多</text>
 			</view>
 			<view class="card share-card" v-for="s in shares" :key="s.id" @click="goSeat(s.seatId)">
 				<view class="share-top">
@@ -56,7 +56,7 @@
 		<view v-if="swaps.length" class="section">
 			<view class="sec-head">
 				<text class="section-title">最近换座</text>
-				<text class="sec-more" @click="goSwapList">更多 ›</text>
+				<text class="sec-more" @click="goSwapList">更多</text>
 			</view>
 			<view class="card swap-card" v-for="s in swaps.slice(0, 3)" :key="s.id" @click="goSwapSeat(s)">
 				<view class="swap-head">
@@ -77,7 +77,7 @@
 		<view v-if="activities.length" class="section">
 			<view class="sec-head">
 				<text class="section-title">最近活动</text>
-				<text class="sec-more" @click="goActivities">更多 ›</text>
+				<text class="sec-more" @click="goActivities">更多</text>
 			</view>
 			<view class="card act-card" v-for="a in activities" :key="a.id" @click="goActivity(a.id)">
 				<text class="act-title">{{a.title}}</text>
@@ -340,7 +340,16 @@
 		background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23FFFFFF' d='M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92 1.61 0 2.92-1.31 2.92-2.92s-1.31-2.92-2.92-2.92z'/%3E%3C/svg%3E") no-repeat center / contain;
 	}
 	.section {
-		margin-top: 20rpx;
+		margin-top: 14rpx;
+	}
+	.section-title {
+		font-size: 30rpx;
+		font-weight: 500;
+		margin: 0;
+		color: #2B2B27;
+	}
+	.card {
+		margin: 14rpx 20rpx;
 	}
 	.venue-card {
 		display: flex;
@@ -426,7 +435,8 @@
 	.sec-head {
 		display: flex;
 		align-items: baseline;
-		gap: 16rpx;
+		gap: 8rpx;
+		margin: 4rpx 20rpx 0;
 	}
 	.sec-more {
 		font-size: 24rpx;
