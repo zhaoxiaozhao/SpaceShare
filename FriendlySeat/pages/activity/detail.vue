@@ -91,9 +91,31 @@
 			async load() {
 				try {
 					this.a = await api.getActivity(this.id)
-					this.shareImage = await getTempFileUrl(this.a && this.a.coverImage)
+					this.shareImage = await this.resolveShareImage()
 				} catch (e) {
 					this.a = null
+				}
+			},
+			// 分享图：活动海报 -> 云存储 fileID 转临时 https -> 下载为本地文件（分享卡片用本地图最稳）
+			async resolveShareImage() {
+				const fileId = this.a && this.a.coverImage
+				if (!fileId) return ''
+				let url = fileId
+				if (String(fileId).startsWith('cloud://')) {
+					url = await getTempFileUrl(fileId)
+				}
+				if (!url) return ''
+				try {
+					const local = await new Promise((resolve) => {
+						uni.downloadFile({
+							url,
+							success: (r) => resolve(r.statusCode === 200 ? r.tempFilePath : ''),
+							fail: () => resolve('')
+						})
+					})
+					return local || url
+				} catch (e) {
+					return url
 				}
 			},
 			categoryLabel(code) {
