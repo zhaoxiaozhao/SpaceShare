@@ -36,6 +36,7 @@
 <script>
 	import { api } from '../../utils/request.js'
 	import { formatTime } from '../../utils/format.js'
+	import { ACTIVITY_CATEGORIES, activityCategoryLabel } from '../../utils/activity.js'
 
 	export default {
 		data() {
@@ -45,13 +46,7 @@
 				discover: [],
 				joined: [],
 				mine: [],
-				categoryOptions: [
-					{ code: 'reading', label: '读书' },
-					{ code: 'lecture', label: '讲座' },
-					{ code: 'exhibition', label: '展览' },
-					{ code: 'study', label: '自习' },
-					{ code: 'other', label: '其他' }
-				]
+				categoryOptions: ACTIVITY_CATEGORIES
 			}
 		},
 		computed: {
@@ -91,8 +86,7 @@
 				this.load()
 			},
 			categoryLabel(code) {
-				const o = this.categoryOptions.find(c => c.code === code)
-				return o ? o.label : '其他'
+				return activityCategoryLabel(code)
 			},
 			statusText(s) {
 				const map = {

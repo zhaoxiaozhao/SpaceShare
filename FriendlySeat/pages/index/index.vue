@@ -106,6 +106,7 @@
 	import { api } from '../../utils/request.js'
 	import { formatTime, statusText } from '../../utils/format.js'
 	import { getSeasonKey } from '../../utils/theme.js'
+	import { activityCategoryLabel } from '../../utils/activity.js'
 
 	export default {
 		data() {
@@ -272,8 +273,7 @@
 				} catch (e) {}
 			},
 			categoryLabel(code) {
-				const map = { reading: '读书', lecture: '讲座', exhibition: '展览', study: '自习', other: '其他' }
-				return map[code] || '其他'
+				return activityCategoryLabel(code)
 			},
 			goActivity(id) {
 				uni.navigateTo({ url: `/pages/activity/detail?id=${id}` })

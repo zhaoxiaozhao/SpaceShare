@@ -73,6 +73,7 @@
 <script>
 	import { api } from '../../utils/request.js'
 	import { uploadImage } from '../../utils/profile.js'
+	import { ACTIVITY_CATEGORIES } from '../../utils/activity.js'
 
 	function pad(n) { return n < 10 ? '0' + n : '' + n }
 	function parts(iso) {
@@ -88,13 +89,7 @@
 				id: null,
 				submitting: false,
 				form: { title: '', locationText: '', capacity: 20, description: '', coverImage: '' },
-				categoryOptions: [
-					{ code: 'reading', label: '读书' },
-					{ code: 'lecture', label: '讲座' },
-					{ code: 'exhibition', label: '展览' },
-					{ code: 'study', label: '自习' },
-					{ code: 'other', label: '其他' }
-				],
+				categoryOptions: ACTIVITY_CATEGORIES,
 				categoryIdx: 0,
 				venueOptions: [{ id: null, name: '不关联场馆' }],
 				venueIdx: 0,

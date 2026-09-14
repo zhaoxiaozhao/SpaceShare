@@ -73,6 +73,7 @@
 	import { api } from '../../utils/request.js'
 	import { formatTime } from '../../utils/format.js'
 	import { getTempFileUrl } from '../../utils/profile.js'
+	import { activityCategoryLabel } from '../../utils/activity.js'
 
 	export default {
 		data() {
@@ -141,8 +142,7 @@
 				}
 			},
 			categoryLabel(code) {
-				const map = { reading: '读书', lecture: '讲座', exhibition: '展览', study: '自习', other: '其他' }
-				return map[code] || '其他'
+				return activityCategoryLabel(code)
 			},
 			statusText(s) {
 				const map = {
