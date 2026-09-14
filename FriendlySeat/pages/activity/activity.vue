@@ -35,11 +35,12 @@
 <script>
 	import { api } from '../../utils/request.js'
 	import { formatTime } from '../../utils/format.js'
-	import { getTheme } from '../../utils/theme.js'
+	import { getPageStyle } from '../../utils/theme.js'
 
 	export default {
 		data() {
 			return {
+				pageThemeStyle: getPageStyle(),
 				tab: 'discover',
 				category: '',
 				discover: [],

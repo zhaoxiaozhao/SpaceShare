@@ -1,4 +1,5 @@
 <template>
+	<page-meta :page-style="pageThemeStyle" />
 	<view class="page">
 		<view class="card">
 			<text class="lb">活动标题</text>
@@ -65,6 +66,7 @@
 
 <script>
 	import { api } from '../../utils/request.js'
+	import { getPageStyle } from '../../utils/theme.js'
 
 	function pad(n) { return n < 10 ? '0' + n : '' + n }
 	function parts(iso) {
@@ -79,6 +81,7 @@
 			return {
 				id: null,
 				submitting: false,
+				pageThemeStyle: getPageStyle(),
 				form: { title: '', locationText: '', capacity: 20, description: '' },
 				categoryOptions: [
 					{ code: 'reading', label: '读书' },

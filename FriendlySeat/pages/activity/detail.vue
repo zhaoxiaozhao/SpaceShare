@@ -1,4 +1,5 @@
 <template>
+	<page-meta :page-style="pageThemeStyle" />
 	<view class="page" v-if="a">
 		<view class="card">
 			<view class="act-top">
@@ -46,10 +47,11 @@
 <script>
 	import { api } from '../../utils/request.js'
 	import { formatTime } from '../../utils/format.js'
+	import { getPageStyle } from '../../utils/theme.js'
 
 	export default {
 		data() {
-			return { id: null, a: null }
+			return { id: null, a: null, pageThemeStyle: getPageStyle() }
 		},
 		computed: {
 			signupClosedText() {
