@@ -214,6 +214,30 @@ public class AutoReleaseJob : IAutoReleaseJob
 
         await _db.SaveChangesAsync(ct);
 
+        // 5.8 活动开始前提醒：开始前 30 分钟内、已发布、未提醒过 → 通知所有已报名者（每活动仅一次）
+        var remindBefore = now.AddMinutes(30);
+        var upcomingActivities = await _db.Activities
+            .Where(a => a.Status == ActivityStatus.Published && a.StartAt > now && a.StartAt <= remindBefore)
+            .ToListAsync(ct);
+        foreach (var activity in upcomingActivities)
+        {
+            var tag = $"activity_reminder:{activity.Id}";
+            var sent = await _db.Notifications.AnyAsync(n => n.Data == tag, ct);
+            if (sent) continue;
+
+            var signupUserIds = await _db.ActivitySignups
+                .Where(s => s.ActivityId == activity.Id && s.Status == ActivitySignupStatus.Joined)
+                .Select(s => s.UserId)
+                .ToListAsync(ct);
+            if (signupUserIds.Count == 0) continue;
+
+            foreach (var uid in signupUserIds)
+            {
+                await _notifications.SendAsync(uid, NotificationType.System,
+                    "活动即将开始", $"你报名的活动「{activity.Title}」即将开始，请按时参加。", tag, ct);
+            }
+        }
+
         // 6. 风险晋升检查：风险分达到阈值自动升级处罚（可配置）
         await AutoBanHighRiskUsersAsync(now, ct);
     }
