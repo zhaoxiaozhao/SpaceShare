@@ -65,6 +65,21 @@
 			</view>
 		</view>
 
+		<view v-if="activities.length" class="section">
+			<view class="sec-head">
+				<text class="section-title">最近活动</text>
+				<text class="sec-more" @click="goActivities">全部 ›</text>
+			</view>
+			<view class="card act-card" v-for="a in activities" :key="a.id" @click="goActivity(a.id)">
+				<view class="act-top">
+					<text class="act-cat">{{categoryLabel(a.category)}}</text>
+					<text class="act-count">{{a.signupCount}}/{{a.capacity}} 人</text>
+				</view>
+				<text class="act-title">{{a.title}}</text>
+				<text class="act-meta">{{formatTime(a.startAt)}}<text v-if="a.venueName"> · {{a.venueName}}</text></text>
+			</view>
+		</view>
+
 		<view v-if="!nearby.length && !shares.length" class="empty">
 			<text>正在加载附近的场馆与共享座位…</text>
 		</view>
@@ -91,6 +106,7 @@
 				sharesVenueId: null,
 				season: getSeasonKey(),
 				swaps: [],
+				activities: [],
 				reasonOptions: [
 					{ code: 'light', label: '光线问题' },
 					{ code: 'cold', label: '位置偏冷' },
@@ -129,6 +145,7 @@
 			},
 			async loadData() {
 				this.loadSwaps()
+				this.loadActivities()
 				try {
 					const location = await this.getLocation()
 					this.nearby = await api.getVenues({
@@ -236,6 +253,23 @@
 			},
 			goSwapSeat(s) {
 				uni.navigateTo({ url: `/pages/seat/seat?id=${s.seatId}&venueId=${s.venueId}` })
+			},
+			async loadActivities() {
+				if (!uni.getStorageSync('token')) return
+				try {
+					const list = await api.getActivities()
+					this.activities = (list || []).slice(0, 3)
+				} catch (e) {}
+			},
+			categoryLabel(code) {
+				const map = { reading: '读书', lecture: '讲座', exhibition: '展览', study: '自习', other: '其他' }
+				return map[code] || '其他'
+			},
+			goActivity(id) {
+				uni.navigateTo({ url: `/pages/activity/detail?id=${id}` })
+			},
+			goActivities() {
+				uni.switchTab({ url: '/pages/activity/activity' })
 			}
 		}
 	}
@@ -379,6 +413,38 @@
 	.sec-more {
 		font-size: 26rpx;
 		color: var(--primary);
+	}
+	.act-card {
+		margin-top: 12rpx;
+	}
+	.act-top {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		margin-bottom: 10rpx;
+	}
+	.act-cat {
+		font-size: 22rpx;
+		padding: 4rpx 16rpx;
+		border-radius: 8rpx;
+		background: var(--primary-bg, #EAF3F1);
+		color: var(--primary);
+	}
+	.act-count {
+		font-size: 22rpx;
+		color: var(--primary);
+		font-weight: 600;
+	}
+	.act-title {
+		display: block;
+		font-size: 30rpx;
+		font-weight: 600;
+	}
+	.act-meta {
+		display: block;
+		font-size: 24rpx;
+		color: #8A8A86;
+		margin-top: 8rpx;
 	}
 	.swap-card {
 		margin-top: 12rpx;
