@@ -23,10 +23,32 @@
 			<text class="desc">{{a.description}}</text>
 		</view>
 
-		<!-- 报名名单（发起人可见） -->
-		<view class="card" v-if="a.isMine && a.signups && a.signups.length">
-			<text class="section-title">报名名单（{{a.signups.length}}）</text>
-			<text class="signup" v-for="(s, i) in a.signups" :key="s.id">{{i + 1}}. {{s.userNickname || '友邻'}}</text>
+		<!-- 已报名（头像+昵称） -->
+		<view class="card" v-if="a.signups && a.signups.length">
+			<view class="part-head">
+				<text class="section-title">已报名 {{a.signups.length}} 人</text>
+				<text class="part-all" v-if="a.signups.length > 8" @click="showParticipants = true">查看全部</text>
+			</view>
+			<view class="part-list">
+				<view class="part-item" v-for="p in a.signups.slice(0, 8)" :key="p.id">
+					<image class="part-avatar" :src="p.userAvatar || '/static/logo.png'" mode="aspectFill" />
+					<text class="part-name">{{p.userNickname || '友邻'}}</text>
+				</view>
+			</view>
+		</view>
+
+		<!-- 全部参与者 -->
+		<view v-if="showParticipants" class="p-mask" @click="showParticipants = false">
+			<view class="p-pop" @click.stop>
+				<text class="p-title">已报名（{{a.signups.length}}）</text>
+				<scroll-view scroll-y class="p-scroll">
+					<view class="p-item" v-for="p in a.signups" :key="p.id">
+						<image class="p-avatar" :src="p.userAvatar || '/static/logo.png'" mode="aspectFill" />
+						<text class="p-name">{{p.userNickname || '友邻'}}</text>
+					</view>
+				</scroll-view>
+				<button class="btn-outline" @click="showParticipants = false">关闭</button>
+			</view>
 		</view>
 
 		<!-- 操作 -->
@@ -54,7 +76,7 @@
 
 	export default {
 		data() {
-			return { id: null, a: null, shareImage: '' }
+			return { id: null, a: null, shareImage: '', showParticipants: false }
 		},
 		computed: {
 			signupClosedText() {
@@ -198,6 +220,84 @@
 	.share-btn {
 		width: 100%;
 		margin-top: 8rpx;
+	}
+	.part-head {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		margin-bottom: 16rpx;
+	}
+	.part-all {
+		font-size: 24rpx;
+		color: var(--primary);
+	}
+	.part-list {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 20rpx;
+	}
+	.part-item {
+		width: 100rpx;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 8rpx;
+	}
+	.part-avatar {
+		width: 72rpx;
+		height: 72rpx;
+		border-radius: 50%;
+		background: #F0EEE8;
+	}
+	.part-name {
+		max-width: 100rpx;
+		font-size: 20rpx;
+		color: #6B6A64;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+	.p-mask {
+		position: fixed;
+		inset: 0;
+		background: rgba(0, 0, 0, 0.4);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		z-index: 999;
+	}
+	.p-pop {
+		width: 600rpx;
+		max-height: 70vh;
+		background: #fff;
+		border-radius: 20rpx;
+		padding: 32rpx;
+		display: flex;
+		flex-direction: column;
+	}
+	.p-title {
+		font-size: 30rpx;
+		font-weight: 700;
+		margin-bottom: 20rpx;
+	}
+	.p-scroll {
+		flex: 1;
+		max-height: 50vh;
+	}
+	.p-item {
+		display: flex;
+		align-items: center;
+		gap: 16rpx;
+		padding: 12rpx 0;
+	}
+	.p-avatar {
+		width: 64rpx;
+		height: 64rpx;
+		border-radius: 50%;
+		background: #F0EEE8;
+	}
+	.p-name {
+		font-size: 26rpx;
 	}
 	.act-top {
 		display: flex;

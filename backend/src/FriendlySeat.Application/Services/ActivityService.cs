@@ -134,7 +134,7 @@ public class ActivityService
         if (activity is null) return null;
         if (activity.Status != ActivityStatus.Published && activity.CreatorUserId != viewerUserId)
             return null;
-        return await GetDtoAsync(id, viewerUserId, includeSignups: activity.CreatorUserId == viewerUserId, ct);
+        return await GetDtoAsync(id, viewerUserId, includeSignups: true, ct);
     }
 
     public async Task SignupAsync(long id, long userId, CancellationToken ct = default)
@@ -292,8 +292,10 @@ public class ActivityService
                 .ToListAsync(ct);
         }
         var signupUserIds = signupEntities.Select(s => s.UserId).Distinct().ToList();
-        var signupNames = await _db.Users.Where(u => signupUserIds.Contains(u.Id))
-            .ToDictionaryAsync(u => u.Id, u => u.Nickname ?? "", ct);
+        var signupUsers = await _db.Users.Where(u => signupUserIds.Contains(u.Id))
+            .Select(u => new { u.Id, u.Nickname, u.AvatarUrl })
+            .ToListAsync(ct);
+        var signupUserMap = signupUsers.ToDictionary(u => u.Id);
 
         var now = DateTime.UtcNow;
         var result = new List<ActivityDto>();
@@ -328,17 +330,22 @@ public class ActivityService
                 SignupOpen = a.Status == ActivityStatus.Published && now < deadline && count < a.Capacity
             };
 
-            if (includeSignups && (responsesForAll || isMine))
+            if (includeSignups)
             {
                 dto.Signups = signupEntities
                     .Where(s => s.ActivityId == a.Id)
-                    .Select(s => new ActivitySignupDto
+                    .Select(s =>
                     {
-                        Id = s.Id,
-                        UserId = s.UserId,
-                        UserNickname = signupNames.TryGetValue(s.UserId, out var sn) ? sn : "",
-                        Status = s.Status.ToString(),
-                        CreatedAt = s.CreatedAt
+                        signupUserMap.TryGetValue(s.UserId, out var su);
+                        return new ActivitySignupDto
+                        {
+                            Id = s.Id,
+                            UserId = s.UserId,
+                            UserNickname = su?.Nickname ?? "",
+                            UserAvatar = su?.AvatarUrl,
+                            Status = s.Status.ToString(),
+                            CreatedAt = s.CreatedAt
+                        };
                     })
                     .ToList();
             }
