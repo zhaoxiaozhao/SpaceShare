@@ -64,19 +64,19 @@
 		<view class="section">
 			<view class="card">
 				<template v-if="seatSwap && seatSwap.status === 'Matched'">
-					<text class="share-note">该座位刚完成换座，短时间内不可再发起或响应换座。</text>
+					<text class="share-note">该座位近期已匹配换座，暂不可再发布或回应。</text>
 				</template>
 				<template v-else-if="seatSwap && seatSwap.isMine">
-					<text class="share-note">你已在此座位发起换座，等待有缘的友邻与你交换。</text>
-					<button class="btn-outline" style="margin-top:20rpx;" @click="cancelSwap">取消换座</button>
+					<text class="share-note">你已发布换座意向，等待其他友邻回应。</text>
+					<button class="btn-outline" style="margin-top:20rpx;" @click="cancelSwap">取消发布</button>
 				</template>
 				<template v-else-if="seatSwap">
-					<text class="share-note">这里有友邻想换座，选择你自己的座位即可申请交换，双方确认后线下对调。</text>
-					<button class="btn-primary" style="margin-top:20rpx;" @click="openRespondSwap">同意换座</button>
+					<text class="share-note">有友邻发布了换座意向。如你愿意，可提交自己的座位作为回应，由对方决定是否交换；请双方自行线下协商并遵守场馆规定。</text>
+					<button class="btn-primary" style="margin-top:20rpx;" @click="openRespondSwap">回应换座</button>
 				</template>
 				<template v-else>
-					<text class="share-note">想换个位置？发布你的换座意向，同场馆的友邻看到后可申请与你交换，双方确认后线下对调即可。</text>
-					<button class="btn-primary" style="margin-top:20rpx;" @click="openSwap">发起换座</button>
+					<text class="share-note">如需调整座位，可发布换座意向，同场馆友邻可自愿回应，双方自行线下协商。请遵守场馆规定。</text>
+					<button class="btn-primary" style="margin-top:20rpx;" @click="openSwap">发布换座意向</button>
 				</template>
 			</view>
 		</view>
@@ -84,8 +84,8 @@
 		<!-- 响应换座：选自己的座位 -->
 		<view v-if="showRespondSwap" class="swap-mask" @click="showRespondSwap = false">
 			<view class="swap-pop" @click.stop>
-				<text class="swap-pop-title">同意换座</text>
-				<text class="swap-pop-hint">对方座位 {{seatSwap.seatCode}} · 想换到 {{wantText(seatSwap)}}</text>
+				<text class="swap-pop-title">回应换座</text>
+				<text class="swap-pop-hint">对方座位 {{seatSwap.seatCode}} · 期望位置 {{wantText(seatSwap)}}</text>
 				<text class="swap-lb">选择我的座位</text>
 				<view class="swap-loc-row">
 					<OptionPicker :range="respFloors" range-key="name" :value="resp.floor" title="选择楼层" @change="onResp('floor', $event)" />
@@ -97,7 +97,7 @@
 				</view>
 				<view class="swap-pop-actions">
 					<button class="btn-outline action-btn" @click="showRespondSwap = false">取消</button>
-					<button class="btn-primary action-btn" :loading="responding" @click="submitRespond">提交申请</button>
+					<button class="btn-primary action-btn" :loading="responding" @click="submitRespond">提交</button>
 				</view>
 			</view>
 		</view>
@@ -105,7 +105,7 @@
 		<!-- 换座弹窗 -->
 		<view v-if="showSwap" class="swap-mask" @click="showSwap = false">
 			<view class="swap-pop" @click.stop>
-				<text class="swap-pop-title">发起换座</text>
+				<text class="swap-pop-title">发布换座意向</text>
 				<view class="swap-mine">
 					<text class="swap-mine-label">我的座位</text>
 					<text class="swap-mine-value">{{seatCodeText}}</text>
@@ -127,7 +127,7 @@
 				</view>
 				<view class="swap-pop-actions">
 					<button class="btn-outline action-btn" @click="showSwap = false">取消</button>
-					<button class="btn-primary action-btn" :loading="swapping" @click="submitPublish">发布换座</button>
+					<button class="btn-primary action-btn" :loading="swapping" @click="submitPublish">发布</button>
 				</view>
 			</view>
 		</view>
@@ -525,7 +525,7 @@
 				try {
 					await api.respondSwap(this.seatSwap.id, { seatId: seat.id })
 					this.showRespondSwap = false
-					uni.showModal({ title: '已提交', content: '申请已提交，等待对方确认后即可线下换座。', showCancel: false })
+					uni.showModal({ title: '已提交', content: '回应已提交，等待对方确认。', showCancel: false })
 				} catch (e) {
 					uni.showToast({ title: (e && e.message) || '提交失败', icon: 'none' })
 				} finally {
@@ -535,8 +535,8 @@
 			cancelSwap() {
 				if (!this.seatSwap) return
 				uni.showModal({
-					title: '取消换座',
-					content: '确定取消你发起的换座意向吗？',
+					title: '取消发布',
+					content: '确定取消你发布的换座意向吗？',
 					success: async (res) => {
 						if (!res.confirm) return
 						try {

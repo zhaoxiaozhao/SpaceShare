@@ -134,7 +134,7 @@
 					<text class="tag" :class="'status-' + s.status.toLowerCase()">{{swapStatusText(s.status)}}</text>
 				</view>
 				<text class="res-time">我的座位：{{s.seatCode}}</text>
-				<text class="res-time">想换到：{{wantText(s)}}</text>
+				<text class="res-time">期望位置：{{wantText(s)}}</text>
 				<view class="chips"><text class="chip" v-for="r in s.reasons" :key="r">{{reasonLabel(r)}}</text></view>
 
 				<view class="resp-title" v-if="s.responses && s.responses.length">响应者（{{s.responses.length}}）</view>
@@ -144,9 +144,9 @@
 						<text class="resp-loc">响应座位：{{p.seatCode}}</text>
 						<text class="resp-status" :class="'rs-' + p.status.toLowerCase()">{{respStatusText(p.status)}}</text>
 					</view>
-					<button v-if="s.status === 'Open' && p.status === 'Pending'" class="btn-primary small" @click="acceptSwap(s, p)">同意换座</button>
+					<button v-if="s.status === 'Open' && p.status === 'Pending'" class="btn-primary small" @click="acceptSwap(s, p)">同意</button>
 				</view>
-				<text class="ok-tip" v-if="s.status === 'Matched'">已达成换座，请与对方线下对调座位</text>
+				<text class="ok-tip" v-if="s.status === 'Matched'">已确认，请双方线下自行协商交换</text>
 				<view class="res-actions" v-if="s.status === 'Open'">
 					<button class="btn-outline small" @click="cancelSwap(s)">取消意向</button>
 				</view>
@@ -159,8 +159,8 @@
 					<text class="tag" :class="'rs-' + respTagClass(s)">{{myResponseText(s)}}</text>
 				</view>
 				<text class="res-time">{{s.venueName}} · TA 的座位：{{s.seatCode}}</text>
-				<text class="res-time">想换到：{{wantText(s)}}</text>
-				<text class="ok-tip" v-if="s.status === 'Matched' && s.myResponseStatus === 'Accepted'">对方已同意，可按双方座位线下对调</text>
+				<text class="res-time">期望位置：{{wantText(s)}}</text>
+				<text class="ok-tip" v-if="s.status === 'Matched' && s.myResponseStatus === 'Accepted'">对方已确认，请双方线下自行协商交换</text>
 			</view>
 
 			<view v-if="!mySwaps.length && !respondedSwaps.length" class="empty">暂无换座记录</view>
@@ -394,13 +394,13 @@
 			},
 			acceptSwap(s, p) {
 				uni.showModal({
-					title: '确认换座',
-					content: `同意与「${p.userNickname || '友邻'}」交换座位？确认后请线下物理交换。`,
+					title: '确认回应',
+					content: `确定回应「${p.userNickname || '友邻'}」的换座意向？确认后请双方线下自行协商交换。`,
 					success: async (res) => {
 						if (!res.confirm) return
 						try {
 							await api.acceptSwap(s.id, p.id)
-							uni.showModal({ title: '已确认', content: '已同意换座，请按双方位置进行线下物理交换。', showCancel: false })
+							uni.showModal({ title: '已确认', content: '请双方线下自行协商交换，并遵守场馆规定。', showCancel: false })
 							this.load()
 						} catch (e) {
 							uni.showToast({ title: e.message || '操作失败', icon: 'none' })
