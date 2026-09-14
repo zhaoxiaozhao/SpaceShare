@@ -22,17 +22,17 @@
 				<text class="sec-more" @click="goVenues">更多</text>
 			</view>
 			<view class="card venue-card" v-for="v in nearby.slice(0, 3)" :key="v.id" @click="goVenue(v.id)">
-				<view class="venue-main">
+				<view class="venue-name-row">
 					<text class="venue-name">{{v.name}}</text>
-					<view class="venue-addr-row">
-						<text class="venue-addr">{{v.address}}</text>
-						<text class="venue-distance" v-if="v.distanceKm">{{v.distanceKm}}km</text>
+					<view class="venue-meta">
+						<text class="venue-count">{{v.seatCount || 0}} 座位</text>
+						<text class="venue-sep">丨</text>
+						<text class="venue-available" :class="{ none: v.availableCount === 0 }">可预约 {{v.availableCount || 0}}</text>
 					</view>
 				</view>
-				<view class="venue-meta">
-					<text class="venue-count">{{v.seatCount || 0}} 座位</text>
-					<text class="venue-sep">丨</text>
-					<text class="venue-available" :class="{ none: v.availableCount === 0 }">可预约 {{v.availableCount || 0}}</text>
+				<view class="venue-addr-row">
+					<text class="venue-addr">{{v.address}}</text>
+					<text class="venue-distance" v-if="v.distanceKm">{{v.distanceKm}}km</text>
 				</view>
 			</view>
 		</view>
@@ -354,8 +354,14 @@
 	}
 	.venue-card {
 		display: flex;
-		justify-content: space-between;
+		flex-direction: column;
+		gap: 8rpx;
+	}
+	.venue-name-row {
+		display: flex;
 		align-items: center;
+		justify-content: space-between;
+		gap: 12rpx;
 	}
 	.venue-main {
 		flex: 1;
@@ -364,8 +370,13 @@
 		gap: 8rpx;
 	}
 	.venue-name {
+		flex: 1;
+		min-width: 0;
 		font-size: 30rpx;
 		font-weight: 600;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
 	}
 	.venue-addr {
 		font-size: 24rpx;
@@ -386,6 +397,7 @@
 		flex-direction: row;
 		align-items: center;
 		gap: 12rpx;
+		flex-shrink: 0;
 	}
 	.venue-available {
 		font-size: 24rpx;
