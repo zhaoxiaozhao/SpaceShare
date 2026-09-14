@@ -39,12 +39,13 @@
 						selectedColor: theme.primary,
 						fail: () => {}
 					})
-					// 动态切换 4 个 tab 的选中图标为当季配色（未选中保持灰色）
+					// 动态切换各 tab 的选中图标为当季配色（未选中保持灰色）
 					const icons = [
 						{ index: 0, prefix: 'home' },
 						{ index: 1, prefix: 'reserve' },
-						{ index: 2, prefix: 'notify' },
-						{ index: 3, prefix: 'mine' }
+						{ index: 2, prefix: 'activity' },
+						{ index: 3, prefix: 'notify' },
+						{ index: 4, prefix: 'mine' }
 					]
 					icons.forEach(({ index, prefix }) => {
 						wx.setTabBarItem({
