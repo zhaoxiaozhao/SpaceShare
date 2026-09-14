@@ -68,15 +68,15 @@
 		<view v-if="activities.length" class="section">
 			<view class="sec-head">
 				<text class="section-title">最近活动</text>
-				<text class="sec-more" @click="goActivities">全部 ›</text>
+				<text class="sec-more" @click="goActivities">更多 ›</text>
 			</view>
 			<view class="card act-card" v-for="a in activities" :key="a.id" @click="goActivity(a.id)">
+				<text class="act-title">{{a.title}}</text>
+				<text class="act-meta">{{formatTime(a.startAt)}}<text v-if="a.venueName"> · {{a.venueName}}</text></text>
 				<view class="act-top">
 					<text class="act-cat">{{categoryLabel(a.category)}}</text>
 					<text class="act-count">{{a.signupCount}}/{{a.capacity}} 人</text>
 				</view>
-				<text class="act-title">{{a.title}}</text>
-				<text class="act-meta">{{formatTime(a.startAt)}}<text v-if="a.venueName"> · {{a.venueName}}</text></text>
 			</view>
 		</view>
 
@@ -407,11 +407,11 @@
 	}
 	.sec-head {
 		display: flex;
-		justify-content: space-between;
-		align-items: center;
+		align-items: baseline;
+		gap: 16rpx;
 	}
 	.sec-more {
-		font-size: 26rpx;
+		font-size: 24rpx;
 		color: var(--primary);
 	}
 	.act-card {
@@ -421,7 +421,7 @@
 		display: flex;
 		justify-content: space-between;
 		align-items: center;
-		margin-bottom: 10rpx;
+		margin-top: 14rpx;
 	}
 	.act-cat {
 		font-size: 22rpx;
