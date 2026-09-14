@@ -3,7 +3,7 @@
 		<view v-if="seat">
 		<view class="card seat-header">
 			<view class="seat-top">
-				<text class="seat-code">{{seat.displayCode || seat.code}}</text>
+				<text class="seat-code">{{seatCodeText}}</text>
 				<text class="tag" v-if="seat.statusText">{{seat.statusText}}</text>
 			</view>
 			<view class="seat-loc" v-if="seat.floorName || seat.areaName || seat.venueName">
@@ -85,7 +85,7 @@
 		<view v-if="showRespondSwap" class="swap-mask" @click="showRespondSwap = false">
 			<view class="swap-pop" @click.stop>
 				<text class="swap-pop-title">同意换座</text>
-				<view class="swap-pop-hint" v-if="seatSwap">对方座位 {{seatSwap.seatCode}} · 想换到 {{wantText(seatSwap)}}</view>
+				<text class="swap-pop-hint">对方座位 {{seatSwap.seatCode}} · 想换到 {{wantText(seatSwap)}}</text>
 				<text class="swap-lb">选择我的座位</text>
 				<view class="swap-loc-row">
 					<picker mode="selector" :range="respFloors" range-key="name" :value="resp.floor" @change="onResp('floor', $event)">
@@ -114,10 +114,9 @@
 		<view v-if="showSwap" class="swap-mask" @click="showSwap = false">
 			<view class="swap-pop" @click.stop>
 				<text class="swap-pop-title">发起换座</text>
-				<text class="swap-pop-hint">平台仅提供信息撮合，免费自愿、线下自行交换，请遵守场馆规定。</text>
 				<view class="swap-mine">
 					<text class="swap-mine-label">我的座位</text>
-					<text class="swap-mine-value">{{seat.displayCode || seat.code}}</text>
+					<text class="swap-mine-value">{{seatCodeText}}</text>
 				</view>
 
 				<text class="swap-lb">期望换到（可不限）</text>
@@ -179,7 +178,6 @@
 					{ code: 'cold', label: '位置偏冷' },
 					{ code: 'hot', label: '位置偏热' },
 					{ code: 'noise', label: '附近有人交谈' },
-					{ code: 'together', label: '想与同伴相邻' },
 					{ code: 'window', label: '想靠窗' },
 					{ code: 'socket', label: '需要插座' },
 					{ code: 'other', label: '其他' }
@@ -215,6 +213,13 @@
 			this.load()
 		},
 		computed: {
+			// 统一的座位编号展示：楼层-区块区-序号（如 3F-A区-001）
+			seatCodeText() {
+				const s = this.seat
+				if (!s) return ''
+				const code = s.displayCode || s.code || ''
+				return s.floorName ? `${s.floorName}-${code}` : code
+			},
 			// 分享标签（与主页/场馆详情显示的备注一致）：取第一条分享的 note 拆分为标签
 			shareTags() {
 				const note = this.shares.length ? (this.shares[0].note || '') : ''
@@ -250,8 +255,10 @@
 				const f = this.respFloor
 				const z = f && f.zones ? f.zones.find(x => x.id === this.respZone.id) : null
 				if (!z || !z.seats) return []
+				const floorName = f ? f.name : ''
 				const letter = (this.respZone.name || '').replace('区', '')
-				return z.seats.map(s => ({ id: s.id, name: `${letter}区-${(s.code || '').split('-').pop()}` }))
+				const prefix = floorName ? `${floorName}-` : ''
+				return z.seats.map(s => ({ id: s.id, name: `${prefix}${letter}区-${(s.code || '').split('-').pop()}` }))
 			},
 			respFloorText() {
 				const o = this.respFloors[this.resp.floor]
