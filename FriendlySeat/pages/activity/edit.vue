@@ -67,7 +67,6 @@
 			<button class="btn-outline" @click="back">取消</button>
 			<button class="btn-primary" :loading="submitting" @click="submit">{{id ? '保存并重新提交审核' : '提交审核'}}</button>
 		</view>
-		<text class="tip">活动提交后需经平台审核，通过后在「发现」中展示。请勿发布与学习无关或违规内容。</text>
 	</view>
 </template>
 
@@ -302,12 +301,5 @@
 	}
 	.actions button {
 		flex: 1;
-	}
-	.tip {
-		display: block;
-		font-size: 22rpx;
-		color: #A5A39D;
-		margin-top: 20rpx;
-		line-height: 1.6;
 	}
 </style>
