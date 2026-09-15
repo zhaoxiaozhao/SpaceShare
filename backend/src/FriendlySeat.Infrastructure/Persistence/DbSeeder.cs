@@ -161,18 +161,28 @@ public static class DbSeeder
         await EnsureConfigRowAsync(db, ConfigCategory.SwapReasons, ConfigOptionsService.DefaultSwapReasons, "换座原因（JSON 数组）");
         await EnsureConfigRowAsync(db, ConfigCategory.SeatTags, ConfigOptionsService.DefaultSeatTags, "座位标签（JSON 数组）");
 
-        // 活动审核结果通知模板键：确保存在（供后台配置模板ID）
-        if (!await db.SystemConfigs.AnyAsync(c => c.Category == ConfigCategory.NotificationTemplates && c.ConfigKey == "activity_review"))
+        // 通知模板配置键：确保全部存在（供后台配置模板ID；历史库会自动补齐缺失项）
+        var notificationTemplateKeys = new (string Key, string Desc)[]
         {
-            db.SystemConfigs.Add(new SystemConfig { Category = ConfigCategory.NotificationTemplates, ConfigKey = "activity_review", Value = "", Description = "活动审核结果通知 模板ID" });
-            await db.SaveChangesAsync();
-        }
-
-        // 活动开始前提醒模板键：确保存在
-        if (!await db.SystemConfigs.AnyAsync(c => c.Category == ConfigCategory.NotificationTemplates && c.ConfigKey == "activity_starting"))
+            ("reservation_created", "预约成功通知 模板ID"),
+            ("reservation_starting", "预约即将开始通知 模板ID"),
+            ("arrival_required", "到座提醒通知 模板ID"),
+            ("reservation_expired", "预约过期/爽约通知 模板ID"),
+            ("reservation_cancelled", "预约取消通知 模板ID"),
+            ("waitlist_available", "候补成功通知 模板ID"),
+            ("credit_changed", "信用变更通知 模板ID"),
+            ("report_result", "举报处理结果通知 模板ID"),
+            ("system", "系统通知 模板ID"),
+            ("activity_review", "活动审核结果通知 模板ID"),
+            ("activity_starting", "活动开始前提醒 模板ID")
+        };
+        foreach (var (key, desc) in notificationTemplateKeys)
         {
-            db.SystemConfigs.Add(new SystemConfig { Category = ConfigCategory.NotificationTemplates, ConfigKey = "activity_starting", Value = "", Description = "活动开始前提醒 模板ID" });
-            await db.SaveChangesAsync();
+            if (!await db.SystemConfigs.AnyAsync(c => c.Category == ConfigCategory.NotificationTemplates && c.ConfigKey == key))
+            {
+                db.SystemConfigs.Add(new SystemConfig { Category = ConfigCategory.NotificationTemplates, ConfigKey = key, Value = "", Description = desc });
+                await db.SaveChangesAsync();
+            }
         }
 
         logger.LogInformation("数据库初始化完成");
