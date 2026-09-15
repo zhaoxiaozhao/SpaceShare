@@ -62,7 +62,7 @@
 					<text class="share-sub">{{s.count}} 本 · {{s.viewCount}} 浏览 · {{s.favoriteCount}} 收藏 · {{formatDate(s.createdAt)}}</text>
 				</view>
 				<text class="pub-tag" :class="{ on: s.isPublic }">{{s.isPublic ? '公开' : '私密'}}</text>
-				<text class="share-del" @click.stop="removeShare(s)">删除</text>
+				<image class="share-del" src="/static/icons/trash.png" mode="aspectFit" @click.stop="removeShare(s)" />
 				<text class="share-arrow">›</text>
 			</view>
 		</view>
@@ -530,7 +530,7 @@
 	.board-entry-text { font-size: 28rpx; color: var(--primary); font-weight: 500; }
 	.pub-tag { font-size: 20rpx; padding: 4rpx 14rpx; border-radius: 8rpx; background: #F1EFE9; color: #8A8A86; margin: 0 12rpx; flex-shrink: 0; }
 	.pub-tag.on { background: var(--primary-bg); color: var(--primary); }
-	.share-del { font-size: 22rpx; color: #B85450; margin-left: 10rpx; flex-shrink: 0; }
+	.share-del { width: 36rpx; height: 36rpx; margin-left: 10rpx; flex-shrink: 0; }
 	.actions { margin: 20rpx; }
 	.share-row { display: flex; align-items: center; justify-content: space-between; padding: 18rpx 0; border-bottom: 1rpx solid #F0EFEA; }
 	.share-row:last-child { border-bottom: none; }

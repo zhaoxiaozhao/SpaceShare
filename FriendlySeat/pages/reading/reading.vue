@@ -83,8 +83,8 @@
 					<view class="book-top">
 						<text class="book-title">{{b.title}}</text>
 						<text class="book-status" :class="'st-' + b.status">{{statusText(b.status)}}</text>
-						<text class="book-edit" @click.stop="openEdit(b)">编辑</text>
-						<text class="book-del" @click.stop="removeBook(b)">删除</text>
+						<image class="book-act" :src="`/static/icons/edit-${season}.png`" mode="aspectFit" @click.stop="openEdit(b)" />
+						<image class="book-act" src="/static/icons/trash.png" mode="aspectFit" @click.stop="removeBook(b)" />
 					</view>
 					<text class="book-author" v-if="b.author">{{b.author}}</text>
 					<template v-if="b.totalPages">
@@ -373,6 +373,7 @@
 	.book-status { font-size: 20rpx; flex-shrink: 0; padding: 4rpx 16rpx; border-radius: 8rpx; }
 	.book-edit { font-size: 22rpx; color: var(--primary); flex-shrink: 0; }
 	.book-del { font-size: 22rpx; color: #B85450; flex-shrink: 0; }
+	.book-act { width: 40rpx; height: 40rpx; flex-shrink: 0; }
 	.st-WantToRead { background: #F1EFE9; color: #8A8A86; }
 	.st-Reading { background: var(--primary-bg); color: var(--primary); }
 	.st-Finished { background: #E8F1E8; color: #4A7A4A; }
