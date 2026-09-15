@@ -77,7 +77,7 @@
 			</view>
 		</view>
 
-		<canvas class="poster-canvas" canvas-id="posterCard" :style="{ width: '640px', height: canvasH + 'px', position: 'fixed', left: '-9999px', top: '0' }"></canvas>
+		<canvas type="2d" id="posterCard" class="poster-canvas" :style="{ width: '640px', height: canvasH + 'px', position: 'fixed', left: '-99999px', top: '0' }"></canvas>
 	</view>
 </template>
 
@@ -190,181 +190,244 @@
 					this.creating = false
 				}
 			},
-			wrap(ctx, text, x, y, maxWidth, lineHeight) {
+			rr(ctx, x, y, w, h, r) {
+				ctx.beginPath()
+				ctx.moveTo(x + r, y)
+				ctx.arcTo(x + w, y, x + w, y + h, r)
+				ctx.arcTo(x + w, y + h, x, y + h, r)
+				ctx.arcTo(x, y + h, x, y, r)
+				ctx.arcTo(x, y, x + w, y, r)
+				ctx.closePath()
+			},
+			wrap(ctx, text, x, y, maxWidth, lineHeight, maxLines) {
 				const chars = (text || '').split('')
 				let line = ''
-				let lines = 0
+				let n = 0
 				for (const ch of chars) {
 					const test = line + ch
 					if (ctx.measureText(test).width > maxWidth && line) {
-						ctx.fillText(line, x, y + lines * lineHeight)
+						ctx.fillText(line, x, y + n * lineHeight)
 						line = ch
-						lines++
+						n++
+						if (maxLines && n >= maxLines) return n
 					} else {
 						line = test
 					}
 				}
-				if (line) {
-					ctx.fillText(line, x, y + lines * lineHeight)
-					lines++
+				if (line && (!maxLines || n < maxLines)) {
+					ctx.fillText(line, x, y + n * lineHeight)
+					n++
 				}
-				return lines
+				return n
 			},
-			// 把封面（cloud:// 或 https）下载成本地路径供 canvas 绘制
-			loadCover(url) {
+			// 把封面（cloud:// 或 https）下载成本地路径
+			resolveCoverPath(url) {
 				return new Promise((resolve) => {
 					if (!url) return resolve(null)
-					const done = (path) => {
-						if (!path) return resolve(null)
-						uni.getImageInfo({
-							src: path,
-							success: (info) => resolve({ path, width: info.width, height: info.height }),
-							fail: () => resolve(null)
-						})
-					}
 					if (/^cloud:\/\//.test(url)) {
+						if (!wx || !wx.cloud || !wx.cloud.downloadFile) return resolve(null)
 						wx.cloud.downloadFile({
 							fileID: url,
-							success: (res) => done(res.tempFilePath),
+							success: (res) => resolve(res.tempFilePath),
 							fail: () => resolve(null)
 						})
 					} else if (/^https?:/.test(url)) {
 						uni.downloadFile({
 							url,
-							success: (res) => done(res.statusCode === 200 ? res.tempFilePath : null),
+							success: (res) => resolve(res.statusCode === 200 ? res.tempFilePath : null),
 							fail: () => resolve(null)
 						})
 					} else {
-						done(url)
+						resolve(url)
 					}
+				})
+			},
+			loadCanvasImage(canvas, src) {
+				return new Promise((resolve, reject) => {
+					const img = canvas.createImage()
+					img.onload = () => resolve(img)
+					img.onerror = reject
+					img.src = src
 				})
 			},
 			async drawPoster(share) {
 				const books = share.books || []
-				const show = books.slice(0, 12)
-				const covers = await Promise.all(show.map(b => this.loadCover(b.coverUrl)))
-				return new Promise((resolve, reject) => {
-					const more = books.length - show.length
-					const hasRemark = !!(share.remark && share.remark.length)
-					const rowH = 84
-					const H = 300 + (hasRemark ? 90 : 0) + show.length * rowH + (more > 0 ? 40 : 0) + 150
-					this.canvasH = H
+				const show = books.slice(0, 10)
+				const more = books.length - show.length
+				const hasRemark = !!(share.remark && share.remark.length)
 
-					this.$nextTick(() => {
-						const ctx = uni.createCanvasContext('posterCard', this)
-						const W = 640
-						const theme = getTheme()
-						const primary = theme.primary
-						const dark = '#2B2B27'
-						const gray = '#8A8A86'
-						const soft = '#F1EFE9'
+				const W = 640
+				const pad = 44
+				const headerH = 250
+				const cardH = 104
+				const gap = 16
+				const remarkH = hasRemark ? 96 : 0
+				const H = headerH + 36 + remarkH + show.length * (cardH + gap) + (more > 0 ? 46 : 0) + 130
+				this.canvasH = H
+				await this.$nextTick()
 
-						ctx.setFillStyle('#F7F5EF')
-						ctx.fillRect(0, 0, W, H)
-
-						// 顶部品牌区
-						ctx.setFillStyle(primary)
-						ctx.fillRect(0, 0, W, 240)
-						ctx.setFillStyle('rgba(255,255,255,0.12)')
-						ctx.beginPath()
-						ctx.arc(560, 40, 150, 0, 2 * Math.PI)
-						ctx.fill()
-						ctx.beginPath()
-						ctx.arc(30, 210, 90, 0, 2 * Math.PI)
-						ctx.fill()
-
-						ctx.setTextAlign('left')
-						ctx.setFillStyle('#FFFFFF')
-						ctx.setFontSize(40)
-						ctx.fillText(share.title || '我的书单', 40, 100)
-
-						ctx.setFontSize(24)
-						ctx.setFillStyle('rgba(255,255,255,0.85)')
-						const totalHours = Math.round((share.totalMinutes || 0) / 60)
-						ctx.fillText(`${share.ownerName || '书友'} · 共 ${share.count || books.length} 本 · ${totalHours} 小时`, 40, 150)
-						ctx.fillText(`友邻座 · ${new Date().getFullYear()}`, 40, 190)
-
-						let y = 300
-						if (hasRemark) {
-							ctx.setFillStyle(dark)
-							ctx.setFontSize(26)
-							const lines = Math.min(2, this.wrap(ctx, share.remark, 40, y, W - 80, 36))
-							y += lines * 36 + 34
-						}
-
-						// 书单条目
-						show.forEach((b, i) => {
-							ctx.setFillStyle('#FFFFFF')
-							ctx.fillRect(40, y - 30, W - 80, rowH - 14)
-
-							const box = 52
-							const bx = 56
-							const by = y - 16
-							const img = covers[i]
-							if (img) {
-								// 居中裁剪为正方形绘制真实封面
-								const s = Math.min(img.width, img.height)
-								const sx = (img.width - s) / 2
-								const sy = (img.height - s) / 2
-								ctx.drawImage(img.path, sx, sy, s, s, bx, by, box, box)
-							} else {
-								// 无封面：书名首字 + 稳定取色
-								ctx.setFillStyle(bookCoverColor(b.title))
-								ctx.fillRect(bx, by, box, box)
-								ctx.setFillStyle('#FFFFFF')
-								ctx.setFontSize(26)
-								ctx.setTextAlign('center')
-								ctx.fillText((b.title || '书').slice(0, 1), bx + box / 2, by + 34)
-								ctx.setTextAlign('left')
-							}
-
-							ctx.setFillStyle(dark)
-							ctx.setFontSize(28)
-							let title = b.title || ''
-							while (ctx.measureText(title).width > W - 240 && title.length > 1) {
-								title = title.slice(0, -1)
-							}
-							ctx.fillText(title, 128, y + 6)
-
-							ctx.setFillStyle(gray)
-							ctx.setFontSize(22)
-							const sub = [b.author, STATUS_LABELS[b.status] || ''].filter(Boolean).join(' · ')
-							ctx.fillText(sub, 128, y + 36)
-
-							y += rowH
-						})
-
-						if (more > 0) {
-							ctx.setFillStyle(gray)
-							ctx.setFontSize(24)
-							ctx.fillText(`等共 ${books.length} 本`, 40, y + 6)
-							y += 40
-						}
-
-						ctx.setTextAlign('center')
-						ctx.setFillStyle(soft)
-						ctx.fillRect(0, H - 90, W, 90)
-						ctx.setFillStyle(gray)
-						ctx.setFontSize(22)
-						ctx.fillText('一席相邻，善意相续 · 友邻座', W / 2, H - 48)
-
-						ctx.draw(false, () => {
-							setTimeout(() => {
-								uni.canvasToTempFilePath({
-									canvasId: 'posterCard',
-									width: W,
-									height: H,
-									destWidth: W * 2,
-									destHeight: H * 2,
-									success: (res) => {
-										this.posterPath = res.tempFilePath
-										resolve()
-									},
-									fail: reject
-								}, this)
-							}, 300)
-						})
+				const node = await new Promise((resolve) => {
+					wx.createSelectorQuery().in(this).select('#posterCard').fields({ node: true, size: true }).exec((res) => {
+						resolve(res && res[0] ? res[0].node : null)
 					})
+				})
+				if (!node) throw new Error('canvas_not_found')
+
+				const dpr = uni.getSystemInfoSync().pixelRatio || 2
+				node.width = W * dpr
+				node.height = H * dpr
+				const ctx = node.getContext('2d')
+				ctx.scale(dpr, dpr)
+
+				// 预加载封面
+				const imgs = await Promise.all(show.map(async (b) => {
+					const path = await this.resolveCoverPath(b.coverUrl)
+					if (!path) return null
+					try {
+						return await this.loadCanvasImage(node, path)
+					} catch (e) {
+						return null
+					}
+				}))
+
+				const theme = getTheme()
+				const primary = theme.primary
+				const primaryLight = theme.primaryLight
+				const dark = '#2B2B27'
+				const sub = '#9A9A94'
+
+				// 背景
+				ctx.fillStyle = '#F5F3ED'
+				ctx.fillRect(0, 0, W, H)
+
+				// 顶部渐变
+				const g = ctx.createLinearGradient(0, 0, W, headerH)
+				g.addColorStop(0, primary)
+				g.addColorStop(1, primaryLight)
+				ctx.fillStyle = g
+				ctx.fillRect(0, 0, W, headerH)
+				ctx.fillStyle = 'rgba(255,255,255,0.10)'
+				ctx.beginPath()
+				ctx.arc(562, 24, 160, 0, Math.PI * 2)
+				ctx.fill()
+				ctx.beginPath()
+				ctx.arc(16, 234, 96, 0, Math.PI * 2)
+				ctx.fill()
+
+				ctx.textAlign = 'left'
+				ctx.fillStyle = 'rgba(255,255,255,0.85)'
+				ctx.font = '24px sans-serif'
+				ctx.fillText('友邻座 · 书单', pad, 76)
+
+				ctx.fillStyle = '#FFFFFF'
+				ctx.font = 'bold 46px sans-serif'
+				let title = share.title || '我的书单'
+				while (ctx.measureText(title).width > W - pad * 2 && title.length > 1) title = title.slice(0, -1)
+				ctx.fillText(title, pad, 142)
+
+				ctx.fillStyle = 'rgba(255,255,255,0.92)'
+				ctx.font = '24px sans-serif'
+				const totalHours = Math.round((share.totalMinutes || 0) / 60)
+				ctx.fillText(`${share.ownerName || '书友'} · 共 ${share.count || books.length} 本 · ${totalHours} 小时阅读`, pad, 198)
+
+				let y = headerH + 36
+
+				// 推荐语
+				if (hasRemark) {
+					ctx.fillStyle = '#FFFFFF'
+					this.rr(ctx, pad, y, W - pad * 2, remarkH - 16, 18)
+					ctx.fill()
+					ctx.fillStyle = primary
+					this.rr(ctx, pad, y, 8, remarkH - 16, 4)
+					ctx.fill()
+					ctx.fillStyle = dark
+					ctx.font = '26px sans-serif'
+					this.wrap(ctx, share.remark, pad + 30, y + 34, W - pad * 2 - 56, 34, 2)
+					y += remarkH
+				}
+
+				// 书籍卡片
+				show.forEach((b, i) => {
+					const cy = y + i * (cardH + gap)
+					ctx.fillStyle = '#FFFFFF'
+					this.rr(ctx, pad, cy, W - pad * 2, cardH, 18)
+					ctx.fill()
+
+					const cw = 62
+					const ch = 88
+					const cx = pad + 16
+					const ccy = cy + (cardH - ch) / 2
+					const img = imgs[i]
+					if (img && img.width) {
+						this.rr(ctx, cx, ccy, cw, ch, 10)
+						ctx.save()
+						ctx.clip()
+						const s = Math.min(img.width, img.height)
+						const sx = (img.width - s) / 2
+						const sy = (img.height - s) / 2
+						ctx.drawImage(img, sx, sy, s, s, cx, ccy, cw, ch)
+						ctx.restore()
+					} else {
+						ctx.fillStyle = bookCoverColor(b.title)
+						this.rr(ctx, cx, ccy, cw, ch, 10)
+						ctx.fill()
+						ctx.fillStyle = '#FFFFFF'
+						ctx.font = 'bold 30px sans-serif'
+						ctx.textAlign = 'center'
+						ctx.fillText((b.title || '书').slice(0, 1), cx + cw / 2, ccy + ch / 2 + 11)
+						ctx.textAlign = 'left'
+					}
+
+					const tx = cx + cw + 22
+					const maxW = W - pad - tx - 26
+					ctx.fillStyle = dark
+					ctx.font = 'bold 30px sans-serif'
+					let bt = b.title || ''
+					while (ctx.measureText(bt).width > maxW && bt.length > 1) bt = bt.slice(0, -1)
+					ctx.fillText(bt, tx, cy + 48)
+
+					ctx.fillStyle = sub
+					ctx.font = '23px sans-serif'
+					let bs = [b.author, STATUS_LABELS[b.status] || ''].filter(Boolean).join(' · ')
+					while (ctx.measureText(bs).width > maxW && bs.length > 1) bs = bs.slice(0, -1)
+					ctx.fillText(bs, tx, cy + 80)
+				})
+
+				y += show.length * (cardH + gap)
+				if (more > 0) {
+					ctx.fillStyle = sub
+					ctx.font = '24px sans-serif'
+					ctx.textAlign = 'center'
+					ctx.fillText(`等共 ${books.length} 本`, W / 2, y + 12)
+					ctx.textAlign = 'left'
+				}
+
+				// 页脚
+				ctx.textAlign = 'center'
+				ctx.fillStyle = primary
+				ctx.font = 'bold 24px sans-serif'
+				ctx.fillText('一席相邻，善意相续', W / 2, H - 64)
+				ctx.fillStyle = sub
+				ctx.font = '21px sans-serif'
+				ctx.fillText('友邻座 · 书单分享', W / 2, H - 32)
+
+				await new Promise((resolve, reject) => {
+					setTimeout(() => {
+						wx.canvasToTempFilePath({
+							canvas: node,
+							x: 0,
+							y: 0,
+							width: W,
+							height: H,
+							destWidth: W * dpr,
+							destHeight: H * dpr,
+							success: (res) => {
+								this.posterPath = res.tempFilePath
+								resolve()
+							},
+							fail: reject
+						}, this)
+					}, 200)
 				})
 			},
 			savePoster() {
