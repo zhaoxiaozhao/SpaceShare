@@ -41,6 +41,18 @@
 			<button class="btn-primary" :loading="creating" @click="generate">生成书单海报</button>
 		</view>
 
+		<!-- 我生成的书单 -->
+		<view class="card" v-if="myShares.length">
+			<text class="section-label">我生成的书单</text>
+			<view class="share-row" v-for="s in myShares" :key="s.token" @click="openShare(s.token)">
+				<view class="share-info">
+					<text class="share-title">{{s.title}}</text>
+					<text class="share-sub">{{s.count}} 本 · {{s.viewCount}} 次浏览 · {{formatDate(s.createdAt)}}</text>
+				</view>
+				<text class="share-arrow">›</text>
+			</view>
+		</view>
+
 		<!-- 预览 -->
 		<view class="modal-mask" v-if="showPreview" @click="showPreview = false">
 			<view class="preview-modal" @click.stop>
@@ -59,6 +71,7 @@
 <script>
 	import { api } from '../../utils/request.js'
 	import { getSeasonKey, getTheme, bookCoverColor } from '../../utils/theme.js'
+	import { parseDate } from '../../utils/format.js'
 
 	const STATUS_LABELS = { WantToRead: '想读', Reading: '在读', Finished: '已读' }
 
@@ -74,11 +87,15 @@
 				showPreview: false,
 				posterPath: '',
 				token: '',
-				canvasH: 1200
+				canvasH: 1200,
+				myShares: []
 			}
 		},
 		onLoad() {
 			this.load()
+		},
+		onShow() {
+			this.loadMy()
 		},
 		onShareAppMessage() {
 			return {
@@ -93,6 +110,19 @@
 					const res = await api.getReadingBooks('')
 					this.books = (res && res.books) || []
 				} catch (e) {}
+			},
+			async loadMy() {
+				try {
+					this.myShares = await api.getMyBookListShares()
+				} catch (e) {}
+			},
+			openShare(token) {
+				uni.navigateTo({ url: `/pages/reading/list-share-view?token=${token}` })
+			},
+			formatDate(iso) {
+				const d = parseDate(iso)
+				if (!d) return ''
+				return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
 			},
 			toggle(id) {
 				const i = this.selected.indexOf(id)
@@ -131,6 +161,7 @@
 					await this.drawPoster(share)
 					uni.hideLoading()
 					this.showPreview = true
+					this.loadMy()
 				} catch (e) {
 					uni.hideLoading()
 					uni.showToast({ title: e.message || '生成失败，请重试', icon: 'none' })
@@ -309,6 +340,12 @@
 	.textarea { width: 100%; box-sizing: border-box; background: #F7F5EF; border-radius: 12rpx; padding: 16rpx 20rpx; font-size: 28rpx; height: 140rpx; }
 	.count { display: block; text-align: right; font-size: 22rpx; color: #B0B0AB; margin-top: 8rpx; }
 	.actions { margin: 20rpx; }
+	.share-row { display: flex; align-items: center; justify-content: space-between; padding: 18rpx 0; border-bottom: 1rpx solid #F0EFEA; }
+	.share-row:last-child { border-bottom: none; }
+	.share-info { flex: 1; min-width: 0; }
+	.share-title { font-size: 28rpx; font-weight: 600; display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+	.share-sub { font-size: 22rpx; color: #8A8A86; }
+	.share-arrow { font-size: 36rpx; color: #C4C2BB; margin-left: 16rpx; }
 	.modal-mask { position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 999; display: flex; align-items: center; justify-content: center; }
 	.preview-modal { width: 600rpx; max-height: 84vh; background: #FFFFFF; border-radius: 24rpx; padding: 30rpx; display: flex; flex-direction: column; align-items: center; }
 	.modal-title { font-size: 32rpx; font-weight: 600; margin-bottom: 20rpx; }
