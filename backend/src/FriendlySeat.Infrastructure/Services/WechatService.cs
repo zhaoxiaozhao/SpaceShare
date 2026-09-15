@@ -181,7 +181,16 @@ public class WechatService : IWechatService
     public async Task<(string Url, string? Error)> GetTempFileUrlDetailedAsync(string fileId, CancellationToken ct = default)
     {
         if (string.IsNullOrWhiteSpace(fileId) || !fileId.StartsWith("cloud://")) return (fileId ?? string.Empty, null);
-        if (string.IsNullOrEmpty(_options.CloudEnv)) return (string.Empty, "CloudEnv 未配置");
+
+        // 环境 ID：优先取配置，未配置则从 fileID 解析（cloud://<env>.<bucket>/path）
+        var env = _options.CloudEnv;
+        if (string.IsNullOrEmpty(env))
+        {
+            var rest = fileId["cloud://".Length..];
+            var dot = rest.IndexOf('.');
+            if (dot > 0) env = rest[..dot];
+        }
+        if (string.IsNullOrEmpty(env)) return (string.Empty, "CloudEnv 未配置且无法从 fileID 解析");
 
         string? token;
         try
@@ -197,7 +206,7 @@ public class WechatService : IWechatService
         try
         {
             var url = $"https://api.weixin.qq.com/tcb/batchdownloadfile?access_token={Uri.EscapeDataString(token)}";
-            var payload = new { env = _options.CloudEnv, file_list = new[] { new { fileid = fileId, max_age = 7200 } } };
+            var payload = new { env, file_list = new[] { new { fileid = fileId, max_age = 7200 } } };
             var resp = await _http.PostAsJsonAsync(url, payload, ct);
             var body = await resp.Content.ReadAsStringAsync(ct);
 
