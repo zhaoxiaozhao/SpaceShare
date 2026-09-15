@@ -173,7 +173,7 @@
 		{
 			"path": "pages/reading/list-share-board",
 			"style": {
-				"navigationBarTitleText": "热门书单"
+				"navigationBarTitleText": "书单"
 			}
 		},
 		{

@@ -241,7 +241,7 @@
 				uni.navigateTo({ url: '/pages/reading/yearly' })
 			},
 			goListShare() {
-				uni.navigateTo({ url: '/pages/reading/list-share-create' })
+				uni.navigateTo({ url: '/pages/reading/list-share-board' })
 			},
 			openEdit(book) {
 				this.editingId = book ? book.id : null

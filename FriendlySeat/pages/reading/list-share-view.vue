@@ -57,7 +57,7 @@
 			</view>
 			<button class="btn-primary make-btn" @click="goReading">我也要做书单</button>
 			<view class="links">
-				<text class="link" @click="goBoard">热门书单</text>
+				<text class="link" @click="goBoard">更多书单</text>
 				<view class="link-report" v-if="!share.isOwner" @click="goReport">
 					<image class="link-icon" src="/static/icons/flag.png" mode="aspectFit" />
 					<text>举报</text>

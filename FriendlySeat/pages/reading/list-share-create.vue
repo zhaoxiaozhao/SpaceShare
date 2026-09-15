@@ -48,25 +48,6 @@
 			<button class="btn-primary" :loading="creating" @click="generate">生成书单海报</button>
 		</view>
 
-		<view class="board-entry" @click="goBoard">
-			<text class="board-entry-text">看看热门书单榜</text>
-			<text class="share-arrow">›</text>
-		</view>
-
-		<!-- 我生成的书单 -->
-		<view class="card" v-if="myShares.length">
-			<text class="section-label">我生成的书单</text>
-			<view class="share-row" v-for="s in myShares" :key="s.token" @click="openShare(s.token)">
-				<view class="share-info">
-					<text class="share-title">{{s.title}}</text>
-					<text class="share-sub">{{s.count}} 本 · {{s.viewCount}} 浏览 · {{s.favoriteCount}} 收藏 · {{formatDate(s.createdAt)}}</text>
-				</view>
-				<text class="pub-tag" :class="{ on: s.isPublic }">{{s.isPublic ? '公开' : '私密'}}</text>
-				<image class="share-del" src="/static/icons/trash.png" mode="aspectFit" @click.stop="removeShare(s)" />
-				<text class="share-arrow">›</text>
-			</view>
-		</view>
-
 		<!-- 预览 -->
 		<view class="modal-mask" v-if="showPreview" @click="showPreview = false">
 			<view class="preview-modal" @click.stop>
@@ -85,7 +66,6 @@
 <script>
 	import { api } from '../../utils/request.js'
 	import { getSeasonKey, getTheme, bookCoverColor } from '../../utils/theme.js'
-	import { parseDate } from '../../utils/format.js'
 
 	const STATUS_LABELS = { WantToRead: '想读', Reading: '在读', Finished: '已读' }
 
@@ -102,15 +82,11 @@
 				posterPath: '',
 				token: '',
 				canvasH: 1200,
-				isPublic: false,
-				myShares: []
+				isPublic: false
 			}
 		},
 		onLoad() {
 			this.load()
-		},
-		onShow() {
-			this.loadMy()
 		},
 		onShareAppMessage() {
 			return {
@@ -126,40 +102,8 @@
 					this.books = (res && res.books) || []
 				} catch (e) {}
 			},
-			async loadMy() {
-				try {
-					this.myShares = await api.getMyBookListShares()
-				} catch (e) {}
-			},
-			openShare(token) {
-				uni.navigateTo({ url: `/pages/reading/list-share-view?token=${token}` })
-			},
-			removeShare(s) {
-				uni.showModal({
-					title: '删除书单',
-					content: `确定删除书单「${s.title}」吗？`,
-					success: async (res) => {
-						if (!res.confirm) return
-						try {
-							await api.deleteBookListShare(s.token)
-							uni.showToast({ title: '已删除', icon: 'success' })
-							this.loadMy()
-						} catch (e) {
-							uni.showToast({ title: e.message || '删除失败', icon: 'none' })
-						}
-					}
-				})
-			},
-			goBoard() {
-				uni.navigateTo({ url: '/pages/reading/list-share-board' })
-			},
 			onPublicChange(e) {
 				this.isPublic = !!(e.detail && e.detail.value)
-			},
-			formatDate(iso) {
-				const d = parseDate(iso)
-				if (!d) return ''
-				return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
 			},
 			toggle(id) {
 				const i = this.selected.indexOf(id)
@@ -199,7 +143,6 @@
 					await this.drawPoster(share)
 					uni.hideLoading()
 					this.showPreview = true
-					this.loadMy()
 				} catch (e) {
 					uni.hideLoading()
 					uni.showToast({ title: e.message || '生成失败，请重试', icon: 'none' })
@@ -531,18 +474,7 @@
 	.switch-info { flex: 1; min-width: 0; }
 	.switch-label { display: block; font-size: 28rpx; color: #55554F; }
 	.switch-tip { display: block; font-size: 21rpx; color: #B0B0AB; line-height: 1.4; margin-top: 4rpx; }
-	.board-entry { display: flex; align-items: center; justify-content: space-between; margin: 0 20rpx 20rpx; padding: 24rpx 28rpx; background: #FFFFFF; border-radius: 20rpx; box-shadow: 0 4rpx 16rpx rgba(0,0,0,0.04); }
-	.board-entry-text { font-size: 28rpx; color: var(--primary); font-weight: 500; }
-	.pub-tag { font-size: 20rpx; padding: 4rpx 14rpx; border-radius: 8rpx; background: #F1EFE9; color: #8A8A86; margin: 0 12rpx; flex-shrink: 0; }
-	.pub-tag.on { background: var(--primary-bg); color: var(--primary); }
-	.share-del { width: 36rpx; height: 36rpx; margin-left: 10rpx; flex-shrink: 0; }
 	.actions { margin: 20rpx; }
-	.share-row { display: flex; align-items: center; justify-content: space-between; padding: 18rpx 0; border-bottom: 1rpx solid #F0EFEA; }
-	.share-row:last-child { border-bottom: none; }
-	.share-info { flex: 1; min-width: 0; }
-	.share-title { font-size: 28rpx; font-weight: 600; display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-	.share-sub { font-size: 22rpx; color: #8A8A86; }
-	.share-arrow { font-size: 36rpx; color: #C4C2BB; margin-left: 16rpx; }
 	.modal-mask { position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 999; display: flex; align-items: center; justify-content: center; }
 	.preview-modal { width: 600rpx; max-height: 84vh; background: #FFFFFF; border-radius: 24rpx; padding: 30rpx; display: flex; flex-direction: column; align-items: center; }
 	.modal-title { font-size: 32rpx; font-weight: 600; margin-bottom: 20rpx; }
