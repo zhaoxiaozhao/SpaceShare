@@ -197,27 +197,40 @@ public class BookListShareService
     }
 
     /// <summary>书单封面：后端代理云存储取回并以 base64 返回（绕开小程序云下载/域名限制）</summary>
-    public async Task<List<BookListCoverDto>> GetCoversAsync(string token, CancellationToken ct = default)
+    public async Task<BookListCoversDto> GetCoversAsync(string token, CancellationToken ct = default)
     {
         var share = await _db.BookListShares.FirstOrDefaultAsync(s => s.Token == token, ct)
             ?? throw AppException.NotFound("书单不存在");
 
-        var books = Deserialize(share.ItemsJson);
-        var result = new List<BookListCoverDto>();
+        var books = Deserialize(share.ItemsJson).Take(10).ToList();
+        var withCover = books.Where(b => !string.IsNullOrWhiteSpace(b.CoverUrl)).ToList();
+
+        var result = new BookListCoversDto();
+        var diag = new List<string>();
         long totalBytes = 0;
-        foreach (var b in books.Take(10))
+        foreach (var b in withCover)
         {
-            if (string.IsNullOrWhiteSpace(b.CoverUrl)) continue;
+            var url = await _wechat.GetTempFileUrlAsync(b.CoverUrl!, ct);
+            if (string.IsNullOrEmpty(url)) { diag.Add($"#{b.BookId}:临时链接获取失败"); continue; }
+
             var bytes = await _wechat.DownloadCloudFileAsync(b.CoverUrl!, ct);
-            if (bytes is null || bytes.Length == 0) continue;
-            // 单张过大或累计过大则跳过，避免响应体过大
-            if (bytes.Length > 2_500_000 || totalBytes + bytes.Length > 6_000_000) continue;
+            if (bytes is null || bytes.Length == 0) { diag.Add($"#{b.BookId}:图片下载失败"); continue; }
+            if (bytes.Length > 2_500_000) { diag.Add($"#{b.BookId}:过大{bytes.Length / 1024}KB"); continue; }
+            if (totalBytes + bytes.Length > 6_000_000) { diag.Add($"#{b.BookId}:累计超限"); continue; }
+
             totalBytes += bytes.Length;
-            result.Add(new BookListCoverDto
+            result.Covers.Add(new BookListCoverDto
             {
                 BookId = b.BookId,
                 DataUrl = $"data:{DetectImageMime(bytes)};base64,{Convert.ToBase64String(bytes)}"
             });
+        }
+
+        if (result.Covers.Count == 0)
+        {
+            result.Diag = withCover.Count == 0
+                ? "书单中没有带封面的书"
+                : string.Join("; ", diag);
         }
         return result;
     }

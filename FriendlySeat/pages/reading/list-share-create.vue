@@ -284,9 +284,12 @@
 				// 预加载封面：后端代理云存储返回 base64（绕开小程序云下载/域名限制）
 				let coverMap = {}
 				let coverErr = ''
+				let coverDiag = ''
 				try {
-					const covers = await api.getBookListCovers(share.token)
-					;(covers || []).forEach((c) => { coverMap[c.bookId] = c.dataUrl })
+					const res = await api.getBookListCovers(share.token)
+					const covers = (res && res.covers) || []
+					covers.forEach((c) => { coverMap[c.bookId] = c.dataUrl })
+					coverDiag = (res && res.diag) || ''
 				} catch (e) {
 					coverErr = (e && (e.message || e.errMsg)) || '请求失败'
 					console.warn('[poster] 拉取封面失败', e)
@@ -313,7 +316,7 @@
 					if (got === 0) {
 						uni.showModal({
 							title: '封面接口无数据',
-							content: coverErr ? ('请求失败：' + coverErr) : '后端未返回封面（多为微信 AppSecret/CloudEnv 未配置或云存储取回失败）',
+							content: coverErr ? ('请求失败：' + coverErr) : ('后端原因：' + (coverDiag || '未知')),
 							showCancel: false
 						})
 					} else if (writeFail > 0 || loadFail > 0) {

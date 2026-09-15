@@ -189,3 +189,10 @@ public class BookListCoverDto
     public long BookId { get; set; }
     public string DataUrl { get; set; } = string.Empty;
 }
+
+/// <summary>书单封面响应（Diag 仅在无封面时给出失败原因，便于排查）</summary>
+public class BookListCoversDto
+{
+    public List<BookListCoverDto> Covers { get; set; } = new();
+    public string? Diag { get; set; }
+}
