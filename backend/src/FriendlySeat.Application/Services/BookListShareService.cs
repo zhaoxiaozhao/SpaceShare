@@ -85,8 +85,13 @@ public class BookListShareService
             .FirstOrDefaultAsync(s => s.Token == token, ct);
         if (share is null) return null;
 
-        share.ViewCount += 1;
-        await _db.SaveChangesAsync(ct);
+        // 浏览量只统计他人浏览，作者自己查看不计
+        var isOwner = viewerId.HasValue && viewerId.Value == share.UserId;
+        if (!isOwner)
+        {
+            share.ViewCount += 1;
+            await _db.SaveChangesAsync(ct);
+        }
 
         return await BuildDtoAsync(share, viewerId, ct);
     }
