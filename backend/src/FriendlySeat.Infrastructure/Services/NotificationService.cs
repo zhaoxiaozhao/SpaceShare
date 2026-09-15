@@ -165,6 +165,37 @@ public class NotificationService : INotificationService
             };
         }
 
+        // 预约过期/爽约复用模板「预约通知」（编号 461）：预约状态=phrase14、座位=thing46、备注=thing7
+        if (type == NotificationType.ReservationExpired)
+        {
+            var seat = string.Empty;
+            var status = "爽约";
+            var remark = "请按时到座，以免影响信用";
+
+            if (!string.IsNullOrWhiteSpace(data))
+            {
+                try
+                {
+                    using var doc = JsonDocument.Parse(data);
+                    var root = doc.RootElement;
+                    if (root.TryGetProperty("seat", out var s) && s.ValueKind == JsonValueKind.String)
+                        seat = s.GetString() ?? seat;
+                    if (root.TryGetProperty("status", out var st) && st.ValueKind == JsonValueKind.String)
+                        status = st.GetString() ?? status;
+                    if (root.TryGetProperty("remark", out var rk) && rk.ValueKind == JsonValueKind.String)
+                        remark = rk.GetString() ?? remark;
+                }
+                catch (JsonException) { }
+            }
+
+            return new Dictionary<string, SubscribeDataItem>
+            {
+                ["phrase14"] = new SubscribeDataItem(Clip(status, 5)),
+                ["thing46"] = new SubscribeDataItem(Clip(seat, 20)),
+                ["thing7"] = new SubscribeDataItem(Clip(remark, 20))
+            };
+        }
+
         return new Dictionary<string, SubscribeDataItem>
         {
             ["thing1"] = new SubscribeDataItem(Clip(title, 20)),

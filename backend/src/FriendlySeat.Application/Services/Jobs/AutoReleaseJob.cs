@@ -72,8 +72,17 @@ public class AutoReleaseJob : IAutoReleaseJob
                     $"当天爽约{todayNoShows}次", ct);
             }
 
+            var seatCode = reservation.Seat is not null
+                ? await SeatDisplayHelper.ShortCodeAsync(_db, reservation.Seat, ct)
+                : "";
+            var expiredPayload = JsonSerializer.Serialize(new
+            {
+                seat = seatCode,
+                status = "爽约",
+                remark = "预约超时未到座，请按时到座以免影响信用"
+            });
             await _notifications.SendAsync(reservation.UserId, NotificationType.ReservationExpired,
-                "预约未到座", "预约已结束仍未确认到座，本单记为爽约。", null, ct);
+                "预约未到座", "预约已结束仍未确认到座，本单记为爽约。", expiredPayload, ct);
         }
 
         // 1.5 到座提醒：预约已开始但未确认到座，提醒一次（结束仍未到座将视为爽约）
