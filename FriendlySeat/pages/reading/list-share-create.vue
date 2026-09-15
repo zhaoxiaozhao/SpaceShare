@@ -332,8 +332,18 @@
 				const ctx = node.getContext('2d')
 				ctx.scale(dpr, dpr)
 
-				// 预加载封面
-				const imgs = await Promise.all(show.map((b) => this.loadCover(node, b.coverUrl)))
+				// 预加载封面（顺序加载，避免并发下载失败；每个失败重试一次）
+				const imgs = []
+				for (const b of show) {
+					const local = this.books.find((x) => x.id === b.bookId) || {}
+					const url = b.coverUrl || local.coverUrl || ''
+					let item = await this.loadCover(node, url)
+					if (!item && url) {
+						await new Promise((r) => setTimeout(r, 150))
+						item = await this.loadCover(node, url)
+					}
+					imgs.push(item)
+				}
 
 				const theme = getTheme()
 				const primary = theme.primary
