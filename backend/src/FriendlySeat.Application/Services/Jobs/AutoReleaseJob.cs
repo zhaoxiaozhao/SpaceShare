@@ -265,8 +265,49 @@ public class AutoReleaseJob : IAutoReleaseJob
             }
         }
 
+        // 5.9 自动结束长时间未结束的阅读/学习会话（用户忘记点「结束」时兜底，按单次上限计时）
+        await AutoCloseStaleSessionsAsync(now, ct);
+
         // 6. 风险晋升检查：风险分达到阈值自动升级处罚（可配置）
         await AutoBanHighRiskUsersAsync(now, ct);
+    }
+
+    // 兜底关闭超时的进行中会话，避免「忘记结束」导致时长/统计异常
+    private async Task AutoCloseStaleSessionsAsync(DateTime now, CancellationToken ct)
+    {
+        var readingCutoff = now.AddMinutes(-ReadingService.MaxSessionMinutes);
+        var staleReading = await _db.ReadingSessions
+            .Where(s => s.Status == ReadingSessionStatus.Active && s.StartedAt < readingCutoff)
+            .ToListAsync(ct);
+        foreach (var s in staleReading)
+        {
+            s.EndedAt = s.StartedAt.AddMinutes(ReadingService.MaxSessionMinutes);
+            s.DurationMinutes = ReadingService.MaxSessionMinutes;
+            s.Status = ReadingSessionStatus.Completed;
+            var book = await _db.ReadingBooks.FirstOrDefaultAsync(b => b.Id == s.BookId, ct);
+            if (book is not null)
+            {
+                book.TotalMinutes += ReadingService.MaxSessionMinutes;
+                book.UpdatedAt = now;
+            }
+        }
+
+        var studyCutoff = now.AddMinutes(-StudyService.MaxSessionMinutes);
+        var staleStudy = await _db.StudySessions
+            .Where(s => s.Status == StudySessionStatus.Active && s.StartedAt < studyCutoff)
+            .ToListAsync(ct);
+        foreach (var s in staleStudy)
+        {
+            s.EndedAt = s.StartedAt.AddMinutes(StudyService.MaxSessionMinutes);
+            s.DurationMinutes = StudyService.MaxSessionMinutes;
+            s.Status = StudySessionStatus.Completed;
+        }
+
+        if (staleReading.Count > 0 || staleStudy.Count > 0)
+        {
+            await _db.SaveChangesAsync(ct);
+            _logger.LogInformation("自动结束超时会话：阅读 {Reading} 条，学习 {Study} 条", staleReading.Count, staleStudy.Count);
+        }
     }
 
     // 风险分 ≥ 阈值自动封禁（重复爽约/频繁取消等累积导致），封禁并通知用户

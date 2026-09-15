@@ -13,6 +13,9 @@ public class ReadingService
     private static DateTime ToCn(DateTime utc) => TimeZoneInfo.ConvertTimeFromUtc(utc, ChinaTz);
     private static DateTime CnDayStartUtc(DateTime cnDate) => TimeZoneInfo.ConvertTimeToUtc(cnDate.Date, ChinaTz);
 
+    /// <summary>单次阅读最长时长（分钟）：防止忘记点结束导致时长异常</summary>
+    public const int MaxSessionMinutes = 360;
+
     private readonly IAppDbContext _db;
 
     public ReadingService(IAppDbContext db)
@@ -142,7 +145,23 @@ public class ReadingService
             s => s.UserId == userId && s.Status == ReadingSessionStatus.Active, ct);
         if (active is not null)
         {
-            throw AppException.Conflict("reading_already_active", "已有进行中的阅读，请先结束当前阅读");
+            var elapsed = (int)Math.Round((DateTime.UtcNow - active.StartedAt).TotalMinutes);
+            if (elapsed < MaxSessionMinutes)
+            {
+                throw AppException.Conflict("reading_already_active", "已有进行中的阅读，请先结束当前阅读");
+            }
+
+            // 上一段阅读已超过单次上限（多为忘记结束）：按上限自动结束，避免卡住无法开始
+            active.EndedAt = active.StartedAt.AddMinutes(MaxSessionMinutes);
+            active.DurationMinutes = MaxSessionMinutes;
+            active.Status = ReadingSessionStatus.Completed;
+            var prevBook = await _db.ReadingBooks.FirstOrDefaultAsync(b => b.Id == active.BookId, ct);
+            if (prevBook is not null)
+            {
+                prevBook.TotalMinutes += MaxSessionMinutes;
+                prevBook.UpdatedAt = DateTime.UtcNow;
+            }
+            await _db.SaveChangesAsync(ct);
         }
 
         var session = new ReadingSession
@@ -183,8 +202,9 @@ public class ReadingService
             throw AppException.BadRequest("reading_not_active", "该阅读已结束");
 
         var endedAt = DateTime.UtcNow;
-        var minutes = Math.Max(1, (int)Math.Round((endedAt - session.StartedAt).TotalMinutes));
-        session.EndedAt = endedAt;
+        var rawMinutes = (int)Math.Round((endedAt - session.StartedAt).TotalMinutes);
+        var minutes = Math.Clamp(rawMinutes, 1, MaxSessionMinutes);
+        session.EndedAt = session.StartedAt.AddMinutes(minutes);
         session.DurationMinutes = minutes;
         session.Status = ReadingSessionStatus.Completed;
 

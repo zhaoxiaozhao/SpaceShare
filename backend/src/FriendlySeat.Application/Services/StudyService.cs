@@ -19,13 +19,26 @@ public class StudyService
         _db = db;
     }
 
+    /// <summary>单次学习最长时长（分钟）：防止忘记点结束导致时长异常</summary>
+    public const int MaxSessionMinutes = 480;
+
     public async Task<StudySessionDto> StartAsync(long userId, StartStudyRequest request, CancellationToken ct = default)
     {
         var active = await _db.StudySessions
             .FirstOrDefaultAsync(s => s.UserId == userId && s.Status == StudySessionStatus.Active, ct);
         if (active is not null)
         {
-            throw AppException.Conflict("study_already_active", "已有进行中的学习记录，请先结束当前学习");
+            var elapsed = (int)Math.Round((DateTime.UtcNow - active.StartedAt).TotalMinutes);
+            if (elapsed < MaxSessionMinutes)
+            {
+                throw AppException.Conflict("study_already_active", "已有进行中的学习记录，请先结束当前学习");
+            }
+
+            // 上一段学习已超过单次上限（多为忘记结束）：按上限自动结束
+            active.EndedAt = active.StartedAt.AddMinutes(MaxSessionMinutes);
+            active.DurationMinutes = MaxSessionMinutes;
+            active.Status = StudySessionStatus.Completed;
+            await _db.SaveChangesAsync(ct);
         }
 
         var session = new StudySession
@@ -58,8 +71,9 @@ public class StudyService
         if (session.Status != StudySessionStatus.Active) throw AppException.BadRequest("study_not_active", "该学习记录已结束");
 
         var endedAt = DateTime.UtcNow;
-        var minutes = Math.Max(1, (int)Math.Round((endedAt - session.StartedAt).TotalMinutes));
-        session.EndedAt = endedAt;
+        var rawMinutes = (int)Math.Round((endedAt - session.StartedAt).TotalMinutes);
+        var minutes = Math.Clamp(rawMinutes, 1, MaxSessionMinutes);
+        session.EndedAt = session.StartedAt.AddMinutes(minutes);
         session.DurationMinutes = minutes;
         session.Status = StudySessionStatus.Completed;
         await _db.SaveChangesAsync(ct);
