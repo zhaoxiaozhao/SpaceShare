@@ -28,7 +28,8 @@ public class NotificationService : INotificationService
         [NotificationType.ReportResult] = "report_result",
         [NotificationType.System] = "system",
         [NotificationType.ActivityReview] = "activity_review",
-        [NotificationType.ActivityStarting] = "activity_starting"
+        [NotificationType.ActivityStarting] = "activity_starting",
+        [NotificationType.SwapRequested] = "swap_request"
     };
 
     public NotificationService(IAppDbContext db, ILogger<NotificationService> logger, IWechatService wechat, ConfigService config)
@@ -89,6 +90,7 @@ public class NotificationService : INotificationService
             NotificationType.ReportResult => "pages/report/report",
             NotificationType.ActivityReview => "pages/activity/activity",
             NotificationType.ActivityStarting => "pages/activity/activity",
+            NotificationType.SwapRequested => "pages/reservations/reservations",
             _ => "pages/index/index"
         };
 
@@ -264,6 +266,37 @@ public class NotificationService : INotificationService
                 ["thing2"] = new SubscribeDataItem(Clip(name, 20)),
                 ["date3"] = new SubscribeDataItem(timeCn),
                 ["thing6"] = new SubscribeDataItem(Clip(place, 20))
+            };
+        }
+
+        // 换座申请通知（模板 77863）：当前座位=thing1、申请座位=thing2、备注=thing3
+        if (type == NotificationType.SwapRequested)
+        {
+            var currentSeat = string.Empty;
+            var wantSeat = string.Empty;
+            var remark = "有友邻想与你交换座位，请及时查看";
+
+            if (!string.IsNullOrWhiteSpace(data))
+            {
+                try
+                {
+                    using var doc = JsonDocument.Parse(data);
+                    var root = doc.RootElement;
+                    if (root.TryGetProperty("currentSeat", out var cs) && cs.ValueKind == JsonValueKind.String)
+                        currentSeat = cs.GetString() ?? currentSeat;
+                    if (root.TryGetProperty("wantSeat", out var ws) && ws.ValueKind == JsonValueKind.String)
+                        wantSeat = ws.GetString() ?? wantSeat;
+                    if (root.TryGetProperty("remark", out var rk) && rk.ValueKind == JsonValueKind.String)
+                        remark = rk.GetString() ?? remark;
+                }
+                catch (JsonException) { }
+            }
+
+            return new Dictionary<string, SubscribeDataItem>
+            {
+                ["thing1"] = new SubscribeDataItem(Clip(currentSeat, 20)),
+                ["thing2"] = new SubscribeDataItem(Clip(wantSeat, 20)),
+                ["thing3"] = new SubscribeDataItem(Clip(remark, 20))
             };
         }
 

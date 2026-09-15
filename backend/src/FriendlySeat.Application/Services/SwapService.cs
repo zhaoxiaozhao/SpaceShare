@@ -2,6 +2,7 @@ using FriendlySeat.Application.Common;
 using FriendlySeat.Application.Dtos;
 using FriendlySeat.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
+using System.Text.Json;
 
 namespace FriendlySeat.Application.Services;
 
@@ -195,8 +196,20 @@ public class SwapService
         }
         await _db.SaveChangesAsync(ct);
 
-        await _notifications.SendAsync(req.UserId, NotificationType.System,
-            "有人想和你换座", "有人愿意与你换座并标记了座位，去确认一下吧。", null, ct);
+        // 换座申请通知：当前座位=申请者（响应者）座位、申请座位=发布者座位
+        var currentSeatCode = await SeatDisplayHelper.ShortCodeAsync(_db, seat, ct);
+        var wantSeatEntity = await _db.Seats.FirstOrDefaultAsync(s => s.Id == req.SeatId, ct);
+        var wantSeatCode = wantSeatEntity is not null
+            ? await SeatDisplayHelper.ShortCodeAsync(_db, wantSeatEntity, ct)
+            : string.Empty;
+        var swapData = JsonSerializer.Serialize(new
+        {
+            currentSeat = currentSeatCode,
+            wantSeat = wantSeatCode,
+            remark = "有友邻想与你交换座位，请及时查看"
+        });
+        await _notifications.SendAsync(req.UserId, NotificationType.SwapRequested,
+            "有人想和你换座", "有人愿意与你换座并标记了座位，去确认一下吧。", swapData, ct);
 
         return await GetDtoAsync(requestId, userId, includeResponses: true, ct) ?? throw AppException.NotFound();
     }

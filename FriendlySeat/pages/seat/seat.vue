@@ -479,7 +479,7 @@
 					})
 					this.showSwap = false
 					uni.showToast({ title: '已发布换座意向', icon: 'none' })
-					subscribeFor(['system'])
+					subscribeFor(['swap_request', 'system'])
 					try { this.seatSwap = await api.getSwapBySeat(this.id) } catch (e) {}
 				} catch (e) {
 					uni.showToast({ title: (e && e.message) || '发布失败', icon: 'none' })

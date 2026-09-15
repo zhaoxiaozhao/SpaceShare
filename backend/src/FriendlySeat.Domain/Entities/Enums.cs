@@ -153,7 +153,8 @@ public enum NotificationType
     ReportResult,
     System,
     ActivityReview,
-    ActivityStarting
+    ActivityStarting,
+    SwapRequested
 }
 
 public enum ConfigCategory

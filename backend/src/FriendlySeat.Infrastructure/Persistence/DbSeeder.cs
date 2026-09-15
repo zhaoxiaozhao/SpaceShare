@@ -174,7 +174,8 @@ public static class DbSeeder
             ("report_result", "举报处理结果通知 模板ID"),
             ("system", "系统通知 模板ID"),
             ("activity_review", "活动审核结果通知 模板ID"),
-            ("activity_starting", "活动开始前提醒 模板ID")
+            ("activity_starting", "活动开始前提醒 模板ID"),
+            ("swap_request", "换座申请通知 模板ID")
         };
         foreach (var (key, desc) in notificationTemplateKeys)
         {
