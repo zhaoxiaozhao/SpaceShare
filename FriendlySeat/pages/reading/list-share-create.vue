@@ -222,41 +222,50 @@
 				}
 				return n
 			},
+			coverFail(msg) {
+				if (!this.coverErrors) this.coverErrors = []
+				if (this.coverErrors.length < 8) this.coverErrors.push(msg)
+				console.warn('[poster]', msg)
+			},
 			// 解析封面为 canvas 可绘制图片（cloud:// 先下载/换 https，再落本地路径）
 			async loadCover(canvas, url) {
 				try {
 					if (!url) return null
 					let local = null
 					if (/^cloud:\/\//.test(url)) {
-						// ① 云存储直接下载
 						local = await this.cloudDownload(url)
-						// ② 换 https 临时链接后再取本地路径
 						if (!local) {
 							const https = await getTempFileUrl(url)
 							if (https) local = await this.toLocalPath(https)
+							else this.coverFail('getTempFileURL 返回空')
 						}
 					} else {
 						local = await this.toLocalPath(url)
 					}
 					if (!local) {
-						console.warn('[poster] 封面转本地路径失败', url)
+						this.coverFail('转本地路径失败: ' + String(url).slice(0, 46))
 						return null
 					}
-					return await this.toCanvasImage(canvas, local)
+					const item = await this.toCanvasImage(canvas, local)
+					if (!item) this.coverFail('createImage/onload 失败')
+					return item
 				} catch (e) {
-					console.warn('[poster] 封面加载异常', url, e)
+					this.coverFail('异常: ' + ((e && (e.errMsg || e.message)) || e))
 					return null
 				}
 			},
 			cloudDownload(fileID) {
 				return new Promise((resolve) => {
-					if (!wx || !wx.cloud || !wx.cloud.downloadFile) return resolve(null)
+					if (!wx || !wx.cloud || !wx.cloud.downloadFile) {
+						this.coverFail('无 wx.cloud.downloadFile')
+						return resolve(null)
+					}
 					wx.cloud.downloadFile({
 						fileID,
 						config: { env: CLOUD_ENV },
 						success: (r) => resolve(r.tempFilePath),
 						fail: (e) => {
-							console.warn('[poster] cloud.downloadFile 失败', fileID, e)
+							this.coverFail('cloud.downloadFile: ' + ((e && e.errMsg) || ''))
 							resolve(null)
 						}
 					})
@@ -267,14 +276,18 @@
 					uni.getImageInfo({
 						src,
 						success: (info) => resolve(info.path || src),
-						fail: () => {
+						fail: (e) => {
 							if (/^https?:/.test(src)) {
 								uni.downloadFile({
 									url: src,
 									success: (r) => resolve(r.statusCode === 200 ? r.tempFilePath : null),
-									fail: () => resolve(null)
+									fail: (e2) => {
+										this.coverFail('downloadFile: ' + ((e2 && e2.errMsg) || ''))
+										resolve(null)
+									}
 								})
 							} else {
+								this.coverFail('getImageInfo: ' + ((e && e.errMsg) || ''))
 								resolve(null)
 							}
 						}
@@ -287,17 +300,12 @@
 					try {
 						img = canvas.createImage()
 					} catch (e) {
-						console.warn('[poster] canvas.createImage 不可用', e)
+						this.coverFail('canvas.createImage 异常')
 					}
 					if (!img) return resolve(null)
-					uni.getImageInfo({
-						src,
-						success: (i) => (img.__w = i.width, img.__h = i.height),
-						fail: () => {}
-					})
-					img.onload = () => resolve({ img, width: img.__w || img.width || 0, height: img.__h || img.height || 0 })
+					img.onload = () => resolve({ img, width: img.width || 0, height: img.height || 0 })
 					img.onerror = (e) => {
-						console.warn('[poster] 图片加载失败', src, e)
+						this.coverFail('img.onerror: ' + ((e && e.errMsg) || ''))
 						resolve(null)
 					}
 					img.src = src
@@ -332,17 +340,21 @@
 				const ctx = node.getContext('2d')
 				ctx.scale(dpr, dpr)
 
-				// 预加载封面（顺序加载，避免并发下载失败；每个失败重试一次）
-				const imgs = []
-				for (const b of show) {
+				// 预加载封面（快照缺封面时回退当前书籍封面）
+				this.coverErrors = []
+				const coverUrls = show.map((b) => {
 					const local = this.books.find((x) => x.id === b.bookId) || {}
-					const url = b.coverUrl || local.coverUrl || ''
-					let item = await this.loadCover(node, url)
-					if (!item && url) {
-						await new Promise((r) => setTimeout(r, 150))
-						item = await this.loadCover(node, url)
-					}
-					imgs.push(item)
+					return b.coverUrl || local.coverUrl || ''
+				})
+				const imgs = await Promise.all(coverUrls.map((u) => this.loadCover(node, u)))
+				const totalCover = coverUrls.filter(Boolean).length
+				const failedCover = coverUrls.filter((u, i) => u && !imgs[i]).length
+				if (failedCover > 0) {
+					uni.showModal({
+						title: `封面失败 ${failedCover}/${totalCover}`,
+						content: (this.coverErrors.slice(0, 5).join('\n') || '未知'),
+						showCancel: false
+					})
 				}
 
 				const theme = getTheme()
