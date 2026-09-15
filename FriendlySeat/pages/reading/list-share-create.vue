@@ -220,34 +220,61 @@
 				}
 				return n
 			},
-			// 把封面（cloud:// 或 https）下载成本地路径
-			resolveCoverPath(url) {
+			// 解析封面为 canvas 可绘制图片（支持 cloud:// / https / 本地）
+			loadCover(canvas, url) {
 				return new Promise((resolve) => {
-					if (!url) return resolve(null)
-					if (/^cloud:\/\//.test(url)) {
-						if (!wx || !wx.cloud || !wx.cloud.downloadFile) return resolve(null)
-						wx.cloud.downloadFile({
-							fileID: url,
-							success: (res) => resolve(res.tempFilePath),
-							fail: () => resolve(null)
-						})
-					} else if (/^https?:/.test(url)) {
-						uni.downloadFile({
-							url,
-							success: (res) => resolve(res.statusCode === 200 ? res.tempFilePath : null),
-							fail: () => resolve(null)
-						})
-					} else {
-						resolve(url)
+					if (!url) {
+						console.warn('[poster] 该书无封面 coverUrl 为空')
+						return resolve(null)
 					}
-				})
-			},
-			loadCanvasImage(canvas, src) {
-				return new Promise((resolve, reject) => {
-					const img = canvas.createImage()
-					img.onload = () => resolve(img)
-					img.onerror = reject
-					img.src = src
+					const finish = (p, w, h) => {
+						if (!p) {
+							console.warn('[poster] 封面路径解析为空', url)
+							return resolve(null)
+						}
+						let img = null
+						try {
+							img = canvas.createImage()
+						} catch (e) {
+							console.warn('[poster] canvas.createImage 不可用', e)
+						}
+						if (!img) return resolve(null)
+						img.onload = () => resolve({ img, width: w || img.width || 0, height: h || img.height || 0 })
+						img.onerror = (e) => {
+							console.warn('[poster] 图片加载失败', p, e)
+							resolve(null)
+						}
+						img.src = p
+					}
+					// getImageInfo 支持 cloud:// 与网络路径，直接给出本地临时路径与尺寸
+					uni.getImageInfo({
+						src: url,
+						success: (info) => finish(info.path || url, info.width, info.height),
+						fail: (err) => {
+							console.warn('[poster] getImageInfo 失败，改用下载', url, err)
+							if (/^cloud:\/\//.test(url) && wx && wx.cloud && wx.cloud.downloadFile) {
+								wx.cloud.downloadFile({
+									fileID: url,
+									success: (res) => finish(res.tempFilePath),
+									fail: (e2) => {
+										console.warn('[poster] cloud.downloadFile 失败', url, e2)
+										resolve(null)
+									}
+								})
+							} else if (/^https?:/.test(url)) {
+								uni.downloadFile({
+									url,
+									success: (res) => finish(res.statusCode === 200 ? res.tempFilePath : null),
+									fail: (e2) => {
+										console.warn('[poster] downloadFile 失败', url, e2)
+										resolve(null)
+									}
+								})
+							} else {
+								resolve(null)
+							}
+						}
+					})
 				})
 			},
 			async drawPoster(share) {
@@ -280,15 +307,7 @@
 				ctx.scale(dpr, dpr)
 
 				// 预加载封面
-				const imgs = await Promise.all(show.map(async (b) => {
-					const path = await this.resolveCoverPath(b.coverUrl)
-					if (!path) return null
-					try {
-						return await this.loadCanvasImage(node, path)
-					} catch (e) {
-						return null
-					}
-				}))
+				const imgs = await Promise.all(show.map((b) => this.loadCover(node, b.coverUrl)))
 
 				const theme = getTheme()
 				const primary = theme.primary
@@ -358,14 +377,18 @@
 					const cx = pad + 16
 					const ccy = cy + (cardH - ch) / 2
 					const img = imgs[i]
-					if (img && img.width) {
+					if (img && img.img) {
 						this.rr(ctx, cx, ccy, cw, ch, 10)
 						ctx.save()
 						ctx.clip()
-						const s = Math.min(img.width, img.height)
-						const sx = (img.width - s) / 2
-						const sy = (img.height - s) / 2
-						ctx.drawImage(img, sx, sy, s, s, cx, ccy, cw, ch)
+						if (img.width && img.height) {
+							const s = Math.min(img.width, img.height)
+							const sx = (img.width - s) / 2
+							const sy = (img.height - s) / 2
+							ctx.drawImage(img.img, sx, sy, s, s, cx, ccy, cw, ch)
+						} else {
+							ctx.drawImage(img.img, cx, ccy, cw, ch)
+						}
 						ctx.restore()
 					} else {
 						ctx.fillStyle = bookCoverColor(b.title)
