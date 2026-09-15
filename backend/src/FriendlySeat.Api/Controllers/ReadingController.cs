@@ -119,6 +119,13 @@ public class ReadingController : ControllerBase
     public async Task<ActionResult<BookListShareDto>> SetListShareVisibility(string token, [FromBody] BookListShareVisibilityRequest request, CancellationToken ct)
         => Ok(await _bookLists.SetVisibilityAsync(_currentUser.UserId!.Value, token, request.IsPublic, ct));
 
+    [HttpDelete("list-shares/{token}")]
+    public async Task<IActionResult> DeleteListShare(string token, CancellationToken ct)
+    {
+        await _bookLists.DeleteAsync(_currentUser.UserId!.Value, token, ct);
+        return Ok();
+    }
+
     /// <summary>书单分享落地页（匿名查看）</summary>
     [HttpGet("list-shares/{token}")]
     [AllowAnonymous]

@@ -62,6 +62,7 @@
 					<text class="share-sub">{{s.count}} 本 · {{s.viewCount}} 浏览 · {{s.favoriteCount}} 收藏 · {{formatDate(s.createdAt)}}</text>
 				</view>
 				<text class="pub-tag" :class="{ on: s.isPublic }">{{s.isPublic ? '公开' : '私密'}}</text>
+				<text class="share-del" @click.stop="removeShare(s)">删除</text>
 				<text class="share-arrow">›</text>
 			</view>
 		</view>
@@ -77,7 +78,7 @@
 			</view>
 		</view>
 
-		<canvas type="2d" id="posterCard" class="poster-canvas" :style="{ width: '640px', height: canvasH + 'px', position: 'fixed', left: '-99999px', top: '0' }"></canvas>
+		<canvas type="2d" id="posterCard" class="poster-canvas" :style="{ width: '640px', height: '2600px', position: 'fixed', left: '-99999px', top: '0' }"></canvas>
 	</view>
 </template>
 
@@ -132,6 +133,22 @@
 			},
 			openShare(token) {
 				uni.navigateTo({ url: `/pages/reading/list-share-view?token=${token}` })
+			},
+			removeShare(s) {
+				uni.showModal({
+					title: '删除书单',
+					content: `确定删除书单「${s.title}」吗？`,
+					success: async (res) => {
+						if (!res.confirm) return
+						try {
+							await api.deleteBookListShare(s.token)
+							uni.showToast({ title: '已删除', icon: 'success' })
+							this.loadMy()
+						} catch (e) {
+							uni.showToast({ title: e.message || '删除失败', icon: 'none' })
+						}
+					}
+				})
 			},
 			goBoard() {
 				uni.navigateTo({ url: '/pages/reading/list-share-board' })
@@ -265,7 +282,6 @@
 				const gap = 16
 				const remarkH = hasRemark ? 96 : 0
 				const H = headerH + 36 + remarkH + show.length * (cardH + gap) + (more > 0 ? 46 : 0) + 130
-				this.canvasH = H
 				await this.$nextTick()
 
 				const node = await new Promise((resolve) => {
@@ -514,6 +530,7 @@
 	.board-entry-text { font-size: 28rpx; color: var(--primary); font-weight: 500; }
 	.pub-tag { font-size: 20rpx; padding: 4rpx 14rpx; border-radius: 8rpx; background: #F1EFE9; color: #8A8A86; margin: 0 12rpx; flex-shrink: 0; }
 	.pub-tag.on { background: var(--primary-bg); color: var(--primary); }
+	.share-del { font-size: 22rpx; color: #B85450; margin-left: 10rpx; flex-shrink: 0; }
 	.actions { margin: 20rpx; }
 	.share-row { display: flex; align-items: center; justify-content: space-between; padding: 18rpx 0; border-bottom: 1rpx solid #F0EFEA; }
 	.share-row:last-child { border-bottom: none; }

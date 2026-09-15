@@ -196,7 +196,8 @@ export const api = {
 	getBookListCovers: (token) => request(`/reading/list-shares/${token}/covers`),
 	getBookListBoard: () => request('/reading/list-shares/board', { auth: false }),
 	toggleBookListFavorite: (token) => request(`/reading/list-shares/${token}/favorite`, { method: 'POST' }),
-	setBookListVisibility: (token, isPublic) => request(`/reading/list-shares/${token}/visibility`, { method: 'POST', data: { isPublic } })
+	setBookListVisibility: (token, isPublic) => request(`/reading/list-shares/${token}/visibility`, { method: 'POST', data: { isPublic } }),
+	deleteBookListShare: (token) => request(`/reading/list-shares/${token}`, { method: 'DELETE' })
 }
 
 function qs(params) {

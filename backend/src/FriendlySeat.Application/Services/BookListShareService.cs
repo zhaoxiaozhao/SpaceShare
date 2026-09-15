@@ -196,6 +196,18 @@ public class BookListShareService
             .ToList();
     }
 
+    /// <summary>删除书单（仅本人；收藏关联级联删除）</summary>
+    public async Task DeleteAsync(long userId, string token, CancellationToken ct = default)
+    {
+        var share = await _db.BookListShares.FirstOrDefaultAsync(s => s.Token == token, ct)
+            ?? throw AppException.NotFound("书单不存在");
+        if (share.UserId != userId)
+            throw AppException.Forbidden("只能删除自己的书单");
+
+        _db.BookListShares.Remove(share);
+        await _db.SaveChangesAsync(ct);
+    }
+
     /// <summary>书单封面：后端代理云存储取回并以 base64 返回（绕开小程序云下载/域名限制）</summary>
     public async Task<BookListCoversDto> GetCoversAsync(string token, CancellationToken ct = default)
     {
