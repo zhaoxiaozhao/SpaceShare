@@ -50,6 +50,7 @@
 	import { api } from '../../utils/request.js'
 	import { formatTime, statusText } from '../../utils/format.js'
 	import { uploadImage, getTempFileUrl } from '../../utils/profile.js'
+	import { subscribeFor } from '../../utils/subscribe.js'
 
 	export default {
 		data() {
@@ -136,6 +137,7 @@
 						evidenceUrl: this.evidenceUrl || undefined
 					})
 					uni.showToast({ title: '举报已提交', icon: 'success' })
+					subscribeFor(['report_result'])
 					setTimeout(() => uni.navigateBack(), 800)
 				} catch (e) {
 					uni.showToast({ title: e.message || '提交失败', icon: 'none' })
