@@ -165,12 +165,13 @@ public class NotificationService : INotificationService
             };
         }
 
-        // 预约过期/爽约复用模板「预约通知」（编号 461）：预约状态=phrase14、座位=thing46、备注=thing7
-        if (type == NotificationType.ReservationExpired)
+        // 预约过期/爽约、分享被取消 复用模板「预约通知」：预约状态=phrase14、座位=thing46、备注=thing7
+        if (type == NotificationType.ReservationExpired || type == NotificationType.ReservationCancelled)
         {
+            var isExpired = type == NotificationType.ReservationExpired;
             var seat = string.Empty;
-            var status = "爽约";
-            var remark = "请按时到座，以免影响信用";
+            var status = isExpired ? "爽约" : "已取消";
+            var remark = isExpired ? "请按时到座，以免影响信用" : "分享被取消，座位已释放";
 
             if (!string.IsNullOrWhiteSpace(data))
             {

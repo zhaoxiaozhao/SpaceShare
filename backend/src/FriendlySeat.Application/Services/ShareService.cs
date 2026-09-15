@@ -372,13 +372,21 @@ public class ShareService
             .Include(r => r.User)
             .ToListAsync(ct);
 
+        var seatCode = share.Seat is not null ? await SeatDisplayHelper.ShortCodeAsync(_db, share.Seat, ct) : "";
+        var cancelledPayload = System.Text.Json.JsonSerializer.Serialize(new
+        {
+            seat = seatCode,
+            status = "已取消",
+            remark = "分享被取消，座位已释放"
+        });
+
         // 通知已预约用户
         foreach (var r in reservations)
         {
             r.Status = ReservationStatus.Cancelled;
             r.CancelledAt = DateTime.UtcNow;
             await _notifications.SendAsync(r.UserId, NotificationType.ReservationCancelled,
-                "分享被取消", $"你预约的座位「{share.Seat?.Code}」分享被取消", null, ct);
+                "分享被取消", $"你预约的座位「{seatCode}」分享被取消", cancelledPayload, ct);
         }
 
         share.Status = SeatShareStatus.Cancelled;
