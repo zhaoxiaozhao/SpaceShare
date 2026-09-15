@@ -52,6 +52,9 @@ public interface IWechatService
 
     /// <summary>把微信云存储 fileID 换成可访问的临时 https 链接（未配置或失败返回空串）。</summary>
     Task<string> GetTempFileUrlAsync(string fileId, CancellationToken ct = default);
+
+    /// <summary>下载微信云存储文件内容（fileID），失败返回 null。</summary>
+    Task<byte[]?> DownloadCloudFileAsync(string fileId, CancellationToken ct = default);
 }
 
 public enum ContentCheckStatus { Pass, Risky, Skip }

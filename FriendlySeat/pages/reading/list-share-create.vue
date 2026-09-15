@@ -85,8 +85,6 @@
 	import { api } from '../../utils/request.js'
 	import { getSeasonKey, getTheme, bookCoverColor } from '../../utils/theme.js'
 	import { parseDate } from '../../utils/format.js'
-	import { getTempFileUrl } from '../../utils/profile.js'
-	import { CLOUD_ENV } from '../../utils/config.js'
 
 	const STATUS_LABELS = { WantToRead: '想读', Reading: '在读', Finished: '已读' }
 
@@ -222,76 +220,20 @@
 				}
 				return n
 			},
-			coverFail(msg) {
-				if (!this.coverErrors) this.coverErrors = []
-				if (this.coverErrors.length < 8) this.coverErrors.push(msg)
-				console.warn('[poster]', msg)
-			},
-			// 解析封面为 canvas 可绘制图片（cloud:// 先下载/换 https，再落本地路径）
-			async loadCover(canvas, url) {
-				try {
-					if (!url) return null
-					let local = null
-					if (/^cloud:\/\//.test(url)) {
-						local = await this.cloudDownload(url)
-						if (!local) {
-							const https = await getTempFileUrl(url)
-							if (https) local = await this.toLocalPath(https)
-							else this.coverFail('getTempFileURL 返回空')
-						}
-					} else {
-						local = await this.toLocalPath(url)
-					}
-					if (!local) {
-						this.coverFail('转本地路径失败: ' + String(url).slice(0, 46))
-						return null
-					}
-					const item = await this.toCanvasImage(canvas, local)
-					if (!item) this.coverFail('createImage/onload 失败')
-					return item
-				} catch (e) {
-					this.coverFail('异常: ' + ((e && (e.errMsg || e.message)) || e))
-					return null
-				}
-			},
-			cloudDownload(fileID) {
+			// 把后端返回的 base64 data URL 写成临时文件，供 canvas 加载
+			saveCoverFile(bookId, dataUrl) {
 				return new Promise((resolve) => {
-					if (!wx || !wx.cloud || !wx.cloud.downloadFile) {
-						this.coverFail('无 wx.cloud.downloadFile')
-						return resolve(null)
+					try {
+						const i = String(dataUrl).indexOf(',')
+						const b64 = i >= 0 ? dataUrl.slice(i + 1) : dataUrl
+						const fs = wx.getFileSystemManager()
+						const p = `${wx.env.USER_DATA_PATH}/bl_cover_${bookId}`
+						fs.writeFileSync(p, b64, 'base64')
+						resolve(p)
+					} catch (e) {
+						console.warn('[poster] 写封面临时文件失败', bookId, e)
+						resolve(null)
 					}
-					wx.cloud.downloadFile({
-						fileID,
-						config: { env: CLOUD_ENV },
-						success: (r) => resolve(r.tempFilePath),
-						fail: (e) => {
-							this.coverFail('cloud.downloadFile: ' + ((e && e.errMsg) || ''))
-							resolve(null)
-						}
-					})
-				})
-			},
-			toLocalPath(src) {
-				return new Promise((resolve) => {
-					uni.getImageInfo({
-						src,
-						success: (info) => resolve(info.path || src),
-						fail: (e) => {
-							if (/^https?:/.test(src)) {
-								uni.downloadFile({
-									url: src,
-									success: (r) => resolve(r.statusCode === 200 ? r.tempFilePath : null),
-									fail: (e2) => {
-										this.coverFail('downloadFile: ' + ((e2 && e2.errMsg) || ''))
-										resolve(null)
-									}
-								})
-							} else {
-								this.coverFail('getImageInfo: ' + ((e && e.errMsg) || ''))
-								resolve(null)
-							}
-						}
-					})
 				})
 			},
 			toCanvasImage(canvas, src) {
@@ -300,14 +242,11 @@
 					try {
 						img = canvas.createImage()
 					} catch (e) {
-						this.coverFail('canvas.createImage 异常')
+						console.warn('[poster] canvas.createImage 不可用', e)
 					}
 					if (!img) return resolve(null)
 					img.onload = () => resolve({ img, width: img.width || 0, height: img.height || 0 })
-					img.onerror = (e) => {
-						this.coverFail('img.onerror: ' + ((e && e.errMsg) || ''))
-						resolve(null)
-					}
+					img.onerror = () => resolve(null)
 					img.src = src
 				})
 			},
@@ -340,21 +279,23 @@
 				const ctx = node.getContext('2d')
 				ctx.scale(dpr, dpr)
 
-				// 预加载封面（快照缺封面时回退当前书籍封面）
-				this.coverErrors = []
-				const coverUrls = show.map((b) => {
-					const local = this.books.find((x) => x.id === b.bookId) || {}
-					return b.coverUrl || local.coverUrl || ''
-				})
-				const imgs = await Promise.all(coverUrls.map((u) => this.loadCover(node, u)))
-				const totalCover = coverUrls.filter(Boolean).length
-				const failedCover = coverUrls.filter((u, i) => u && !imgs[i]).length
-				if (failedCover > 0) {
-					uni.showModal({
-						title: `封面失败 ${failedCover}/${totalCover}`,
-						content: (this.coverErrors.slice(0, 5).join('\n') || '未知'),
-						showCancel: false
-					})
+				// 预加载封面：后端代理云存储返回 base64（绕开小程序云下载与合法域名限制）
+				let coverMap = {}
+				try {
+					const covers = await api.getBookListCovers(share.token)
+					;(covers || []).forEach((c) => { coverMap[c.bookId] = c.dataUrl })
+				} catch (e) {
+					console.warn('[poster] 拉取封面失败', e)
+				}
+				const imgs = []
+				for (const b of show) {
+					let item = null
+					const dataUrl = coverMap[b.bookId]
+					if (dataUrl) {
+						const p = await this.saveCoverFile(b.bookId, dataUrl)
+						if (p) item = await this.toCanvasImage(node, p)
+					}
+					imgs.push(item)
 				}
 
 				const theme = getTheme()

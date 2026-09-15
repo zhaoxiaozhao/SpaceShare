@@ -128,6 +128,12 @@ public class ReadingController : ControllerBase
         if (share is null) return NotFound();
         return Ok(share);
     }
+
+    /// <summary>书单封面（后端代理云存储，base64，供海报绘制；匿名）</summary>
+    [HttpGet("list-shares/{token}/covers")]
+    [AllowAnonymous]
+    public async Task<ActionResult<List<BookListCoverDto>>> GetListShareCovers(string token, CancellationToken ct)
+        => Ok(await _bookLists.GetCoversAsync(token, ct));
 }
 
 public class EndReadingRequest

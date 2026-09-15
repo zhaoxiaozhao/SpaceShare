@@ -199,6 +199,21 @@ public class WechatService : IWechatService
         }
     }
 
+    public async Task<byte[]?> DownloadCloudFileAsync(string fileId, CancellationToken ct = default)
+    {
+        var url = await GetTempFileUrlAsync(fileId, ct);
+        if (string.IsNullOrEmpty(url)) return null;
+        try
+        {
+            return await _http.GetByteArrayAsync(url, ct);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "下载云存储文件失败 fileId={FileId}", fileId);
+            return null;
+        }
+    }
+
     // access_token 有效期 7200s，提前缓存 7000s
     private async Task<string?> GetAccessTokenAsync(CancellationToken ct)
     {

@@ -193,6 +193,7 @@ export const api = {
 	createBookListShare: (data) => request('/reading/list-shares', { method: 'POST', data }),
 	getMyBookListShares: () => request('/reading/list-shares/my'),
 	getBookListShare: (token) => request(`/reading/list-shares/${token}`),
+	getBookListCovers: (token) => request(`/reading/list-shares/${token}/covers`),
 	getBookListBoard: () => request('/reading/list-shares/board', { auth: false }),
 	toggleBookListFavorite: (token) => request(`/reading/list-shares/${token}/favorite`, { method: 'POST' }),
 	setBookListVisibility: (token, isPublic) => request(`/reading/list-shares/${token}/visibility`, { method: 'POST', data: { isPublic } })

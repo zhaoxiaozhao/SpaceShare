@@ -196,6 +196,41 @@ public class BookListShareService
             .ToList();
     }
 
+    /// <summary>书单封面：后端代理云存储取回并以 base64 返回（绕开小程序云下载/域名限制）</summary>
+    public async Task<List<BookListCoverDto>> GetCoversAsync(string token, CancellationToken ct = default)
+    {
+        var share = await _db.BookListShares.FirstOrDefaultAsync(s => s.Token == token, ct)
+            ?? throw AppException.NotFound("书单不存在");
+
+        var books = Deserialize(share.ItemsJson);
+        var result = new List<BookListCoverDto>();
+        long totalBytes = 0;
+        foreach (var b in books.Take(10))
+        {
+            if (string.IsNullOrWhiteSpace(b.CoverUrl)) continue;
+            var bytes = await _wechat.DownloadCloudFileAsync(b.CoverUrl!, ct);
+            if (bytes is null || bytes.Length == 0) continue;
+            // 单张过大或累计过大则跳过，避免响应体过大
+            if (bytes.Length > 2_500_000 || totalBytes + bytes.Length > 6_000_000) continue;
+            totalBytes += bytes.Length;
+            result.Add(new BookListCoverDto
+            {
+                BookId = b.BookId,
+                DataUrl = $"data:{DetectImageMime(bytes)};base64,{Convert.ToBase64String(bytes)}"
+            });
+        }
+        return result;
+    }
+
+    private static string DetectImageMime(byte[] b)
+    {
+        if (b.Length >= 3 && b[0] == 0xFF && b[1] == 0xD8) return "image/jpeg";
+        if (b.Length >= 4 && b[0] == 0x89 && b[1] == 0x50 && b[2] == 0x4E && b[3] == 0x47) return "image/png";
+        if (b.Length >= 12 && b[8] == 0x57 && b[9] == 0x45 && b[10] == 0x42 && b[11] == 0x50) return "image/webp";
+        if (b.Length >= 3 && b[0] == 0x47 && b[1] == 0x49 && b[2] == 0x46) return "image/gif";
+        return "image/jpeg";
+    }
+
     private async Task<BookListShareDto> BuildDtoAsync(BookListShare share, long? viewerId, CancellationToken ct)
     {
         var books = Deserialize(share.ItemsJson);

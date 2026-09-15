@@ -182,3 +182,10 @@ public class BookListShareBoardItemDto
     public int ViewCount { get; set; }
     public DateTime CreatedAt { get; set; }
 }
+
+/// <summary>书单封面（后端代理云存储后以 base64 data URL 返回，供小程序 canvas 绘制）</summary>
+public class BookListCoverDto
+{
+    public long BookId { get; set; }
+    public string DataUrl { get; set; } = string.Empty;
+}
