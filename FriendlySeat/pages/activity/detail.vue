@@ -170,7 +170,7 @@
 					await api.signupActivity(this.id)
 					uni.showToast({ title: '报名成功', icon: 'success' })
 					// 订阅：活动开始提醒 / 取消变更通知
-					subscribeFor(['system'])
+					subscribeFor(['activity_starting', 'system'])
 					this.load()
 				} catch (e) {
 					uni.showToast({ title: e.message || '报名失败', icon: 'none' })

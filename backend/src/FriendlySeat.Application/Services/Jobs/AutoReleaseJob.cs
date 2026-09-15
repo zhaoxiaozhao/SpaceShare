@@ -228,22 +228,40 @@ public class AutoReleaseJob : IAutoReleaseJob
         var upcomingActivities = await _db.Activities
             .Where(a => a.Status == ActivityStatus.Published && a.StartAt > now && a.StartAt <= remindBefore)
             .ToListAsync(ct);
-        foreach (var activity in upcomingActivities)
+        if (upcomingActivities.Count > 0)
         {
-            var tag = $"activity_reminder:{activity.Id}";
-            var sent = await _db.Notifications.AnyAsync(n => n.Data == tag, ct);
-            if (sent) continue;
+            var venueIds = upcomingActivities.Where(a => a.VenueId.HasValue).Select(a => a.VenueId!.Value).Distinct().ToList();
+            var venueNames = await _db.Venues.Where(v => venueIds.Contains(v.Id)).ToDictionaryAsync(v => v.Id, v => v.Name, ct);
 
-            var signupUserIds = await _db.ActivitySignups
-                .Where(s => s.ActivityId == activity.Id && s.Status == ActivitySignupStatus.Joined)
-                .Select(s => s.UserId)
-                .ToListAsync(ct);
-            if (signupUserIds.Count == 0) continue;
-
-            foreach (var uid in signupUserIds)
+            foreach (var activity in upcomingActivities)
             {
-                await _notifications.SendAsync(uid, NotificationType.System,
-                    "活动即将开始", $"你报名的活动「{activity.Title}」即将开始，请按时参加。", tag, ct);
+                var tag = $"activity_reminder:{activity.Id}";
+                var sent = await _db.Notifications.AnyAsync(n => n.Data != null && n.Data.Contains(tag), ct);
+                if (sent) continue;
+
+                var signupUserIds = await _db.ActivitySignups
+                    .Where(s => s.ActivityId == activity.Id && s.Status == ActivitySignupStatus.Joined)
+                    .Select(s => s.UserId)
+                    .ToListAsync(ct);
+                if (signupUserIds.Count == 0) continue;
+
+                var venueName = activity.VenueId.HasValue && venueNames.TryGetValue(activity.VenueId.Value, out var vn) ? vn : null;
+                var place = string.Join(" ", new[] { venueName, activity.LocationText }.Where(x => !string.IsNullOrWhiteSpace(x)));
+                if (string.IsNullOrWhiteSpace(place)) place = "详见活动详情";
+
+                var payload = JsonSerializer.Serialize(new
+                {
+                    tag,
+                    name = activity.Title,
+                    time = activity.StartAt.ToUniversalTime(),
+                    place
+                });
+
+                foreach (var uid in signupUserIds)
+                {
+                    await _notifications.SendAsync(uid, NotificationType.ActivityStarting,
+                        "活动即将开始", $"你报名的活动「{activity.Title}」即将开始，请按时参加。", payload, ct);
+                }
             }
         }
 

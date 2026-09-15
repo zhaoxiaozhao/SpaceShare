@@ -58,6 +58,7 @@ public static class DbSeeder
                 new SystemConfig { Category = ConfigCategory.NotificationTemplates, ConfigKey = "report_result", Value = "", Description = "举报处理结果通知 模板ID" },
                 new SystemConfig { Category = ConfigCategory.NotificationTemplates, ConfigKey = "system", Value = "", Description = "系统通知 模板ID" },
                 new SystemConfig { Category = ConfigCategory.NotificationTemplates, ConfigKey = "activity_review", Value = "", Description = "活动审核结果通知 模板ID" },
+                new SystemConfig { Category = ConfigCategory.NotificationTemplates, ConfigKey = "activity_starting", Value = "", Description = "活动开始前提醒 模板ID" },
                 new SystemConfig { Category = ConfigCategory.ActivityCategories, ConfigKey = "list", Value = ConfigOptionsService.DefaultActivityCategories, Description = "活动分类（JSON 数组）" },
                 new SystemConfig { Category = ConfigCategory.SwapReasons, ConfigKey = "list", Value = ConfigOptionsService.DefaultSwapReasons, Description = "换座原因（JSON 数组）" },
                 new SystemConfig { Category = ConfigCategory.SeatTags, ConfigKey = "list", Value = ConfigOptionsService.DefaultSeatTags, Description = "座位标签（JSON 数组）" }
@@ -164,6 +165,13 @@ public static class DbSeeder
         if (!await db.SystemConfigs.AnyAsync(c => c.Category == ConfigCategory.NotificationTemplates && c.ConfigKey == "activity_review"))
         {
             db.SystemConfigs.Add(new SystemConfig { Category = ConfigCategory.NotificationTemplates, ConfigKey = "activity_review", Value = "", Description = "活动审核结果通知 模板ID" });
+            await db.SaveChangesAsync();
+        }
+
+        // 活动开始前提醒模板键：确保存在
+        if (!await db.SystemConfigs.AnyAsync(c => c.Category == ConfigCategory.NotificationTemplates && c.ConfigKey == "activity_starting"))
+        {
+            db.SystemConfigs.Add(new SystemConfig { Category = ConfigCategory.NotificationTemplates, ConfigKey = "activity_starting", Value = "", Description = "活动开始前提醒 模板ID" });
             await db.SaveChangesAsync();
         }
 

@@ -151,7 +151,8 @@ public enum NotificationType
     CreditChanged,
     ReportResult,
     System,
-    ActivityReview
+    ActivityReview,
+    ActivityStarting
 }
 
 public enum ConfigCategory
