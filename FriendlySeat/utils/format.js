@@ -31,6 +31,18 @@ export function formatDuration(start, end) {
 	return `${Math.floor(min / 60)}小时${min % 60 > 0 ? (min % 60) + '分' : ''}`
 }
 
+// 统一的分钟数展示：1 小时 30 分 / 45 分钟
+export function formatMinutes(min) {
+	const n = Number(min)
+	if (!n || n <= 0) return '0 分钟'
+	if (n >= 60) {
+		const h = Math.floor(n / 60)
+		const m = n % 60
+		return m ? `${h} 小时 ${m} 分` : `${h} 小时`
+	}
+	return `${n} 分钟`
+}
+
 export function statusText(status) {
 	const map = {
 		Reserved: '待到达',

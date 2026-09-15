@@ -31,7 +31,7 @@
 		<view class="card action-card">
 			<template v-if="isReadingNow">
 				<view class="reading-banner">
-					<text class="banner-icon">📖</text>
+					<image class="banner-icon" :src="`/static/icons/book-${season}.png`" mode="aspectFit" />
 					<view class="banner-info">
 						<text class="banner-title">正在阅读</text>
 						<text class="banner-sub" v-if="activeSession">开始于 {{formatTime(activeSession.startedAt)}}</text>
@@ -104,12 +104,14 @@
 <script>
 	import { api } from '../../utils/request.js'
 	import { formatTime } from '../../utils/format.js'
+	import { getSeasonKey } from '../../utils/theme.js'
 
 	export default {
 		data() {
 			return {
 				id: null,
 				book: null,
+				season: getSeasonKey(),
 				notes: [],
 				noteFilter: '',
 				noteType: 'Highlight',
@@ -328,7 +330,7 @@
 	.action-card .btn-primary { width: 70%; margin: 0; }
 	.action-card .btn-outline { width: 70%; margin: 0; }
 	.reading-banner { display: flex; align-items: center; gap: 20rpx; background: var(--primary-bg); border-radius: 14rpx; padding: 22rpx; width: 100%; box-sizing: border-box; }
-	.banner-icon { font-size: 44rpx; }
+	.banner-icon { width: 56rpx; height: 56rpx; flex-shrink: 0; }
 	.banner-info { flex: 1; display: flex; flex-direction: column; gap: 4rpx; }
 	.banner-title { font-size: 30rpx; font-weight: 600; color: var(--primary); }
 	.banner-sub { font-size: 22rpx; color: #8A8A86; }

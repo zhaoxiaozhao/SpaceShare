@@ -53,19 +53,19 @@
 		<!-- 快捷入口 -->
 		<view class="quick-row">
 			<view class="quick-btn" @click="goReport('weekly')">
-				<text class="quick-icon">📊</text>
+				<image class="quick-icon" :src="`/static/icons/report-${season}.png`" mode="aspectFit" />
 				<text>周报</text>
 			</view>
 			<view class="quick-btn" @click="goReport('monthly')">
-				<text class="quick-icon">📈</text>
+				<image class="quick-icon" :src="`/static/icons/trend-${season}.png`" mode="aspectFit" />
 				<text>月报</text>
 			</view>
 			<view class="quick-btn" @click="goAchievements">
-				<text class="quick-icon">🏅</text>
+				<image class="quick-icon" :src="`/static/icons/medal-${season}.png`" mode="aspectFit" />
 				<text>成就</text>
 			</view>
 			<view class="quick-btn" @click="goHistory">
-				<text class="quick-icon">📚</text>
+				<image class="quick-icon" :src="`/static/icons/history-${season}.png`" mode="aspectFit" />
 				<text>记录</text>
 			</view>
 		</view>
@@ -106,6 +106,7 @@
 <script>
 	import { api } from '../../utils/request.js'
 	import { parseDate } from '../../utils/format.js'
+	import { getSeasonKey } from '../../utils/theme.js'
 
 	const STUDY_TYPES = [
 		{ label: '编程', value: 'Programming' },
@@ -121,6 +122,7 @@
 			return {
 				studyTypes: STUDY_TYPES,
 				studyType: 'Programming',
+				season: getSeasonKey(),
 				today: {},
 				sessions: [],
 				showGoalModal: false,
@@ -228,15 +230,6 @@
 			typeLabel(v) {
 				const t = STUDY_TYPES.find(x => x.value === v)
 				return t ? t.label : v
-			},
-			formatMinutes(min) {
-				if (!min && min !== 0) return '0 分钟'
-				if (min >= 60) {
-					const h = Math.floor(min / 60)
-					const m = min % 60
-					return m ? `${h} 小时 ${m} 分` : `${h} 小时`
-				}
-				return `${min} 分钟`
 			},
 			formatDateTime(s) {
 				const d = parseDate(s)
@@ -365,7 +358,8 @@
 		box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.04);
 	}
 	.quick-icon {
-		font-size: 40rpx;
+		width: 48rpx;
+		height: 48rpx;
 	}
 	.record-row {
 		display: flex;

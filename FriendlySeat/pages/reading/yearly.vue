@@ -111,8 +111,8 @@
 				this.load()
 			},
 			formatHours(min) {
-				if (min >= 60) return `${Math.floor(min / 60)}h${min % 60 ? (min % 60) + 'm' : ''}`
-				return `${min}m`
+				if (min >= 60) return `${Math.floor(min / 60)} 小时`
+				return `${min} 分钟`
 			},
 			barHeight(min) {
 				const max = Math.max(...this.monthly.map(m => m.minutes), 1)

@@ -75,6 +75,7 @@
 
 <script>
 	import { api } from '../../utils/request.js'
+	import { getTheme } from '../../utils/theme.js'
 
 	const TYPE_LABELS = {
 		Reading: '阅读', Programming: '编程', English: '英语', Exam: '考研',
@@ -138,16 +139,8 @@
 				return h > 0 ? `${h} 小时` : '0'
 			},
 			formatShortHours(min) {
-				if (min >= 60) return (min / 60).toFixed(1).replace('.0', '') + 'h'
-				return min + 'm'
-			},
-			formatMinutes(min) {
-				if (min >= 60) {
-					const h = Math.floor(min / 60)
-					const m = min % 60
-					return m ? `${h}小时${m}分` : `${h}小时`
-				}
-				return `${min}分钟`
+				if (min >= 60) return (min / 60).toFixed(1).replace('.0', '') + ' 小时'
+				return min + ' 分钟'
 			},
 			async generateShare() {
 				if (!this.report) return
@@ -168,7 +161,9 @@
 					const H = 800
 					const r = this.report
 					const periodName = this.period === 'monthly' ? '月报' : '周报'
-					const primary = 'var(--primary)'
+					const theme = getTheme()
+					const primary = theme.primary
+					const primaryBg = theme.primaryBg
 					const dark = '#2B2B27'
 					const gray = '#8A8A86'
 
@@ -250,7 +245,7 @@
 							ctx.setTextAlign('left')
 
 							// 进度条
-							ctx.setFillStyle('var(--primary-bg)')
+							ctx.setFillStyle(primaryBg)
 							ctx.fillRect(40, y + 20, W - 80, 10)
 							ctx.setFillStyle(primary)
 							ctx.fillRect(40, y + 20, Math.max(4, (W - 80) * pct / 100), 10)

@@ -56,14 +56,6 @@
 			typeLabel(v) {
 				return TYPE_LABELS[v] || v
 			},
-			formatMinutes(min) {
-				if (min >= 60) {
-					const h = Math.floor(min / 60)
-					const m = min % 60
-					return m ? `${h}小时${m}分` : `${h}小时`
-				}
-				return `${min}分钟`
-			},
 			formatTime(s) {
 				const d = parseDate(s)
 				if (!d) return ''

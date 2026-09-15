@@ -9,7 +9,7 @@
 		<view class="section">
 			<text class="section-title">全部成就</text>
 			<view class="card achievement" v-for="a in achievements" :key="a.code" :class="{ locked: !a.earned }">
-				<text class="ach-icon">{{a.earned ? a.icon : '🔒'}}</text>
+				<image class="ach-icon" :src="achIcon(a)" mode="aspectFit" />
 				<view class="ach-info">
 					<text class="ach-title">{{a.title}}</text>
 					<text class="ach-desc">{{a.description}}</text>
@@ -25,10 +25,23 @@
 <script>
 	import { api } from '../../utils/request.js'
 	import { parseDate } from '../../utils/format.js'
+	import { getSeasonKey } from '../../utils/theme.js'
+
+	const ACH_ICONS = {
+		first_study: 'school',
+		seven_days: 'event-repeat',
+		hundred_hours: 'schedule',
+		morning: 'sunny',
+		night: 'night',
+		long_term: 'fire',
+		fifty_hours: 'punch-clock',
+		first_week: 'event-available'
+	}
 
 	export default {
 		data() {
 			return {
+				season: getSeasonKey(),
 				achievements: []
 			}
 		},
@@ -45,6 +58,11 @@
 				try {
 					this.achievements = await api.getStudyAchievements()
 				} catch (e) {}
+			},
+			achIcon(a) {
+				if (!a.earned) return '/static/icons/ach-locked.png'
+				const name = ACH_ICONS[a.code] || 'school'
+				return `/static/icons/ach-${name}-${this.season}.png`
 			},
 			formatDate(s) {
 				const d = parseDate(s)
@@ -83,7 +101,9 @@
 		opacity: 0.55;
 	}
 	.ach-icon {
-		font-size: 48rpx;
+		width: 56rpx;
+		height: 56rpx;
+		flex-shrink: 0;
 	}
 	.ach-info {
 		flex: 1;
