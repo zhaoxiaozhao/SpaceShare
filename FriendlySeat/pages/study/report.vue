@@ -154,52 +154,81 @@
 					uni.showToast({ title: '生成失败，请重试', icon: 'none' })
 				}
 			},
+			rr(ctx, x, y, w, h, r) {
+				ctx.beginPath()
+				ctx.moveTo(x + r, y)
+				ctx.lineTo(x + w - r, y)
+				ctx.quadraticCurveTo(x + w, y, x + w, y + r)
+				ctx.lineTo(x + w, y + h - r)
+				ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h)
+				ctx.lineTo(x + r, y + h)
+				ctx.quadraticCurveTo(x, y + h, x, y + h - r)
+				ctx.lineTo(x, y + r)
+				ctx.quadraticCurveTo(x, y, x + r, y)
+				ctx.closePath()
+			},
 			drawCard() {
 				return new Promise((resolve, reject) => {
-					const ctx = uni.createCanvasContext('shareCard', this)
 					const W = 640
-					const H = 800
+					const pad = 40
+					const topY = 36
+					const topH = 236
 					const r = this.report
 					const periodName = this.period === 'monthly' ? '月报' : '周报'
 					const theme = getTheme()
 					const primary = theme.primary
+					const primaryLight = theme.primaryLight
 					const primaryBg = theme.primaryBg
 					const dark = '#2B2B27'
 					const gray = '#8A8A86'
 
+					const types = r.typeDistribution.slice(0, 4)
+					const statH = 120
+					const typeCardH = types.length ? types.length * 52 + 56 : 0
+					const H = topY + topH + 24 + statH + 24 + typeCardH + 90
+
+					const ctx = uni.createCanvasContext('shareCard', this)
+
 					// 背景
-					ctx.setFillStyle('#F7F5EF')
+					ctx.setFillStyle('#F5F3ED')
 					ctx.fillRect(0, 0, W, H)
 
-					// 顶部渐变区（品牌色）
-					ctx.setFillStyle(primary)
-					ctx.fillRect(0, 0, W, 320)
-					ctx.setFillStyle('rgba(255,255,255,0.15)')
+					// 顶部圆角渐变卡片
+					ctx.save()
+					this.rr(ctx, pad, topY, W - pad * 2, topH, 26)
+					ctx.clip()
+					const g = ctx.createLinearGradient(pad, topY, W - pad, topY + topH)
+					g.addColorStop(0, primary)
+					g.addColorStop(1, primaryLight)
+					ctx.setFillStyle(g)
+					ctx.fillRect(pad, topY, W - pad * 2, topH)
+					ctx.setFillStyle('rgba(255,255,255,0.12)')
 					ctx.beginPath()
-					ctx.arc(560, 60, 160, 0, 2 * Math.PI)
+					ctx.arc(W - pad - 20, topY + 6, 120, 0, 2 * Math.PI)
 					ctx.fill()
 					ctx.beginPath()
-					ctx.arc(40, 260, 100, 0, 2 * Math.PI)
+					ctx.arc(pad + 6, topY + topH - 6, 76, 0, 2 * Math.PI)
 					ctx.fill()
+					ctx.restore()
 
-					// 标题
-					ctx.setFillStyle('#FFFFFF')
-					ctx.setFontSize(36)
 					ctx.setTextAlign('left')
-					ctx.fillText('友邻座·学习' + periodName, 40, 90)
-
-					ctx.setFontSize(22)
 					ctx.setFillStyle('rgba(255,255,255,0.85)')
-					ctx.fillText(this.periodText, 40, 130)
-
-					// 总时长
-					ctx.setFontSize(80)
-					ctx.setFillStyle('#FFFFFF')
-					ctx.fillText(this.formatHours(r.totalMinutes), 40, 230)
-
 					ctx.setFontSize(24)
+					ctx.fillText('友邻座 · 学习' + periodName, pad + 30, topY + 58)
+
+					ctx.setFillStyle('rgba(255,255,255,0.8)')
+					ctx.setFontSize(22)
+					ctx.fillText(this.periodText, pad + 30, topY + 96)
+
+					ctx.setFillStyle('#FFFFFF')
+					ctx.setFontSize(72)
+					ctx.fillText(this.formatHours(r.totalMinutes), pad + 30, topY + 178)
+
 					ctx.setFillStyle('rgba(255,255,255,0.85)')
-					ctx.fillText('总学习时长', 40, 270)
+					ctx.setFontSize(22)
+					ctx.fillText('总学习时长', pad + 30, topY + 216)
+
+					let y = topY + topH + 24
 
 					// 统计卡片
 					const stats = [
@@ -207,56 +236,68 @@
 						{ label: '学习次数', value: String(r.sessionCount) },
 						{ label: '最长连续', value: String(r.longestStreak) + '天' }
 					]
-					const cardW = (W - 40 * 2 - 20 * 2) / 3
+					const gap = 20
+					const cardW = (W - pad * 2 - gap * 2) / 3
 					stats.forEach((s, i) => {
-						const x = 40 + i * (cardW + 20)
+						const x = pad + i * (cardW + gap)
 						ctx.setFillStyle('#FFFFFF')
-						ctx.fillRect(x, 360, cardW, 120)
+						this.rr(ctx, x, y, cardW, statH, 18)
+						ctx.fill()
 						ctx.setFillStyle(primary)
 						ctx.setFontSize(36)
 						ctx.setTextAlign('center')
-						ctx.fillText(s.value, x + cardW / 2, 410)
+						ctx.fillText(s.value, x + cardW / 2, y + 52)
 						ctx.setFillStyle(gray)
 						ctx.setFontSize(22)
-						ctx.fillText(s.label, x + cardW / 2, 450)
+						ctx.fillText(s.label, x + cardW / 2, y + 90)
 					})
+					y += statH + 24
 
-					// 类型分布
-					const types = r.typeDistribution.slice(0, 4)
+					// 学习类型
 					if (types.length) {
+						ctx.setFillStyle('#FFFFFF')
+						this.rr(ctx, pad, y, W - pad * 2, typeCardH, 18)
+						ctx.fill()
+
+						ctx.setTextAlign('left')
 						ctx.setFillStyle(dark)
 						ctx.setFontSize(28)
-						ctx.setTextAlign('left')
-						ctx.fillText('学习类型', 40, 540)
+						ctx.fillText('学习类型', pad + 24, y + 42)
 
+						const innerX = pad + 24
+						const innerW = W - (pad + 24) * 2
 						types.forEach((t, i) => {
-							const y = 575 + i * 48
+							const ry = y + 72 + i * 52
 							const total = types.reduce((s, x) => s + x.value, 0) || 1
 							const pct = Math.round(t.value / total * 100)
 
 							ctx.setFillStyle(gray)
 							ctx.setFontSize(24)
-							ctx.fillText(this.typeLabel(t.key), 40, y + 6)
+							ctx.setTextAlign('left')
+							ctx.fillText(this.typeLabel(t.key), innerX, ry)
 
 							ctx.setFillStyle(primary)
 							ctx.setFontSize(24)
 							ctx.setTextAlign('right')
-							ctx.fillText(pct + '%', W - 40, y + 6)
+							ctx.fillText(pct + '%', innerX + innerW, ry)
 							ctx.setTextAlign('left')
 
-							// 进度条
 							ctx.setFillStyle(primaryBg)
-							ctx.fillRect(40, y + 20, W - 80, 10)
+							ctx.fillRect(innerX, ry + 12, innerW, 10)
 							ctx.setFillStyle(primary)
-							ctx.fillRect(40, y + 20, Math.max(4, (W - 80) * pct / 100), 10)
+							ctx.fillRect(innerX, ry + 12, Math.max(4, innerW * pct / 100), 10)
 						})
+						y += typeCardH
 					}
 
 					// 底部
-					ctx.setFillStyle(gray)
-					ctx.setFontSize(22)
+					ctx.setFillStyle(primary)
+					ctx.setFontSize(24)
 					ctx.setTextAlign('center')
-					ctx.fillText('一席相邻，善意相续 · 友邻座', W / 2, 760)
+					ctx.fillText('一席相邻，善意相续', W / 2, H - 58)
+					ctx.setFillStyle(gray)
+					ctx.setFontSize(21)
+					ctx.fillText('友邻座 · 学习报告', W / 2, H - 26)
 
 					ctx.draw(false, () => {
 						setTimeout(() => {
