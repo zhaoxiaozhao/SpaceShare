@@ -281,23 +281,48 @@
 				const ctx = node.getContext('2d')
 				ctx.scale(dpr, dpr)
 
-				// 预加载封面：后端代理云存储返回 base64（绕开小程序云下载与合法域名限制）
+				// 预加载封面：后端代理云存储返回 base64（绕开小程序云下载/域名限制）
 				let coverMap = {}
+				let coverErr = ''
 				try {
 					const covers = await api.getBookListCovers(share.token)
 					;(covers || []).forEach((c) => { coverMap[c.bookId] = c.dataUrl })
 				} catch (e) {
+					coverErr = (e && (e.message || e.errMsg)) || '请求失败'
 					console.warn('[poster] 拉取封面失败', e)
 				}
+				const needCover = show.filter((b) => b.coverUrl)
 				const imgs = []
+				let writeFail = 0
+				let loadFail = 0
 				for (const b of show) {
 					let item = null
 					const dataUrl = coverMap[b.bookId]
 					if (dataUrl) {
 						const p = await this.saveCoverFile(b.bookId, dataUrl)
-						if (p) item = await this.toCanvasImage(node, p)
+						if (!p) writeFail++
+						else {
+							item = await this.toCanvasImage(node, p)
+							if (!item) loadFail++
+						}
 					}
 					imgs.push(item)
+				}
+				if (needCover.length > 0) {
+					const got = Object.keys(coverMap).length
+					if (got === 0) {
+						uni.showModal({
+							title: '封面接口无数据',
+							content: coverErr ? ('请求失败：' + coverErr) : '后端未返回封面（多为微信 AppSecret/CloudEnv 未配置或云存储取回失败）',
+							showCancel: false
+						})
+					} else if (writeFail > 0 || loadFail > 0) {
+						uni.showModal({
+							title: '封面写入/绘制失败',
+							content: '写入失败 ' + writeFail + '，绘制失败 ' + loadFail,
+							showCancel: false
+						})
+					}
 				}
 
 				const theme = getTheme()
