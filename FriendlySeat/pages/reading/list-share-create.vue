@@ -210,10 +210,40 @@
 				}
 				return lines
 			},
-			drawPoster(share) {
+			// 把封面（cloud:// 或 https）下载成本地路径供 canvas 绘制
+			loadCover(url) {
+				return new Promise((resolve) => {
+					if (!url) return resolve(null)
+					const done = (path) => {
+						if (!path) return resolve(null)
+						uni.getImageInfo({
+							src: path,
+							success: (info) => resolve({ path, width: info.width, height: info.height }),
+							fail: () => resolve(null)
+						})
+					}
+					if (/^cloud:\/\//.test(url)) {
+						wx.cloud.downloadFile({
+							fileID: url,
+							success: (res) => done(res.tempFilePath),
+							fail: () => resolve(null)
+						})
+					} else if (/^https?:/.test(url)) {
+						uni.downloadFile({
+							url,
+							success: (res) => done(res.statusCode === 200 ? res.tempFilePath : null),
+							fail: () => resolve(null)
+						})
+					} else {
+						done(url)
+					}
+				})
+			},
+			async drawPoster(share) {
+				const books = share.books || []
+				const show = books.slice(0, 12)
+				const covers = await Promise.all(show.map(b => this.loadCover(b.coverUrl)))
 				return new Promise((resolve, reject) => {
-					const books = share.books || []
-					const show = books.slice(0, 12)
 					const more = books.length - show.length
 					const hasRemark = !!(share.remark && share.remark.length)
 					const rowH = 84
@@ -263,19 +293,30 @@
 						}
 
 						// 书单条目
-						show.forEach((b) => {
+						show.forEach((b, i) => {
 							ctx.setFillStyle('#FFFFFF')
 							ctx.fillRect(40, y - 30, W - 80, rowH - 14)
 
-							// 生成封面（书名首字 + 稳定取色）
-							const color = bookCoverColor(b.title)
-							ctx.setFillStyle(color)
-							ctx.fillRect(56, y - 16, 52, 52)
-							ctx.setFillStyle('#FFFFFF')
-							ctx.setFontSize(26)
-							ctx.setTextAlign('center')
-							ctx.fillText((b.title || '书').slice(0, 1), 82, y + 18)
-							ctx.setTextAlign('left')
+							const box = 52
+							const bx = 56
+							const by = y - 16
+							const img = covers[i]
+							if (img) {
+								// 居中裁剪为正方形绘制真实封面
+								const s = Math.min(img.width, img.height)
+								const sx = (img.width - s) / 2
+								const sy = (img.height - s) / 2
+								ctx.drawImage(img.path, sx, sy, s, s, bx, by, box, box)
+							} else {
+								// 无封面：书名首字 + 稳定取色
+								ctx.setFillStyle(bookCoverColor(b.title))
+								ctx.fillRect(bx, by, box, box)
+								ctx.setFillStyle('#FFFFFF')
+								ctx.setFontSize(26)
+								ctx.setTextAlign('center')
+								ctx.fillText((b.title || '书').slice(0, 1), bx + box / 2, by + 34)
+								ctx.setTextAlign('left')
+							}
 
 							ctx.setFillStyle(dark)
 							ctx.setFontSize(28)
