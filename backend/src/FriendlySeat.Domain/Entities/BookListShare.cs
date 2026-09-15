@@ -19,8 +19,12 @@ public class BookListShare
     /// <summary>书单条目快照（JSON 数组）</summary>
     public string ItemsJson { get; set; } = "[]";
 
+    /// <summary>是否公开到热门书单榜（用户主动开启，默认不公开）</summary>
+    public bool IsPublic { get; set; }
+
     public int ViewCount { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
     public User? User { get; set; }
+    public ICollection<BookListShareFavorite> Favorites { get; set; } = new List<BookListShareFavorite>();
 }

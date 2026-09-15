@@ -8,6 +8,7 @@ namespace FriendlySeat.Application.Services;
 
 /// <summary>
 /// 书单分享：用户自选书籍 + 推荐语，生成随机 token 的公开快照；好友通过 token 匿名查看。
+/// 合规约束：仅展示被动计数（浏览/收藏），公开到榜单需用户主动开启，且内容可审核、可举报、可下架。
 /// </summary>
 public class BookListShareService
 {
@@ -67,15 +68,16 @@ public class BookListShareService
             Title = title,
             Remark = remark.Length == 0 ? null : remark,
             ItemsJson = JsonSerializer.Serialize(items, JsonOpts),
+            IsPublic = request.IsPublic,
             CreatedAt = DateTime.UtcNow
         };
         _db.BookListShares.Add(share);
         await _db.SaveChangesAsync(ct);
 
-        return await BuildDtoAsync(share, ct);
+        return await BuildDtoAsync(share, userId, ct);
     }
 
-    public async Task<BookListShareDto?> GetByTokenAsync(string token, CancellationToken ct = default)
+    public async Task<BookListShareDto?> GetByTokenAsync(string token, long? viewerId, CancellationToken ct = default)
     {
         if (string.IsNullOrWhiteSpace(token)) return null;
         var share = await _db.BookListShares
@@ -86,7 +88,7 @@ public class BookListShareService
         share.ViewCount += 1;
         await _db.SaveChangesAsync(ct);
 
-        return await BuildDtoAsync(share, ct);
+        return await BuildDtoAsync(share, viewerId, ct);
     }
 
     public async Task<List<BookListShareDto>> GetMyAsync(long userId, CancellationToken ct = default)
@@ -99,15 +101,106 @@ public class BookListShareService
             .ToListAsync(ct);
 
         var result = new List<BookListShareDto>();
-        foreach (var s in shares) result.Add(await BuildDtoAsync(s, ct));
+        foreach (var s in shares) result.Add(await BuildDtoAsync(s, userId, ct));
         return result;
     }
 
-    private async Task<BookListShareDto> BuildDtoAsync(BookListShare share, CancellationToken ct)
+    /// <summary>收藏/取消收藏（纯计数，不含任何奖励或解锁）；不能收藏自己的书单。</summary>
+    public async Task<BookListShareDto> ToggleFavoriteAsync(long userId, string token, CancellationToken ct = default)
+    {
+        var share = await _db.BookListShares
+            .Include(s => s.User)
+            .FirstOrDefaultAsync(s => s.Token == token, ct)
+            ?? throw AppException.NotFound("书单不存在");
+        if (share.UserId == userId)
+            throw AppException.BadRequest("cannot_favorite_own", "不能收藏自己的书单");
+
+        var fav = await _db.BookListShareFavorites
+            .FirstOrDefaultAsync(f => f.ShareId == share.Id && f.UserId == userId, ct);
+        if (fav is null)
+        {
+            _db.BookListShareFavorites.Add(new BookListShareFavorite
+            {
+                ShareId = share.Id,
+                UserId = userId,
+                CreatedAt = DateTime.UtcNow
+            });
+        }
+        else
+        {
+            _db.BookListShareFavorites.Remove(fav);
+        }
+        await _db.SaveChangesAsync(ct);
+
+        return await BuildDtoAsync(share, userId, ct);
+    }
+
+    /// <summary>设置公开到热门书单榜（仅本人）</summary>
+    public async Task<BookListShareDto> SetVisibilityAsync(long userId, string token, bool isPublic, CancellationToken ct = default)
+    {
+        var share = await _db.BookListShares
+            .Include(s => s.User)
+            .FirstOrDefaultAsync(s => s.Token == token, ct)
+            ?? throw AppException.NotFound("书单不存在");
+        if (share.UserId != userId)
+            throw AppException.Forbidden("只能管理自己的书单");
+
+        share.IsPublic = isPublic;
+        await _db.SaveChangesAsync(ct);
+
+        return await BuildDtoAsync(share, userId, ct);
+    }
+
+    /// <summary>热门书单榜（仅公开书单，按收藏数/浏览数排序）</summary>
+    public async Task<List<BookListShareBoardItemDto>> GetBoardAsync(int take, CancellationToken ct = default)
+    {
+        take = Math.Clamp(take <= 0 ? 20 : take, 1, 50);
+
+        var ids = await _db.BookListShares
+            .Where(s => s.IsPublic)
+            .OrderByDescending(s => s.Favorites.Count)
+            .ThenByDescending(s => s.ViewCount)
+            .ThenByDescending(s => s.Id)
+            .Take(take)
+            .Select(s => s.Id)
+            .ToListAsync(ct);
+        if (ids.Count == 0) return new();
+
+        var shares = await _db.BookListShares
+            .Include(s => s.User)
+            .Include(s => s.Favorites)
+            .Where(s => ids.Contains(s.Id))
+            .ToListAsync(ct);
+
+        return ids
+            .Select(id => shares.FirstOrDefault(s => s.Id == id))
+            .Where(s => s is not null)
+            .Select(s => new BookListShareBoardItemDto
+            {
+                Id = s!.Id,
+                Token = s.Token,
+                Title = s.Title,
+                Remark = s.Remark,
+                OwnerName = s.User?.Nickname ?? "书友",
+                OwnerAvatar = s.User?.AvatarUrl,
+                Count = Deserialize(s.ItemsJson).Count,
+                FavoriteCount = s.Favorites.Count,
+                ViewCount = s.ViewCount,
+                CreatedAt = s.CreatedAt
+            })
+            .ToList();
+    }
+
+    private async Task<BookListShareDto> BuildDtoAsync(BookListShare share, long? viewerId, CancellationToken ct)
     {
         var books = Deserialize(share.ItemsJson);
+        var favoriteCount = await _db.BookListShareFavorites.CountAsync(f => f.ShareId == share.Id, ct);
+        var favorited = viewerId.HasValue
+            && await _db.BookListShareFavorites.AnyAsync(f => f.ShareId == share.Id && f.UserId == viewerId.Value, ct);
+
         return new BookListShareDto
         {
+            Id = share.Id,
             Token = share.Token,
             Title = share.Title,
             Remark = share.Remark,
@@ -116,6 +209,10 @@ public class BookListShareService
             Count = books.Count,
             TotalMinutes = books.Sum(b => b.TotalMinutes),
             ViewCount = share.ViewCount,
+            FavoriteCount = favoriteCount,
+            Favorited = favorited,
+            IsOwner = viewerId.HasValue && viewerId.Value == share.UserId,
+            IsPublic = share.IsPublic,
             CreatedAt = share.CreatedAt,
             Books = books
         };

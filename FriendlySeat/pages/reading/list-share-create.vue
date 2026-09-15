@@ -35,10 +35,22 @@
 			<input class="input" v-model="title" placeholder="书单标题" :maxlength="30" />
 			<textarea class="textarea" v-model="remark" placeholder="写一句推荐语（可选）" :maxlength="100" />
 			<text class="count">{{remark.length}}/100</text>
+			<view class="switch-row">
+				<view class="switch-info">
+					<text class="switch-label">公开到热门书单榜</text>
+					<text class="switch-tip">公开后其他用户可看到并收藏（默认私密，仅拿到链接的人可看）</text>
+				</view>
+				<switch :checked="isPublic" color="var(--primary)" @change="onPublicChange" />
+			</view>
 		</view>
 
 		<view class="actions">
 			<button class="btn-primary" :loading="creating" @click="generate">生成书单海报</button>
+		</view>
+
+		<view class="board-entry" @click="goBoard">
+			<text class="board-entry-text">看看热门书单榜</text>
+			<text class="share-arrow">›</text>
 		</view>
 
 		<!-- 我生成的书单 -->
@@ -47,8 +59,9 @@
 			<view class="share-row" v-for="s in myShares" :key="s.token" @click="openShare(s.token)">
 				<view class="share-info">
 					<text class="share-title">{{s.title}}</text>
-					<text class="share-sub">{{s.count}} 本 · {{s.viewCount}} 次浏览 · {{formatDate(s.createdAt)}}</text>
+					<text class="share-sub">{{s.count}} 本 · {{s.viewCount}} 浏览 · {{s.favoriteCount}} 收藏 · {{formatDate(s.createdAt)}}</text>
 				</view>
+				<text class="pub-tag" :class="{ on: s.isPublic }">{{s.isPublic ? '公开' : '私密'}}</text>
 				<text class="share-arrow">›</text>
 			</view>
 		</view>
@@ -88,6 +101,7 @@
 				posterPath: '',
 				token: '',
 				canvasH: 1200,
+				isPublic: false,
 				myShares: []
 			}
 		},
@@ -118,6 +132,12 @@
 			},
 			openShare(token) {
 				uni.navigateTo({ url: `/pages/reading/list-share-view?token=${token}` })
+			},
+			goBoard() {
+				uni.navigateTo({ url: '/pages/reading/list-share-board' })
+			},
+			onPublicChange(e) {
+				this.isPublic = !!(e.detail && e.detail.value)
 			},
 			formatDate(iso) {
 				const d = parseDate(iso)
@@ -155,7 +175,8 @@
 					const share = await api.createBookListShare({
 						bookIds,
 						title: this.title,
-						remark: this.remark
+						remark: this.remark,
+						isPublic: this.isPublic
 					})
 					this.token = share.token
 					await this.drawPoster(share)
@@ -339,6 +360,14 @@
 	.input { background: #F7F5EF; border-radius: 12rpx; padding: 16rpx 20rpx; font-size: 28rpx; margin-bottom: 16rpx; }
 	.textarea { width: 100%; box-sizing: border-box; background: #F7F5EF; border-radius: 12rpx; padding: 16rpx 20rpx; font-size: 28rpx; height: 140rpx; }
 	.count { display: block; text-align: right; font-size: 22rpx; color: #B0B0AB; margin-top: 8rpx; }
+	.switch-row { display: flex; align-items: center; justify-content: space-between; gap: 20rpx; margin-top: 20rpx; }
+	.switch-info { flex: 1; min-width: 0; }
+	.switch-label { display: block; font-size: 28rpx; color: #55554F; }
+	.switch-tip { display: block; font-size: 21rpx; color: #B0B0AB; line-height: 1.4; margin-top: 4rpx; }
+	.board-entry { display: flex; align-items: center; justify-content: space-between; margin: 0 20rpx 20rpx; padding: 24rpx 28rpx; background: #FFFFFF; border-radius: 20rpx; box-shadow: 0 4rpx 16rpx rgba(0,0,0,0.04); }
+	.board-entry-text { font-size: 28rpx; color: var(--primary); font-weight: 500; }
+	.pub-tag { font-size: 20rpx; padding: 4rpx 14rpx; border-radius: 8rpx; background: #F1EFE9; color: #8A8A86; margin: 0 12rpx; flex-shrink: 0; }
+	.pub-tag.on { background: var(--primary-bg); color: var(--primary); }
 	.actions { margin: 20rpx; }
 	.share-row { display: flex; align-items: center; justify-content: space-between; padding: 18rpx 0; border-bottom: 1rpx solid #F0EFEA; }
 	.share-row:last-child { border-bottom: none; }

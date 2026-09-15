@@ -105,12 +105,26 @@ public class ReadingController : ControllerBase
     public async Task<ActionResult<List<BookListShareDto>>> GetMyListShares(CancellationToken ct)
         => Ok(await _bookLists.GetMyAsync(_currentUser.UserId!.Value, ct));
 
+    /// <summary>热门书单榜（仅公开书单，匿名可看）</summary>
+    [HttpGet("list-shares/board")]
+    [AllowAnonymous]
+    public async Task<ActionResult<List<BookListShareBoardItemDto>>> GetListShareBoard([FromQuery] int take, CancellationToken ct)
+        => Ok(await _bookLists.GetBoardAsync(take, ct));
+
+    [HttpPost("list-shares/{token}/favorite")]
+    public async Task<ActionResult<BookListShareDto>> ToggleListShareFavorite(string token, CancellationToken ct)
+        => Ok(await _bookLists.ToggleFavoriteAsync(_currentUser.UserId!.Value, token, ct));
+
+    [HttpPost("list-shares/{token}/visibility")]
+    public async Task<ActionResult<BookListShareDto>> SetListShareVisibility(string token, [FromBody] BookListShareVisibilityRequest request, CancellationToken ct)
+        => Ok(await _bookLists.SetVisibilityAsync(_currentUser.UserId!.Value, token, request.IsPublic, ct));
+
     /// <summary>书单分享落地页（匿名查看）</summary>
     [HttpGet("list-shares/{token}")]
     [AllowAnonymous]
     public async Task<ActionResult<BookListShareDto>> GetListShare(string token, CancellationToken ct)
     {
-        var share = await _bookLists.GetByTokenAsync(token, ct);
+        var share = await _bookLists.GetByTokenAsync(token, _currentUser.UserId, ct);
         if (share is null) return NotFound();
         return Ok(share);
     }

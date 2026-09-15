@@ -129,6 +129,14 @@ public class CreateBookListShareRequest
     public List<long> BookIds { get; set; } = new();
     public string? Title { get; set; }
     public string? Remark { get; set; }
+
+    /// <summary>是否公开到热门书单榜（默认否）</summary>
+    public bool IsPublic { get; set; }
+}
+
+public class BookListShareVisibilityRequest
+{
+    public bool IsPublic { get; set; }
 }
 
 public class BookListShareItemDto
@@ -143,6 +151,7 @@ public class BookListShareItemDto
 
 public class BookListShareDto
 {
+    public long Id { get; set; }
     public string Token { get; set; } = string.Empty;
     public string Title { get; set; } = string.Empty;
     public string? Remark { get; set; }
@@ -151,6 +160,25 @@ public class BookListShareDto
     public int Count { get; set; }
     public int TotalMinutes { get; set; }
     public int ViewCount { get; set; }
+    public int FavoriteCount { get; set; }
+    public bool Favorited { get; set; }
+    public bool IsOwner { get; set; }
+    public bool IsPublic { get; set; }
     public DateTime CreatedAt { get; set; }
     public List<BookListShareItemDto> Books { get; set; } = new();
+}
+
+/// <summary>热门书单榜条目（不含书籍明细，减少传输）</summary>
+public class BookListShareBoardItemDto
+{
+    public long Id { get; set; }
+    public string Token { get; set; } = string.Empty;
+    public string Title { get; set; } = string.Empty;
+    public string? Remark { get; set; }
+    public string OwnerName { get; set; } = string.Empty;
+    public string? OwnerAvatar { get; set; }
+    public int Count { get; set; }
+    public int FavoriteCount { get; set; }
+    public int ViewCount { get; set; }
+    public DateTime CreatedAt { get; set; }
 }

@@ -171,6 +171,12 @@
 			}
 		},
 		{
+			"path": "pages/reading/list-share-board",
+			"style": {
+				"navigationBarTitleText": "热门书单"
+			}
+		},
+		{
 			"path": "pages/report/report",
 			"style": {
 				"navigationBarTitleText": "举报"

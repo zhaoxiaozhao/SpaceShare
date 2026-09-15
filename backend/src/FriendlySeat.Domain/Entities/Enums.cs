@@ -101,7 +101,8 @@ public enum ReportTargetType
     User,
     Review,
     Feedback,
-    Activity
+    Activity,
+    BookListShare
 }
 
 public enum ReportStatus

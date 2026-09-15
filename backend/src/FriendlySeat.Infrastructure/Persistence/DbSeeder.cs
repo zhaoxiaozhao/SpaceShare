@@ -290,12 +290,38 @@ CREATE TABLE `BookListShares` (
   `Title` longtext NOT NULL,
   `Remark` longtext NULL,
   `ItemsJson` longtext NOT NULL,
+  `IsPublic` tinyint(1) NOT NULL DEFAULT 0,
   `ViewCount` int NOT NULL,
   `CreatedAt` datetime(6) NOT NULL,
   PRIMARY KEY (`Id`),
   UNIQUE KEY `IX_BookListShares_Token` (`Token`),
   KEY `IX_BookListShares_UserId` (`UserId`),
   CONSTRAINT `FK_BookListShares_Users_UserId` FOREIGN KEY (`UserId`) REFERENCES `Users` (`Id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
+        }
+
+        // BookListShares.IsPublic 列（公开到热门书单榜）：已有表补列
+        if (await tableExists("BookListShares") && !await ColumnExistsAsync(db, "BookListShares", "IsPublic"))
+        {
+            logger.LogInformation("MySQL 补充 BookListShares.IsPublic 列（公开书单）");
+            await db.Database.ExecuteSqlRawAsync("ALTER TABLE `BookListShares` ADD COLUMN `IsPublic` tinyint(1) NOT NULL DEFAULT 0;");
+        }
+
+        // 书单收藏表 BookListShareFavorites（已有库补建表）
+        if (!await tableExists("BookListShareFavorites"))
+        {
+            logger.LogInformation("MySQL 补建书单收藏表（BookListShareFavorites）");
+            await db.Database.ExecuteSqlRawAsync(@"
+CREATE TABLE `BookListShareFavorites` (
+  `Id` bigint NOT NULL AUTO_INCREMENT,
+  `ShareId` bigint NOT NULL,
+  `UserId` bigint NOT NULL,
+  `CreatedAt` datetime(6) NOT NULL,
+  PRIMARY KEY (`Id`),
+  UNIQUE KEY `IX_BookListShareFavorites_ShareId_UserId` (`ShareId`, `UserId`),
+  KEY `IX_BookListShareFavorites_UserId` (`UserId`),
+  CONSTRAINT `FK_BookListShareFavorites_BookListShares_ShareId` FOREIGN KEY (`ShareId`) REFERENCES `BookListShares` (`Id`) ON DELETE CASCADE,
+  CONSTRAINT `FK_BookListShareFavorites_Users_UserId` FOREIGN KEY (`UserId`) REFERENCES `Users` (`Id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
         }
 

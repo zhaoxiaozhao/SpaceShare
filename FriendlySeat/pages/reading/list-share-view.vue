@@ -14,7 +14,7 @@
 			<text class="hero-remark" v-if="share.remark">{{share.remark}}</text>
 			<view class="hero-foot">
 				<text>友邻座 · 书单分享</text>
-				<text>{{share.viewCount}} 次浏览</text>
+				<text>{{share.viewCount}} 次浏览 · {{share.favoriteCount}} 次收藏</text>
 			</view>
 		</view>
 
@@ -35,8 +35,25 @@
 		</view>
 
 		<view class="cta">
-			<button class="btn-primary" open-type="share">分享这个书单</button>
+			<view class="cta-row" v-if="!share.isOwner">
+				<button class="btn-outline fav-btn" :class="{ on: share.favorited }" @click="toggleFavorite">
+					{{share.favorited ? '已收藏' : '收藏'}} {{share.favoriteCount}}
+				</button>
+				<button class="btn-primary share-btn" open-type="share">分享这个书单</button>
+			</view>
+			<button v-else class="btn-primary" open-type="share">分享这个书单</button>
+
+			<view class="owner-row" v-if="share.isOwner">
+				<text class="owner-label">公开到热门书单榜</text>
+				<switch :checked="share.isPublic" color="var(--primary)" @change="onPublicChange" />
+			</view>
+
 			<button class="btn-outline" @click="goReading">我也要做书单</button>
+
+			<view class="links">
+				<text class="link" @click="goBoard">热门书单</text>
+				<text class="link danger" v-if="!share.isOwner" @click="goReport">举报</text>
+			</view>
 		</view>
 
 		<text class="footer">一席相邻，善意相续 · 友邻座</text>
@@ -60,7 +77,8 @@
 			return {
 				token: '',
 				share: null,
-				loaded: false
+				loaded: false,
+				favoriting: false
 			}
 		},
 		computed: {
@@ -101,6 +119,38 @@
 			},
 			goReading() {
 				uni.navigateTo({ url: '/pages/reading/reading' })
+			},
+			goBoard() {
+				uni.navigateTo({ url: '/pages/reading/list-share-board' })
+			},
+			goReport() {
+				if (!this.share) return
+				uni.navigateTo({ url: `/pages/report/report?targetType=BookListShare&targetId=${this.share.id}` })
+			},
+			async toggleFavorite() {
+				if (!this.token || this.favoriting) return
+				this.favoriting = true
+				try {
+					const res = await api.toggleBookListFavorite(this.token)
+					this.share.favorited = res.favorited
+					this.share.favoriteCount = res.favoriteCount
+					uni.showToast({ title: res.favorited ? '已收藏' : '已取消收藏', icon: 'none' })
+				} catch (e) {
+					uni.showToast({ title: e.message || '操作失败', icon: 'none' })
+				} finally {
+					this.favoriting = false
+				}
+			},
+			async onPublicChange(e) {
+				const isPublic = !!(e.detail && e.detail.value)
+				try {
+					const res = await api.setBookListVisibility(this.token, isPublic)
+					this.share.isPublic = res.isPublic
+					uni.showToast({ title: res.isPublic ? '已公开到热门书单' : '已设为私密', icon: 'none' })
+				} catch (err) {
+					this.share.isPublic = !isPublic
+					uni.showToast({ title: err.message || '操作失败', icon: 'none' })
+				}
 			}
 		}
 	}
@@ -129,6 +179,15 @@
 	.st-Finished { background: #E8F1E8; color: #4A7A4A; }
 	.minutes { font-size: 22rpx; color: var(--primary); }
 	.cta { padding: 10rpx 20rpx 0; display: flex; flex-direction: column; gap: 20rpx; }
+	.cta-row { display: flex; gap: 20rpx; }
+	.fav-btn { flex: 1; }
+	.fav-btn.on { color: var(--primary); border-color: var(--primary); }
+	.share-btn { flex: 2; }
+	.owner-row { display: flex; align-items: center; justify-content: space-between; background: #FFFFFF; border-radius: 16rpx; padding: 16rpx 24rpx; }
+	.owner-label { font-size: 28rpx; color: #55554F; }
+	.links { display: flex; justify-content: center; gap: 60rpx; padding: 6rpx 0 20rpx; }
+	.link { font-size: 26rpx; color: var(--primary); }
+	.link.danger { color: #B85450; }
 	.footer { display: block; text-align: center; font-size: 22rpx; color: #B0B0AB; padding: 30rpx 0 40rpx; }
 	.empty-state { display: flex; align-items: center; justify-content: center; min-height: 60vh; color: #B0B0AB; font-size: 26rpx; }
 </style>

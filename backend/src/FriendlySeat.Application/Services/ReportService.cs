@@ -54,6 +54,18 @@ public class ReportService
                     throw AppException.BadRequest("cannot_report_own", "不能举报自己发布的活动");
                 targetUserId = activity.CreatorUserId;
             }
+            else if (targetType == ReportTargetType.BookListShare)
+            {
+                var share = await _db.BookListShares
+                    .Where(s => s.Id == request.TargetId.Value)
+                    .Select(s => new { s.UserId })
+                    .FirstOrDefaultAsync(ct);
+                if (share is null)
+                    throw AppException.NotFound("书单不存在");
+                if (share.UserId == reporterId)
+                    throw AppException.BadRequest("cannot_report_own", "不能举报自己的书单");
+                targetUserId = share.UserId;
+            }
         }
 
         var report = new Report
@@ -83,6 +95,20 @@ public class ReportService
                 await _notifications.SendAsync(activity.CreatorUserId, NotificationType.System,
                     "活动被举报，已退回审核",
                     $"你发布的活动「{activity.Title}」被举报，已暂时下架并退回审核。", null, ct);
+            }
+        }
+
+        // 书单被举报：从热门榜下架（取消公开），已分享链接仍可用
+        if (targetType == ReportTargetType.BookListShare && request.TargetId.HasValue)
+        {
+            var share = await _db.BookListShares.FirstOrDefaultAsync(s => s.Id == request.TargetId.Value, ct);
+            if (share is not null && share.IsPublic)
+            {
+                share.IsPublic = false;
+                await _db.SaveChangesAsync(ct);
+                await _notifications.SendAsync(share.UserId, NotificationType.System,
+                    "书单被举报，已从热门榜下架",
+                    $"你的书单「{share.Title}」被举报，已暂时从热门书单榜下架。", null, ct);
             }
         }
 
