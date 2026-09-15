@@ -78,7 +78,7 @@
 
 		<view v-if="list.books.length">
 			<view class="card book-card" v-for="b in list.books" :key="b.id" @click="goBook(b.id)">
-				<image class="book-cover" :src="b.coverUrl || '/static/logo.png'" mode="aspectFill" />
+				<BookCover :url="b.coverUrl" :title="b.title" :width="110" :height="150" :radius="10" />
 				<view class="book-info">
 					<view class="book-top">
 						<text class="book-title">{{b.title}}</text>
@@ -107,7 +107,7 @@
 				<input class="modal-input" v-model="editForm.title" placeholder="书名（必填）" />
 				<input class="modal-input" v-model="editForm.author" placeholder="作者" />
 				<view class="cover-row" @click="chooseCover">
-					<image class="cover-preview" :src="editForm.coverUrl || '/static/logo.png'" mode="aspectFill" />
+					<BookCover :url="editForm.coverUrl" :title="editForm.title" :width="100" :height="130" :radius="8" />
 					<text class="cover-btn">{{editForm.coverUrl ? '更换封面' : '选择封面'}}</text>
 				</view>
 				<view class="status-row">
@@ -348,7 +348,6 @@
 
 	/* 书籍卡片 */
 	.book-card { display: flex; gap: 24rpx; align-items: stretch; }
-	.book-cover { width: 110rpx; height: 150rpx; border-radius: 10rpx; background: var(--primary-bg); flex-shrink: 0; }
 	.book-info { flex: 1; display: flex; flex-direction: column; justify-content: center; gap: 8rpx; min-width: 0; }
 	.book-top { display: flex; align-items: center; justify-content: space-between; gap: 12rpx; }
 	.book-title { font-size: 30rpx; font-weight: 600; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -369,7 +368,6 @@
 	.modal-title { font-size: 32rpx; font-weight: 700; margin-bottom: 20rpx; display: block; }
 	.modal-input { background: #F7F5EF; border-radius: 12rpx; padding: 16rpx 20rpx; font-size: 28rpx; margin-bottom: 16rpx; }
 	.cover-row { display: flex; align-items: center; gap: 20rpx; margin-bottom: 16rpx; }
-	.cover-preview { width: 100rpx; height: 130rpx; border-radius: 8rpx; background: var(--primary-bg); }
 	.cover-btn { font-size: 26rpx; color: var(--primary); }
 	.status-row { display: flex; gap: 12rpx; margin-bottom: 16rpx; }
 	.status-chip { padding: 8rpx 20rpx; border-radius: 20rpx; font-size: 24rpx; background: #F1EFE9; color: #8A8A86; }

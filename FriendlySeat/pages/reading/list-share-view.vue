@@ -22,7 +22,7 @@
 		<view class="section">
 			<view class="card book-card" v-for="(b, i) in share.books" :key="b.bookId">
 				<text class="index">{{i + 1}}</text>
-				<image class="cover" :src="b.coverUrl || '/static/logo.png'" mode="aspectFill" />
+				<BookCover :url="b.coverUrl" :title="b.title" :width="84" :height="112" :radius="8" />
 				<view class="book-info">
 					<text class="book-title">{{b.title}}</text>
 					<text class="book-author" v-if="b.author">{{b.author}}</text>
@@ -119,7 +119,6 @@
 	.section { padding: 20rpx; }
 	.book-card { display: flex; align-items: center; gap: 20rpx; }
 	.index { width: 40rpx; font-size: 28rpx; font-weight: 700; color: var(--primary); text-align: center; flex-shrink: 0; }
-	.cover { width: 84rpx; height: 112rpx; border-radius: 8rpx; background: var(--primary-bg); flex-shrink: 0; }
 	.book-info { flex: 1; min-width: 0; }
 	.book-title { font-size: 30rpx; font-weight: 600; display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 	.book-author { font-size: 24rpx; color: #8A8A86; }

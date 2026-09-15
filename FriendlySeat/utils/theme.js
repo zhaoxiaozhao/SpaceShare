@@ -59,6 +59,16 @@ export function getTheme(month) {
 	return SEASONS[getSeasonKey(month)]
 }
 
+// 无封面书籍的生成封面配色（与四季主题协调），按书名稳定取色
+export const BOOK_COVER_COLORS = ['#6BAF8B', '#2E8B94', '#C98A3D', '#5B6E8C', '#8CC5A8', '#DBA968', '#7E90AC', '#57AFB8']
+
+export function bookCoverColor(title) {
+	const s = String(title || '')
+	let h = 0
+	for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0
+	return BOOK_COVER_COLORS[h % BOOK_COVER_COLORS.length]
+}
+
 // 生成 page-meta 的 page-style（注入 CSS 变量到页面）
 export function getPageStyle(month) {
 	const t = getTheme(month)

@@ -3,7 +3,7 @@
 		<view v-if="book" class="page">
 		<!-- 书籍头部 -->
 		<view class="book-hero">
-			<image class="cover" :src="book.coverUrl || '/static/logo.png'" mode="aspectFill" />
+			<BookCover :url="book.coverUrl" :title="book.title" :width="150" :height="210" :radius="12" />
 			<view class="book-main">
 				<text class="title">{{book.title}}</text>
 				<text class="author" v-if="book.author">{{book.author}}</text>
@@ -296,14 +296,6 @@
 		gap: 28rpx;
 		padding: 30rpx;
 		background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
-	}
-	.cover {
-		width: 150rpx;
-		height: 210rpx;
-		border-radius: 12rpx;
-		background: rgba(255,255,255,0.2);
-		flex-shrink: 0;
-		box-shadow: 0 8rpx 24rpx rgba(0,0,0,0.2);
 	}
 	.book-main { flex: 1; display: flex; flex-direction: column; justify-content: center; gap: 10rpx; min-width: 0; }
 	.title { font-size: 36rpx; font-weight: 700; color: #FFFFFF; line-height: 1.3; }

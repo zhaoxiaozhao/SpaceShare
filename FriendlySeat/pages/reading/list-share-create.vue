@@ -18,7 +18,7 @@
 					:key="b.id"
 					@click="toggle(b.id)"
 				>
-					<image class="cover" :src="b.coverUrl || '/static/logo.png'" mode="aspectFill" />
+					<BookCover :url="b.coverUrl" :title="b.title" :width="72" :height="96" :radius="8" />
 					<view class="book-info">
 						<text class="book-title">{{b.title}}</text>
 						<text class="book-author" v-if="b.author">{{b.author}}</text>
@@ -58,10 +58,9 @@
 
 <script>
 	import { api } from '../../utils/request.js'
-	import { getSeasonKey, getTheme } from '../../utils/theme.js'
+	import { getSeasonKey, getTheme, bookCoverColor } from '../../utils/theme.js'
 
 	const STATUS_LABELS = { WantToRead: '想读', Reading: '在读', Finished: '已读' }
-	const COVER_COLORS = ['#6BAF8B', '#2E8B94', '#C98A3D', '#5B6E8C', '#8CC5A8', '#DBA968', '#7E90AC', '#57AFB8']
 
 	export default {
 		data() {
@@ -212,12 +211,12 @@
 						}
 
 						// 书单条目
-						show.forEach((b, i) => {
+						show.forEach((b) => {
 							ctx.setFillStyle('#FFFFFF')
 							ctx.fillRect(40, y - 30, W - 80, rowH - 14)
 
-							// 生成封面（书名首字 + 主题色）
-							const color = COVER_COLORS[i % COVER_COLORS.length]
+							// 生成封面（书名首字 + 稳定取色）
+							const color = bookCoverColor(b.title)
 							ctx.setFillStyle(color)
 							ctx.fillRect(56, y - 16, 52, 52)
 							ctx.setFillStyle('#FFFFFF')
@@ -301,7 +300,6 @@
 	.book-list { display: flex; flex-direction: column; }
 	.book-row { display: flex; align-items: center; gap: 20rpx; padding: 14rpx 0; border-bottom: 1rpx solid #F0EFEA; }
 	.book-row:last-child { border-bottom: none; }
-	.cover { width: 72rpx; height: 96rpx; border-radius: 8rpx; background: var(--primary-bg); flex-shrink: 0; }
 	.book-info { flex: 1; min-width: 0; }
 	.book-title { font-size: 28rpx; font-weight: 600; display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 	.book-author { font-size: 22rpx; color: #8A8A86; }
