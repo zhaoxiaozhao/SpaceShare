@@ -278,6 +278,27 @@ CREATE TABLE `ReadingSessions` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
         }
 
+        // 书单分享表 BookListShares（已有库补建表）
+        if (!await tableExists("BookListShares"))
+        {
+            logger.LogInformation("MySQL 补建书单分享表（BookListShares）");
+            await db.Database.ExecuteSqlRawAsync(@"
+CREATE TABLE `BookListShares` (
+  `Id` bigint NOT NULL AUTO_INCREMENT,
+  `UserId` bigint NOT NULL,
+  `Token` varchar(64) NOT NULL,
+  `Title` longtext NOT NULL,
+  `Remark` longtext NULL,
+  `ItemsJson` longtext NOT NULL,
+  `ViewCount` int NOT NULL,
+  `CreatedAt` datetime(6) NOT NULL,
+  PRIMARY KEY (`Id`),
+  UNIQUE KEY `IX_BookListShares_Token` (`Token`),
+  KEY `IX_BookListShares_UserId` (`UserId`),
+  CONSTRAINT `FK_BookListShares_Users_UserId` FOREIGN KEY (`UserId`) REFERENCES `Users` (`Id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
+        }
+
         // SeatShares.CheckInCode 列（到座核销码）：已有表补列
         // 注意：MySQL 的 TEXT 列不允许 DEFAULT 值，非空约束由应用层保证
         if (await tableExists("SeatShares") && !await ColumnExistsAsync(db, "SeatShares", "CheckInCode"))

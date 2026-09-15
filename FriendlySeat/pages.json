@@ -157,6 +157,20 @@
 			}
 		},
 		{
+			"path": "pages/reading/list-share-create",
+			"style": {
+				"navigationBarTitleText": "生成书单"
+			}
+		},
+		{
+			"path": "pages/reading/list-share-view",
+			"style": {
+				"navigationBarTitleText": "书单",
+				"enableShareAppMessage": true,
+				"enableShareTimeline": true
+			}
+		},
+		{
 			"path": "pages/report/report",
 			"style": {
 				"navigationBarTitleText": "举报"

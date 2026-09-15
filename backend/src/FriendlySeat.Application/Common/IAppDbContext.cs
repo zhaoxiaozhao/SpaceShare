@@ -44,6 +44,7 @@ public interface IAppDbContext
     DbSet<ReadingBook> ReadingBooks { get; }
     DbSet<ReadingSession> ReadingSessions { get; }
     DbSet<ReadingNote> ReadingNotes { get; }
+    DbSet<BookListShare> BookListShares { get; }
 
     DatabaseFacade Database { get; }
     Task<int> SaveChangesAsync(CancellationToken ct = default);

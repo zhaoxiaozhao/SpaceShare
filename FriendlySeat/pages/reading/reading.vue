@@ -10,14 +10,20 @@
 				<text v-if="stats.consecutiveDays > 0"> · 连续阅读 {{stats.consecutiveDays}} 天</text>
 				<text v-else> · 本周 {{stats.weekMinutes}} 分钟</text>
 			</text>
-			<text class="today-book" v-if="stats.activeSession">📖 {{stats.activeSession.bookTitle}}</text>
+			<view class="today-book" v-if="stats.activeSession">
+				<image class="inline-icon" :src="`/static/icons/book-white.png`" mode="aspectFit" />
+				<text>{{stats.activeSession.bookTitle}}</text>
+			</view>
 		</view>
 
 		<!-- 正在阅读的书（计时中） -->
 		<view class="card" v-if="stats.activeSession">
 			<view class="active-info">
-				<text class="active-book">📖 {{stats.activeSession.bookTitle}}</text>
-				<text class="active-time">{{activeElapsedText}}</text>
+				<view class="active-book">
+					<image class="inline-icon" :src="`/static/icons/book-${season}.png`" mode="aspectFit" />
+					<text>{{stats.activeSession.bookTitle}}</text>
+				</view>
+				<text class="active-time">{{formatMinutes(activeElapsed)}}</text>
 			</view>
 			<button class="btn-outline end-btn" @click="endReading">结束阅读</button>
 		</view>
@@ -41,16 +47,20 @@
 		<!-- 快捷入口 -->
 		<view class="quick-row">
 			<view class="quick-btn" @click="goStats">
-				<text class="quick-icon">📅</text>
+				<image class="quick-icon" :src="`/static/icons/calendar-${season}.png`" mode="aspectFit" />
 				<text>阅读日历</text>
 			</view>
 			<view class="quick-btn" @click="goHistory">
-				<text class="quick-icon">🕐</text>
+				<image class="quick-icon" :src="`/static/icons/history-${season}.png`" mode="aspectFit" />
 				<text>阅读历史</text>
 			</view>
 			<view class="quick-btn" @click="goYearly">
-				<text class="quick-icon">📊</text>
+				<image class="quick-icon" :src="`/static/icons/insights-${season}.png`" mode="aspectFit" />
 				<text>年度报告</text>
+			</view>
+			<view class="quick-btn" @click="goListShare">
+				<image class="quick-icon" :src="`/static/icons/share-${season}.png`" mode="aspectFit" />
+				<text>书单分享</text>
 			</view>
 		</view>
 
@@ -134,12 +144,14 @@
 	import { api } from '../../utils/request.js'
 	import { uploadAvatar } from '../../utils/profile.js'
 	import { parseDate } from '../../utils/format.js'
+	import { getSeasonKey } from '../../utils/theme.js'
 
 	export default {
 		data() {
 			return {
 				list: { books: [], readingCount: 0, finishedCount: 0, wantToReadCount: 0, todayMinutes: 0 },
 				stats: { todayMinutes: 0, weekMinutes: 0, totalMinutes: 0, consecutiveDays: 0, activeSession: null },
+				season: getSeasonKey(),
 				filter: '',
 				editVisible: false,
 				editingId: null,
@@ -162,10 +174,6 @@
 			if (this.timer) clearInterval(this.timer)
 		},
 		methods: {
-			formatMinutes(min) {
-				if (min >= 60) return `${Math.floor(min / 60)}h${min % 60 ? (min % 60) + 'm' : ''}`
-				return `${min}m`
-			},
 			statusText(s) {
 				const map = { WantToRead: '想读', Reading: '在读', Finished: '已读' }
 				return map[s] || s
@@ -204,9 +212,6 @@
 				this.timer = null
 				this.activeElapsed = 0
 			},
-			get activeElapsedText() {
-				return this.formatMinutes(this.activeElapsed || 0)
-			},
 			switchFilter(f) {
 				if (this.filter === f) return
 				this.filter = f
@@ -232,6 +237,9 @@
 			},
 			goYearly() {
 				uni.navigateTo({ url: '/pages/reading/yearly' })
+			},
+			goListShare() {
+				uni.navigateTo({ url: '/pages/reading/list-share-create' })
 			},
 			openEdit(book) {
 				this.editingId = book ? book.id : null
@@ -308,11 +316,12 @@
 	.today-label { font-size: 26rpx; opacity: 0.9; display: block; }
 	.today-time { font-size: 64rpx; font-weight: 700; margin: 8rpx 0; display: block; }
 	.today-sub { font-size: 24rpx; opacity: 0.9; display: block; }
-	.today-book { display: block; margin-top: 12rpx; font-size: 26rpx; font-weight: 500; }
+	.today-book { display: flex; align-items: center; gap: 8rpx; margin-top: 12rpx; font-size: 26rpx; font-weight: 500; }
+	.inline-icon { width: 34rpx; height: 34rpx; flex-shrink: 0; }
 
 	/* 正在阅读（计时中） */
 	.active-info { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20rpx; }
-	.active-book { font-size: 30rpx; font-weight: 600; }
+	.active-book { display: flex; align-items: center; gap: 8rpx; font-size: 30rpx; font-weight: 600; min-width: 0; }
 	.active-time { font-size: 32rpx; font-weight: 700; color: var(--primary); }
 	.end-btn { margin-top: 10rpx; }
 
@@ -325,7 +334,7 @@
 	/* 快捷入口 */
 	.quick-row { display: flex; gap: 16rpx; margin: 0 20rpx; }
 	.quick-btn { flex: 1; background: #FFFFFF; border-radius: 16rpx; padding: 24rpx 0; display: flex; flex-direction: column; align-items: center; gap: 10rpx; font-size: 26rpx; color: #55554F; box-shadow: 0 4rpx 16rpx rgba(0,0,0,0.04); }
-	.quick-icon { font-size: 36rpx; }
+	.quick-icon { width: 44rpx; height: 44rpx; }
 
 	/* 书籍列表标题 + 添加 */
 	.section-head { display: flex; align-items: center; justify-content: space-between; margin: 30rpx 20rpx 6rpx; }

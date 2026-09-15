@@ -187,7 +187,12 @@ export const api = {
 	getReadingNotes: (bookId, type) => request(`/reading/books/${bookId}/notes${type ? '?type=' + type : ''}`),
 	getReadingStats: () => request('/reading/stats'),
 	getReadingCalendar: (year) => request(`/reading/calendar?year=${year || ''}`),
-	getReadingYearlyReport: (year) => request(`/reading/yearly-report?year=${year || ''}`)
+	getReadingYearlyReport: (year) => request(`/reading/yearly-report?year=${year || ''}`),
+
+	// ===== 书单分享 =====
+	createBookListShare: (data) => request('/reading/list-shares', { method: 'POST', data }),
+	getMyBookListShares: () => request('/reading/list-shares/my'),
+	getBookListShare: (token) => request(`/reading/list-shares/${token}`, { auth: false })
 }
 
 function qs(params) {

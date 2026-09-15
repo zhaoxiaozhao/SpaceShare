@@ -121,3 +121,36 @@ public class ReadingYearlyReportDto
     public List<ReadingCalendarDayDto> MonthlyMinutes { get; set; } = new();
     public List<KeyValuePair<string, int>> DailyMinutes { get; set; } = new();
 }
+
+// ============ 书单分享 ============
+
+public class CreateBookListShareRequest
+{
+    public List<long> BookIds { get; set; } = new();
+    public string? Title { get; set; }
+    public string? Remark { get; set; }
+}
+
+public class BookListShareItemDto
+{
+    public long BookId { get; set; }
+    public string Title { get; set; } = string.Empty;
+    public string? Author { get; set; }
+    public string? CoverUrl { get; set; }
+    public string Status { get; set; } = "WantToRead";
+    public int TotalMinutes { get; set; }
+}
+
+public class BookListShareDto
+{
+    public string Token { get; set; } = string.Empty;
+    public string Title { get; set; } = string.Empty;
+    public string? Remark { get; set; }
+    public string OwnerName { get; set; } = string.Empty;
+    public string? OwnerAvatar { get; set; }
+    public int Count { get; set; }
+    public int TotalMinutes { get; set; }
+    public int ViewCount { get; set; }
+    public DateTime CreatedAt { get; set; }
+    public List<BookListShareItemDto> Books { get; set; } = new();
+}

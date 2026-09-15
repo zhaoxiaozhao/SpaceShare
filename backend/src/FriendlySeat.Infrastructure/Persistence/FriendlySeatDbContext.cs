@@ -48,6 +48,7 @@ public class FriendlySeatDbContext : DbContext, IAppDbContext
     public DbSet<ReadingBook> ReadingBooks => Set<ReadingBook>();
     public DbSet<ReadingSession> ReadingSessions => Set<ReadingSession>();
     public DbSet<ReadingNote> ReadingNotes => Set<ReadingNote>();
+    public DbSet<BookListShare> BookListShares => Set<BookListShare>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -208,5 +209,17 @@ public class FriendlySeatDbContext : DbContext, IAppDbContext
 
         modelBuilder.Entity<ReadingNote>()
             .HasIndex(n => new { n.UserId, n.BookId, n.Type });
+
+        modelBuilder.Entity<BookListShare>()
+            .HasIndex(s => s.Token).IsUnique();
+
+        modelBuilder.Entity<BookListShare>()
+            .HasOne(s => s.User)
+            .WithMany()
+            .HasForeignKey(s => s.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<BookListShare>()
+            .Property(s => s.Token).HasMaxLength(64);
     }
 }
