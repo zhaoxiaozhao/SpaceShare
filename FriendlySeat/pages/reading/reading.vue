@@ -59,8 +59,8 @@
 				<text>年度报告</text>
 			</view>
 			<view class="quick-btn" @click="goListShare">
-				<image class="quick-icon" :src="`/static/icons/share-${season}.png`" mode="aspectFit" />
-				<text>书单分享</text>
+				<image class="quick-icon" :src="`/static/icons/bookmark-${season}.png`" mode="aspectFit" />
+				<text>书单</text>
 			</view>
 		</view>
 
