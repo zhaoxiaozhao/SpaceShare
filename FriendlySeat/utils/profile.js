@@ -6,7 +6,7 @@ const NICK_NOUN = ['鲸鱼', '山茶', '橙子', '布丁', '奶茶', '星星', '
 export function randomNickname() {
 	const a = NICK_ADJ[Math.floor(Math.random() * NICK_ADJ.length)]
 	const n = NICK_NOUN[Math.floor(Math.random() * NICK_NOUN.length)]
-	return `友邻座-${a}${n}`
+	return `${a}${n}`
 }
 
 export function uploadAvatar(filePath) {
