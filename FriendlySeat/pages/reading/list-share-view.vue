@@ -34,25 +34,34 @@
 			</view>
 		</view>
 
-		<view class="cta">
-			<view class="cta-row" v-if="!share.isOwner">
-				<button class="btn-outline fav-btn" :class="{ on: share.favorited }" @click="toggleFavorite">
-					{{share.favorited ? '已收藏' : '收藏'}} {{share.favoriteCount}}
-				</button>
-				<button class="btn-primary share-btn" open-type="share">分享这个书单</button>
-			</view>
-			<button v-else class="btn-primary" open-type="share">分享这个书单</button>
-
-			<view class="owner-row" v-if="share.isOwner">
+		<!-- 作者设置 -->
+		<view class="card owner-card" v-if="share.isOwner">
+			<view class="owner-info">
 				<text class="owner-label">公开到热门书单榜</text>
-				<switch :checked="share.isPublic" color="var(--primary)" @change="onPublicChange" />
+				<text class="owner-tip">公开后其他用户可看到并收藏</text>
 			</view>
+			<switch :checked="share.isPublic" color="var(--primary)" @change="onPublicChange" />
+		</view>
 
-			<button class="btn-outline" @click="goReading">我也要做书单</button>
-
+		<!-- 操作 -->
+		<view class="actions">
+			<view class="act-row">
+				<view class="act-btn outline" :class="{ on: share.favorited }" v-if="!share.isOwner" @click="toggleFavorite">
+					<image class="act-icon" :src="share.favorited ? `/static/icons/bookmark-filled-${season}.png` : `/static/icons/bookmark-${season}.png`" mode="aspectFit" />
+					<text>{{share.favoriteCount}}</text>
+				</view>
+				<button class="act-btn solid" open-type="share">
+					<image class="act-icon" src="/static/icons/share-white.png" mode="aspectFit" />
+					<text>分享书单</text>
+				</button>
+			</view>
+			<button class="btn-primary make-btn" @click="goReading">我也要做书单</button>
 			<view class="links">
 				<text class="link" @click="goBoard">热门书单</text>
-				<text class="link danger" v-if="!share.isOwner" @click="goReport">举报</text>
+				<view class="link-report" v-if="!share.isOwner" @click="goReport">
+					<image class="link-icon" src="/static/icons/flag.png" mode="aspectFit" />
+					<text>举报</text>
+				</view>
 			</view>
 		</view>
 
@@ -69,6 +78,7 @@
 
 <script>
 	import { api } from '../../utils/request.js'
+	import { getSeasonKey } from '../../utils/theme.js'
 
 	const STATUS_LABELS = { WantToRead: '想读', Reading: '在读', Finished: '已读' }
 
@@ -76,6 +86,7 @@
 		data() {
 			return {
 				token: '',
+				season: getSeasonKey(),
 				share: null,
 				loaded: false,
 				favoriting: false
@@ -166,7 +177,7 @@
 	.hero-title { display: block; font-size: 44rpx; font-weight: 700; margin-top: 30rpx; }
 	.hero-remark { display: block; font-size: 26rpx; line-height: 1.6; opacity: 0.92; margin-top: 16rpx; }
 	.hero-foot { display: flex; justify-content: space-between; font-size: 22rpx; opacity: 0.75; margin-top: 30rpx; }
-	.section { padding: 20rpx; }
+	.section { padding: 0; }
 	.book-card { display: flex; align-items: center; gap: 20rpx; }
 	.index { width: 40rpx; font-size: 28rpx; font-weight: 700; color: var(--primary); text-align: center; flex-shrink: 0; }
 	.book-info { flex: 1; min-width: 0; }
@@ -178,16 +189,23 @@
 	.st-Reading { background: var(--primary-bg); color: var(--primary); }
 	.st-Finished { background: #E8F1E8; color: #4A7A4A; }
 	.minutes { font-size: 22rpx; color: var(--primary); }
-	.cta { padding: 10rpx 20rpx 0; display: flex; flex-direction: column; gap: 20rpx; }
-	.cta-row { display: flex; gap: 20rpx; }
-	.fav-btn { flex: 1; }
-	.fav-btn.on { color: var(--primary); border-color: var(--primary); }
-	.share-btn { flex: 2; }
-	.owner-row { display: flex; align-items: center; justify-content: space-between; background: #FFFFFF; border-radius: 16rpx; padding: 16rpx 24rpx; }
-	.owner-label { font-size: 28rpx; color: #55554F; }
-	.links { display: flex; justify-content: center; gap: 60rpx; padding: 6rpx 0 20rpx; }
+	.owner-card { display: flex; align-items: center; justify-content: space-between; gap: 20rpx; }
+	.owner-info { flex: 1; min-width: 0; }
+	.owner-label { display: block; font-size: 28rpx; color: #33332E; font-weight: 600; }
+	.owner-tip { display: block; font-size: 21rpx; color: #B0B0AB; margin-top: 4rpx; }
+	.actions { margin: 0 20rpx; display: flex; flex-direction: column; gap: 18rpx; padding: 4rpx 0 10rpx; }
+	.act-row { display: flex; gap: 18rpx; }
+	.act-btn { flex: 1; height: 84rpx; display: flex; align-items: center; justify-content: center; gap: 10rpx; border-radius: 42rpx; font-size: 28rpx; line-height: 1; padding: 0; margin: 0; }
+	.act-btn::after { border: none; }
+	.act-btn.outline { background: #FFFFFF; color: var(--primary); border: 2rpx solid var(--primary); }
+	.act-btn.outline.on { background: var(--primary-bg); }
+	.act-btn.solid { background: var(--primary); color: #FFFFFF; }
+	.act-icon { width: 34rpx; height: 34rpx; }
+	.make-btn { margin: 0; }
+	.links { display: flex; align-items: center; justify-content: center; gap: 48rpx; padding: 4rpx 0 10rpx; }
 	.link { font-size: 26rpx; color: var(--primary); }
-	.link.danger { color: #B85450; }
+	.link-report { display: flex; align-items: center; gap: 6rpx; font-size: 26rpx; color: #B85450; }
+	.link-icon { width: 26rpx; height: 26rpx; }
 	.footer { display: block; text-align: center; font-size: 22rpx; color: #B0B0AB; padding: 30rpx 0 40rpx; }
 	.empty-state { display: flex; align-items: center; justify-content: center; min-height: 60vh; color: #B0B0AB; font-size: 26rpx; }
 </style>
