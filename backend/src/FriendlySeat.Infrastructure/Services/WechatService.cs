@@ -176,26 +176,43 @@ public class WechatService : IWechatService
     }
 
     public async Task<string> GetTempFileUrlAsync(string fileId, CancellationToken ct = default)
-    {
-        if (string.IsNullOrWhiteSpace(fileId) || !fileId.StartsWith("cloud://")) return fileId ?? string.Empty;
-        if (string.IsNullOrEmpty(_options.CloudEnv)) return string.Empty;
+        => (await GetTempFileUrlDetailedAsync(fileId, ct)).Url;
 
-        var token = await GetAccessTokenAsync(ct);
-        if (string.IsNullOrEmpty(token)) return string.Empty;
+    public async Task<(string Url, string? Error)> GetTempFileUrlDetailedAsync(string fileId, CancellationToken ct = default)
+    {
+        if (string.IsNullOrWhiteSpace(fileId) || !fileId.StartsWith("cloud://")) return (fileId ?? string.Empty, null);
+        if (string.IsNullOrEmpty(_options.CloudEnv)) return (string.Empty, "CloudEnv 未配置");
+
+        string? token;
+        try
+        {
+            token = await GetAccessTokenAsync(ct);
+        }
+        catch (Exception ex)
+        {
+            return (string.Empty, "access_token 异常:" + ex.Message);
+        }
+        if (string.IsNullOrEmpty(token)) return (string.Empty, "access_token 获取失败（AppId/AppSecret 未配置？）");
 
         try
         {
             var url = $"https://api.weixin.qq.com/tcb/batchdownloadfile?access_token={Uri.EscapeDataString(token)}";
             var payload = new { env = _options.CloudEnv, file_list = new[] { new { fileid = fileId, max_age = 7200 } } };
             var resp = await _http.PostAsJsonAsync(url, payload, ct);
-            var result = await resp.Content.ReadFromJsonAsync<TcbBatchDownloadResponse>(ct);
+            var body = await resp.Content.ReadAsStringAsync(ct);
+
+            TcbBatchDownloadResponse? result = null;
+            try { result = System.Text.Json.JsonSerializer.Deserialize<TcbBatchDownloadResponse>(body); } catch { }
             var item = result?.FileList?.FirstOrDefault();
-            return item?.DownloadUrl ?? string.Empty;
+            if (!string.IsNullOrEmpty(item?.DownloadUrl)) return (item!.DownloadUrl!, null);
+
+            var snippet = body.Length > 240 ? body[..240] : body;
+            return (string.Empty, "微信返回:" + snippet);
         }
         catch (Exception ex)
         {
             _logger.LogWarning(ex, "获取云存储临时链接失败 fileId={FileId}", fileId);
-            return string.Empty;
+            return (string.Empty, "异常:" + ex.Message);
         }
     }
 

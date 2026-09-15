@@ -210,8 +210,8 @@ public class BookListShareService
         long totalBytes = 0;
         foreach (var b in withCover)
         {
-            var url = await _wechat.GetTempFileUrlAsync(b.CoverUrl!, ct);
-            if (string.IsNullOrEmpty(url)) { diag.Add($"#{b.BookId}:临时链接获取失败"); continue; }
+            var temp = await _wechat.GetTempFileUrlDetailedAsync(b.CoverUrl!, ct);
+            if (string.IsNullOrEmpty(temp.Url)) { diag.Add($"#{b.BookId}:临时链接获取失败({temp.Error})"); continue; }
 
             var bytes = await _wechat.DownloadCloudFileAsync(b.CoverUrl!, ct);
             if (bytes is null || bytes.Length == 0) { diag.Add($"#{b.BookId}:图片下载失败"); continue; }
