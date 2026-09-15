@@ -49,8 +49,8 @@ public class StartStudyRequest
 public class StudyReportDto
 {
     public string Period { get; set; } = "Weekly";
-    public DateTime Start { get; set; }
-    public DateTime End { get; set; }
+    public string Start { get; set; } = string.Empty;
+    public string End { get; set; } = string.Empty;
     public int TotalMinutes { get; set; }
     public int StudyDays { get; set; }
     public int SessionCount { get; set; }

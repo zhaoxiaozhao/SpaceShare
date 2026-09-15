@@ -208,8 +208,8 @@ public class StudyService
         var report = new StudyReportDto
         {
             Period = p == "weekly" ? "weekly" : "monthly",
-            Start = cnStart,
-            End = cnEndInclusive,
+            Start = cnStart.ToString("yyyy-MM-dd"),
+            End = cnEndInclusive.ToString("yyyy-MM-dd"),
             TotalMinutes = sessions.Sum(s => s.DurationMinutes),
             SessionCount = sessions.Count,
             StudyDays = sessions.Select(s => ToCn(s.StartedAt).Date).Distinct().Count(),
@@ -249,9 +249,12 @@ public class StudyService
 
     public async Task<List<StudyAchievementDto>> GetAchievementsAsync(long userId, CancellationToken ct = default)
     {
-        var earned = await _db.StudyAchievements
+        var rows = await _db.StudyAchievements
             .Where(a => a.UserId == userId)
-            .ToDictionaryAsync(a => a.Code, a => (DateTime?)a.EarnedAt, ct);
+            .ToListAsync(ct);
+        var earned = rows
+            .GroupBy(a => a.Code)
+            .ToDictionary(g => g.Key, g => (DateTime?)g.Min(a => a.EarnedAt));
 
         var stats = await GetLifeStatsAsync(userId, ct);
 
@@ -370,7 +373,7 @@ public class StudyService
         return now.Date.AddDays(-delta);
     }
 
-    private static DateTime StartOfMonth(DateTime now) => new(now.Year, now.Month, 1, 0, 0, 0, DateTimeKind.Utc);
+    private static DateTime StartOfMonth(DateTime now) => new(now.Year, now.Month, 1, 0, 0, 0, DateTimeKind.Unspecified);
 
     private async Task<(int TotalMinutes, int LongestStreak, int MorningMinutes, int NightMinutes, int WeekStudyDays)> GetLifeStatsAsync(long userId, CancellationToken ct)
     {

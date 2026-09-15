@@ -110,7 +110,9 @@
 		computed: {
 			periodText() {
 				if (!this.report) return ''
-				return `${this.report.start.slice(5)}. ~ ${this.report.end.slice(5)}.`
+				const s = String(this.report.start).slice(5, 10)
+				const e = String(this.report.end).slice(5, 10)
+				return `${s} ~ ${e}`
 			}
 		},
 		methods: {
