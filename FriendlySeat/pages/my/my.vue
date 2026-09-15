@@ -3,7 +3,7 @@
 		<view>
 		<view class="card profile-card">
 			<view class="avatar-btn" @click="chooseAvatar">
-				<image class="avatar" :src="previewAvatar || user.avatarUrl || '/static/logo.png'" mode="aspectFill" />
+				<Avatar :url="previewAvatar || user.avatarUrl" :name="editNickname || user.nickname" :size="120" />
 				<view class="avatar-edit">更换头像</view>
 			</view>
 			<view class="profile-info">

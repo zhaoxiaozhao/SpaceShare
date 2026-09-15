@@ -31,7 +31,7 @@
 			</view>
 			<view class="part-list">
 				<view class="part-item" v-for="p in a.signups.slice(0, 8)" :key="p.id">
-					<image class="part-avatar" :src="p.userAvatar || '/static/logo.png'" mode="aspectFill" />
+					<Avatar :url="p.userAvatar" :name="p.userNickname" :size="72" />
 					<text class="part-name">{{p.userNickname || '友邻'}}</text>
 				</view>
 			</view>
@@ -43,7 +43,7 @@
 				<text class="p-title">已报名（{{a.signups.length}}）</text>
 				<scroll-view scroll-y class="p-scroll">
 					<view class="p-item" v-for="p in a.signups" :key="p.id">
-						<image class="p-avatar" :src="p.userAvatar || '/static/logo.png'" mode="aspectFill" />
+						<Avatar :url="p.userAvatar" :name="p.userNickname" :size="64" />
 						<text class="p-name">{{p.userNickname || '友邻'}}</text>
 					</view>
 				</scroll-view>

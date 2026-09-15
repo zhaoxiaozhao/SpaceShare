@@ -4,7 +4,7 @@
 		<!-- 书单头部 -->
 		<view class="hero">
 			<view class="hero-top">
-				<image class="avatar" :src="share.ownerAvatar || '/static/logo.png'" mode="aspectFill" />
+				<Avatar :url="share.ownerAvatar" :name="share.ownerName" :size="72" />
 				<view class="owner">
 					<text class="owner-name">{{share.ownerName || '书友'}}</text>
 					<text class="owner-sub">的书单 · {{share.count}} 本 · {{totalHours}} 小时</text>
