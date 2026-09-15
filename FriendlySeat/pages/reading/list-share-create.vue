@@ -276,12 +276,13 @@
 				const hasRemark = !!(share.remark && share.remark.length)
 
 				const W = 640
-				const pad = 44
-				const headerH = 250
+				const pad = 40
+				const topY = 34
+				const topH = 200
 				const cardH = 104
-				const gap = 16
+				const gap = 20
 				const remarkH = hasRemark ? 96 : 0
-				const H = headerH + 36 + remarkH + show.length * (cardH + gap) + (more > 0 ? 46 : 0) + 130
+				let H = topY + topH + 24 + (hasRemark ? remarkH : 0) + show.length * (cardH + gap) + (more > 0 ? 46 : 0) + 110
 				await this.$nextTick()
 
 				const node = await new Promise((resolve) => {
@@ -354,37 +355,41 @@
 				ctx.fillStyle = '#F5F3ED'
 				ctx.fillRect(0, 0, W, H)
 
-				// 顶部渐变
-				const g = ctx.createLinearGradient(0, 0, W, headerH)
+				// 顶部圆角卡片（渐变）
+				ctx.save()
+				this.rr(ctx, pad, topY, W - pad * 2, topH, 26)
+				ctx.clip()
+				const g = ctx.createLinearGradient(pad, topY, W - pad, topY + topH)
 				g.addColorStop(0, primary)
 				g.addColorStop(1, primaryLight)
 				ctx.fillStyle = g
-				ctx.fillRect(0, 0, W, headerH)
-				ctx.fillStyle = 'rgba(255,255,255,0.10)'
+				ctx.fillRect(pad, topY, W - pad * 2, topH)
+				ctx.fillStyle = 'rgba(255,255,255,0.12)'
 				ctx.beginPath()
-				ctx.arc(562, 24, 160, 0, Math.PI * 2)
+				ctx.arc(W - pad - 20, topY + 6, 120, 0, Math.PI * 2)
 				ctx.fill()
 				ctx.beginPath()
-				ctx.arc(16, 234, 96, 0, Math.PI * 2)
+				ctx.arc(pad + 6, topY + topH - 6, 76, 0, Math.PI * 2)
 				ctx.fill()
+				ctx.restore()
 
 				ctx.textAlign = 'left'
 				ctx.fillStyle = 'rgba(255,255,255,0.85)'
 				ctx.font = '24px sans-serif'
-				ctx.fillText('友邻座 · 书单', pad, 76)
+				ctx.fillText('友邻座 · 书单', pad + 30, topY + 56)
 
 				ctx.fillStyle = '#FFFFFF'
 				ctx.font = 'bold 46px sans-serif'
 				let title = share.title || '我的书单'
-				while (ctx.measureText(title).width > W - pad * 2 && title.length > 1) title = title.slice(0, -1)
-				ctx.fillText(title, pad, 142)
+				while (ctx.measureText(title).width > W - pad * 2 - 60 && title.length > 1) title = title.slice(0, -1)
+				ctx.fillText(title, pad + 30, topY + 116)
 
 				ctx.fillStyle = 'rgba(255,255,255,0.92)'
 				ctx.font = '24px sans-serif'
 				const totalHours = Math.round((share.totalMinutes || 0) / 60)
-				ctx.fillText(`${share.ownerName || '书友'} · 共 ${share.count || books.length} 本 · ${totalHours} 小时阅读`, pad, 198)
+				ctx.fillText(`${share.ownerName || '书友'} · 共 ${share.count || books.length} 本 · ${totalHours} 小时阅读`, pad + 30, topY + 166)
 
-				let y = headerH + 36
+				let y = topY + topH + 24
 
 				// 推荐语
 				if (hasRemark) {

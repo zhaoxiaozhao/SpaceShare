@@ -157,7 +157,7 @@
 </script>
 
 <style scoped>
-	.hero { background: linear-gradient(160deg, var(--primary), var(--primary-light)); color: #FFFFFF; padding: 40rpx 30rpx; }
+	.hero { margin: 20rpx; border-radius: 28rpx; background: linear-gradient(160deg, var(--primary), var(--primary-light)); color: #FFFFFF; padding: 36rpx 32rpx; box-shadow: 0 10rpx 30rpx rgba(0,0,0,0.08); overflow: hidden; }
 	.hero-top { display: flex; align-items: center; gap: 20rpx; }
 	.avatar { width: 72rpx; height: 72rpx; border-radius: 50%; background: rgba(255,255,255,0.3); flex-shrink: 0; }
 	.owner { display: flex; flex-direction: column; }
