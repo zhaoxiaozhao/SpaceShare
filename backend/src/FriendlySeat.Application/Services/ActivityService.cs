@@ -223,10 +223,16 @@ public class ActivityService
         activity.UpdatedAt = DateTime.UtcNow;
         await _db.SaveChangesAsync(ct);
 
-        await _notifications.SendAsync(activity.CreatorUserId, NotificationType.System,
+        var reviewPayload = System.Text.Json.JsonSerializer.Serialize(new
+        {
+            result = approve ? "通过" : "未通过",
+            content = activity.Title,
+            time = DateTime.UtcNow
+        });
+        await _notifications.SendAsync(activity.CreatorUserId, NotificationType.ActivityReview,
             approve ? "活动审核通过" : "活动未通过审核",
             approve ? $"你发布的活动「{activity.Title}」已通过审核，现已展示。" : $"你发布的活动「{activity.Title}」未通过审核：{activity.ReviewRemark ?? "内容不符合要求"}。",
-            null, ct);
+            reviewPayload, ct);
     }
 
     public async Task AdminTakeDownAsync(long id, CancellationToken ct = default)

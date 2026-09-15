@@ -57,6 +57,7 @@ public static class DbSeeder
                 new SystemConfig { Category = ConfigCategory.NotificationTemplates, ConfigKey = "credit_changed", Value = "", Description = "信用变更通知 模板ID" },
                 new SystemConfig { Category = ConfigCategory.NotificationTemplates, ConfigKey = "report_result", Value = "", Description = "举报处理结果通知 模板ID" },
                 new SystemConfig { Category = ConfigCategory.NotificationTemplates, ConfigKey = "system", Value = "", Description = "系统通知 模板ID" },
+                new SystemConfig { Category = ConfigCategory.NotificationTemplates, ConfigKey = "activity_review", Value = "", Description = "活动审核结果通知 模板ID" },
                 new SystemConfig { Category = ConfigCategory.ActivityCategories, ConfigKey = "list", Value = ConfigOptionsService.DefaultActivityCategories, Description = "活动分类（JSON 数组）" },
                 new SystemConfig { Category = ConfigCategory.SwapReasons, ConfigKey = "list", Value = ConfigOptionsService.DefaultSwapReasons, Description = "换座原因（JSON 数组）" },
                 new SystemConfig { Category = ConfigCategory.SeatTags, ConfigKey = "list", Value = ConfigOptionsService.DefaultSeatTags, Description = "座位标签（JSON 数组）" }
@@ -158,6 +159,13 @@ public static class DbSeeder
         await EnsureConfigRowAsync(db, ConfigCategory.ActivityCategories, ConfigOptionsService.DefaultActivityCategories, "活动分类（JSON 数组）");
         await EnsureConfigRowAsync(db, ConfigCategory.SwapReasons, ConfigOptionsService.DefaultSwapReasons, "换座原因（JSON 数组）");
         await EnsureConfigRowAsync(db, ConfigCategory.SeatTags, ConfigOptionsService.DefaultSeatTags, "座位标签（JSON 数组）");
+
+        // 活动审核结果通知模板键：确保存在（供后台配置模板ID）
+        if (!await db.SystemConfigs.AnyAsync(c => c.Category == ConfigCategory.NotificationTemplates && c.ConfigKey == "activity_review"))
+        {
+            db.SystemConfigs.Add(new SystemConfig { Category = ConfigCategory.NotificationTemplates, ConfigKey = "activity_review", Value = "", Description = "活动审核结果通知 模板ID" });
+            await db.SaveChangesAsync();
+        }
 
         logger.LogInformation("数据库初始化完成");
     }

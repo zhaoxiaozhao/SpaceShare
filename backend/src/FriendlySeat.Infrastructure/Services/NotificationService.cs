@@ -26,7 +26,8 @@ public class NotificationService : INotificationService
         [NotificationType.WaitlistAvailable] = "waitlist_available",
         [NotificationType.CreditChanged] = "credit_changed",
         [NotificationType.ReportResult] = "report_result",
-        [NotificationType.System] = "system"
+        [NotificationType.System] = "system",
+        [NotificationType.ActivityReview] = "activity_review"
     };
 
     public NotificationService(IAppDbContext db, ILogger<NotificationService> logger, IWechatService wechat, ConfigService config)
@@ -85,6 +86,7 @@ public class NotificationService : INotificationService
             NotificationType.WaitlistAvailable => "pages/reservations/reservations",
             NotificationType.CreditChanged => "pages/credit/credit",
             NotificationType.ReportResult => "pages/report/report",
+            NotificationType.ActivityReview => "pages/activity/activity",
             _ => "pages/index/index"
         };
 
@@ -194,6 +196,39 @@ public class NotificationService : INotificationService
                 ["phrase14"] = new SubscribeDataItem(Clip(status, 5)),
                 ["thing46"] = new SubscribeDataItem(Clip(seat, 20)),
                 ["thing7"] = new SubscribeDataItem(Clip(remark, 20))
+            };
+        }
+
+        // 活动审核结果复用模板「审核通过通知」（编号 895）：审核结果=phrase1、审核内容=thing2、审核时间=date3
+        if (type == NotificationType.ActivityReview)
+        {
+            var result = "通过";
+            var contentVal = string.Empty;
+            var timeCn = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, ChinaTz).ToString("yyyy-MM-dd HH:mm:ss");
+
+            if (!string.IsNullOrWhiteSpace(data))
+            {
+                try
+                {
+                    using var doc = JsonDocument.Parse(data);
+                    var root = doc.RootElement;
+                    if (root.TryGetProperty("result", out var rs) && rs.ValueKind == JsonValueKind.String)
+                        result = rs.GetString() ?? result;
+                    if (root.TryGetProperty("content", out var ctt) && ctt.ValueKind == JsonValueKind.String)
+                        contentVal = ctt.GetString() ?? contentVal;
+                    if (root.TryGetProperty("time", out var tm) && tm.ValueKind == JsonValueKind.String
+                        && DateTime.TryParse(tm.GetString(), CultureInfo.InvariantCulture,
+                            DateTimeStyles.AdjustToUniversal | DateTimeStyles.AssumeUniversal, out var tdt))
+                        timeCn = TimeZoneInfo.ConvertTimeFromUtc(tdt, ChinaTz).ToString("yyyy-MM-dd HH:mm:ss");
+                }
+                catch (JsonException) { }
+            }
+
+            return new Dictionary<string, SubscribeDataItem>
+            {
+                ["phrase1"] = new SubscribeDataItem(Clip(result, 5)),
+                ["thing2"] = new SubscribeDataItem(Clip(contentVal, 20)),
+                ["date3"] = new SubscribeDataItem(timeCn)
             };
         }
 

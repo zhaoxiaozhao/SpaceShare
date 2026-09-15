@@ -150,7 +150,8 @@ public enum NotificationType
     WaitlistAvailable,
     CreditChanged,
     ReportResult,
-    System
+    System,
+    ActivityReview
 }
 
 public enum ConfigCategory

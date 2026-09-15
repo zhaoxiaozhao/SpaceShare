@@ -213,8 +213,8 @@
 					if (this.id) await api.updateActivity(this.id, payload)
 					else await api.createActivity(payload)
 					uni.showToast({ title: '已提交，等待审核', icon: 'none' })
-					// 订阅：审核结果 / 活动相关通知
-					subscribeFor(['system'])
+					// 订阅：审核结果 / 活动相关系统通知
+					subscribeFor(['activity_review', 'system'])
 					setTimeout(() => uni.navigateBack(), 600)
 				} catch (e) {
 					uni.showToast({ title: (e && e.message) || '提交失败', icon: 'none' })
