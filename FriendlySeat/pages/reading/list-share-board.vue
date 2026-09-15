@@ -1,11 +1,6 @@
 <template>
 	<page-meta :page-style="pageThemeStyle" />
 	<view>
-		<view class="intro">
-			<text class="intro-title">热门书单</text>
-			<text class="intro-sub">仅展示用户主动公开的书单 · 按收藏排序</text>
-		</view>
-
 		<view v-if="items.length" class="list">
 			<view class="card board-card" v-for="(s, i) in items" :key="s.id" @click="open(s.token)">
 				<text class="rank" :class="{ top: i < 3 }">{{i + 1}}</text>
@@ -57,10 +52,7 @@
 </script>
 
 <style scoped>
-	.intro { padding: 30rpx 30rpx 10rpx; }
-	.intro-title { display: block; font-size: 40rpx; font-weight: 700; color: #2B2B27; }
-	.intro-sub { display: block; font-size: 22rpx; color: #8A8A86; margin-top: 8rpx; }
-	.list { padding: 10rpx 20rpx 30rpx; }
+	.list { padding: 20rpx 20rpx 30rpx; }
 	.board-card { display: flex; align-items: flex-start; gap: 20rpx; }
 	.rank { width: 48rpx; font-size: 32rpx; font-weight: 700; color: #C4C2BB; text-align: center; flex-shrink: 0; line-height: 1.2; }
 	.rank.top { color: var(--primary); }
