@@ -226,8 +226,10 @@
 					try {
 						const i = String(dataUrl).indexOf(',')
 						const b64 = i >= 0 ? dataUrl.slice(i + 1) : dataUrl
+						const m = /^data:image\/(\w+)/.exec(String(dataUrl))
+						const ext = m ? m[1] : 'jpg'
 						const fs = wx.getFileSystemManager()
-						const p = `${wx.env.USER_DATA_PATH}/bl_cover_${bookId}`
+						const p = `${wx.env.USER_DATA_PATH}/bl_cover_${bookId}.${ext}`
 						fs.writeFileSync(p, b64, 'base64')
 						resolve(p)
 					} catch (e) {
