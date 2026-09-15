@@ -85,6 +85,8 @@
 	import { api } from '../../utils/request.js'
 	import { getSeasonKey, getTheme, bookCoverColor } from '../../utils/theme.js'
 	import { parseDate } from '../../utils/format.js'
+	import { getTempFileUrl } from '../../utils/profile.js'
+	import { CLOUD_ENV } from '../../utils/config.js'
 
 	const STATUS_LABELS = { WantToRead: '想读', Reading: '在读', Finished: '已读' }
 
@@ -220,61 +222,85 @@
 				}
 				return n
 			},
-			// 解析封面为 canvas 可绘制图片（支持 cloud:// / https / 本地）
-			loadCover(canvas, url) {
-				return new Promise((resolve) => {
-					if (!url) {
-						console.warn('[poster] 该书无封面 coverUrl 为空')
-						return resolve(null)
+			// 解析封面为 canvas 可绘制图片（cloud:// 先下载/换 https，再落本地路径）
+			async loadCover(canvas, url) {
+				try {
+					if (!url) return null
+					let local = null
+					if (/^cloud:\/\//.test(url)) {
+						// ① 云存储直接下载
+						local = await this.cloudDownload(url)
+						// ② 换 https 临时链接后再取本地路径
+						if (!local) {
+							const https = await getTempFileUrl(url)
+							if (https) local = await this.toLocalPath(https)
+						}
+					} else {
+						local = await this.toLocalPath(url)
 					}
-					const finish = (p, w, h) => {
-						if (!p) {
-							console.warn('[poster] 封面路径解析为空', url)
-							return resolve(null)
-						}
-						let img = null
-						try {
-							img = canvas.createImage()
-						} catch (e) {
-							console.warn('[poster] canvas.createImage 不可用', e)
-						}
-						if (!img) return resolve(null)
-						img.onload = () => resolve({ img, width: w || img.width || 0, height: h || img.height || 0 })
-						img.onerror = (e) => {
-							console.warn('[poster] 图片加载失败', p, e)
+					if (!local) {
+						console.warn('[poster] 封面转本地路径失败', url)
+						return null
+					}
+					return await this.toCanvasImage(canvas, local)
+				} catch (e) {
+					console.warn('[poster] 封面加载异常', url, e)
+					return null
+				}
+			},
+			cloudDownload(fileID) {
+				return new Promise((resolve) => {
+					if (!wx || !wx.cloud || !wx.cloud.downloadFile) return resolve(null)
+					wx.cloud.downloadFile({
+						fileID,
+						config: { env: CLOUD_ENV },
+						success: (r) => resolve(r.tempFilePath),
+						fail: (e) => {
+							console.warn('[poster] cloud.downloadFile 失败', fileID, e)
 							resolve(null)
 						}
-						img.src = p
-					}
-					// getImageInfo 支持 cloud:// 与网络路径，直接给出本地临时路径与尺寸
+					})
+				})
+			},
+			toLocalPath(src) {
+				return new Promise((resolve) => {
 					uni.getImageInfo({
-						src: url,
-						success: (info) => finish(info.path || url, info.width, info.height),
-						fail: (err) => {
-							console.warn('[poster] getImageInfo 失败，改用下载', url, err)
-							if (/^cloud:\/\//.test(url) && wx && wx.cloud && wx.cloud.downloadFile) {
-								wx.cloud.downloadFile({
-									fileID: url,
-									success: (res) => finish(res.tempFilePath),
-									fail: (e2) => {
-										console.warn('[poster] cloud.downloadFile 失败', url, e2)
-										resolve(null)
-									}
-								})
-							} else if (/^https?:/.test(url)) {
+						src,
+						success: (info) => resolve(info.path || src),
+						fail: () => {
+							if (/^https?:/.test(src)) {
 								uni.downloadFile({
-									url,
-									success: (res) => finish(res.statusCode === 200 ? res.tempFilePath : null),
-									fail: (e2) => {
-										console.warn('[poster] downloadFile 失败', url, e2)
-										resolve(null)
-									}
+									url: src,
+									success: (r) => resolve(r.statusCode === 200 ? r.tempFilePath : null),
+									fail: () => resolve(null)
 								})
 							} else {
 								resolve(null)
 							}
 						}
 					})
+				})
+			},
+			toCanvasImage(canvas, src) {
+				return new Promise((resolve) => {
+					let img = null
+					try {
+						img = canvas.createImage()
+					} catch (e) {
+						console.warn('[poster] canvas.createImage 不可用', e)
+					}
+					if (!img) return resolve(null)
+					uni.getImageInfo({
+						src,
+						success: (i) => (img.__w = i.width, img.__h = i.height),
+						fail: () => {}
+					})
+					img.onload = () => resolve({ img, width: img.__w || img.width || 0, height: img.__h || img.height || 0 })
+					img.onerror = (e) => {
+						console.warn('[poster] 图片加载失败', src, e)
+						resolve(null)
+					}
+					img.src = src
 				})
 			},
 			async drawPoster(share) {
