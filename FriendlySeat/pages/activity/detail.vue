@@ -75,6 +75,7 @@
 	import { formatTime } from '../../utils/format.js'
 	import { getTempFileUrl } from '../../utils/profile.js'
 	import { activityCategoryLabel } from '../../utils/activity.js'
+	import { subscribeFor } from '../../utils/subscribe.js'
 
 	export default {
 		data() {
@@ -168,6 +169,8 @@
 				try {
 					await api.signupActivity(this.id)
 					uni.showToast({ title: '报名成功', icon: 'success' })
+					// 订阅：活动开始提醒 / 取消变更通知
+					subscribeFor(['system'])
 					this.load()
 				} catch (e) {
 					uni.showToast({ title: e.message || '报名失败', icon: 'none' })

@@ -70,6 +70,7 @@
 	import { api } from '../../utils/request.js'
 	import { uploadImage, getTempFileUrl } from '../../utils/profile.js'
 	import { getActivityCategories } from '../../utils/activity.js'
+	import { subscribeFor } from '../../utils/subscribe.js'
 
 	function pad(n) { return n < 10 ? '0' + n : '' + n }
 	function parts(iso) {
@@ -212,6 +213,8 @@
 					if (this.id) await api.updateActivity(this.id, payload)
 					else await api.createActivity(payload)
 					uni.showToast({ title: '已提交，等待审核', icon: 'none' })
+					// 订阅：审核结果 / 活动相关通知
+					subscribeFor(['system'])
 					setTimeout(() => uni.navigateBack(), 600)
 				} catch (e) {
 					uni.showToast({ title: (e && e.message) || '提交失败', icon: 'none' })
