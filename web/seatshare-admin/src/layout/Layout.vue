@@ -14,6 +14,7 @@
         <el-menu-item index="/reports"><el-icon><Warning /></el-icon>举报管理</el-menu-item>
         <el-menu-item index="/swaps"><el-icon><Sort /></el-icon>换座管理</el-menu-item>
         <el-menu-item index="/activities"><el-icon><Calendar /></el-icon>活动管理</el-menu-item>
+        <el-menu-item index="/seat-notes"><el-icon><Memo /></el-icon>座位便签</el-menu-item>
         <el-menu-item index="/config"><el-icon><Setting /></el-icon>系统配置</el-menu-item>
         <el-menu-item index="/audit"><el-icon><Document /></el-icon>审计日志</el-menu-item>
       </el-menu>

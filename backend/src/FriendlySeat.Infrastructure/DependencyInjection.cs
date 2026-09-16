@@ -122,6 +122,7 @@ public static class DependencyInjection
         services.AddScoped<StudyService>();
         services.AddScoped<ReadingService>();
         services.AddScoped<BookListShareService>();
+        services.AddScoped<SeatNoteService>();
 
         // 管理端服务（整合进单体 API）
         services.AddScoped<AdminManageService>();

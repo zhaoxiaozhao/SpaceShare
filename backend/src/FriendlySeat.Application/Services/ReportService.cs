@@ -66,6 +66,18 @@ public class ReportService
                     throw AppException.BadRequest("cannot_report_own", "不能举报自己的书单");
                 targetUserId = share.UserId;
             }
+            else if (targetType == ReportTargetType.SeatNote)
+            {
+                var note = await _db.SeatNotes
+                    .Where(n => n.Id == request.TargetId.Value)
+                    .Select(n => new { n.UserId })
+                    .FirstOrDefaultAsync(ct);
+                if (note is null)
+                    throw AppException.NotFound("便签不存在");
+                if (note.UserId == reporterId)
+                    throw AppException.BadRequest("cannot_report_own", "不能举报自己的便签");
+                targetUserId = note.UserId;
+            }
         }
 
         var report = new Report
@@ -109,6 +121,21 @@ public class ReportService
                 await _notifications.SendAsync(share.UserId, NotificationType.System,
                     "书单被举报，已从热门榜下架",
                     $"你的书单「{share.Title}」被举报，已暂时从热门书单榜下架。", null, ct);
+            }
+        }
+
+        // 便签被举报：立即隐藏，进入后台审核
+        if (targetType == ReportTargetType.SeatNote && request.TargetId.HasValue)
+        {
+            var note = await _db.SeatNotes.FirstOrDefaultAsync(n => n.Id == request.TargetId.Value, ct);
+            if (note is not null && note.Status == SeatNoteStatus.Visible)
+            {
+                note.Status = SeatNoteStatus.Hidden;
+                note.UpdatedAt = DateTime.UtcNow;
+                await _db.SaveChangesAsync(ct);
+                await _notifications.SendAsync(note.UserId, NotificationType.System,
+                    "便签被举报，已暂时隐藏",
+                    "你发布的座位便签被举报，已暂时隐藏并进入审核。", null, ct);
             }
         }
 

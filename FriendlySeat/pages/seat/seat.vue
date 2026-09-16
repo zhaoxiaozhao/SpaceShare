@@ -82,6 +82,43 @@
 		</view>
 
 		<!-- 响应换座：选自己的座位 -->
+		<!-- 座位便签 -->
+		<view class="section">
+			<view class="note-head">
+				<text class="section-title">座位便签</text>
+				<text class="note-add" @click="openNote(myNote)">{{myNote ? '修改便签' : '＋ 写便签'}}</text>
+			</view>
+
+			<view v-if="notes.length" class="note-list">
+				<view class="note" :class="'note-' + (i % 4)" v-for="(n, i) in notes" :key="n.id">
+					<view class="note-tape"></view>
+					<text class="note-content">{{n.content}}</text>
+					<view class="note-foot">
+						<text class="note-meta">{{n.ownerName}} · {{noteTime(n.updatedAt)}}</text>
+						<view class="note-actions">
+							<text v-if="n.isOwner" class="note-act" @click.stop="openNote(n)">修改</text>
+							<text v-if="n.isOwner" class="note-act danger" @click.stop="removeNote(n)">删除</text>
+							<text v-else class="note-act" @click.stop="reportNote(n)">举报</text>
+						</view>
+					</view>
+				</view>
+			</view>
+			<view v-else class="card"><text class="share-note">还没有便签，留下第一张吧～</text></view>
+
+			<!-- 写便签 -->
+			<view v-if="noteEditor" class="swap-mask" @click="noteEditor = false">
+				<view class="swap-pop" @click.stop>
+					<text class="swap-pop-title">{{myNote ? '修改便签' : '写便签'}}</text>
+					<textarea class="note-input" v-model="noteContent" :maxlength="50" placeholder="写点什么（最多 50 字，禁止联系方式/交易信息）" />
+					<text class="note-count">{{noteContent.length}}/50</text>
+					<view class="swap-pop-actions">
+						<button class="btn-outline action-btn" @click="noteEditor = false">取消</button>
+						<button class="btn-primary action-btn" :loading="noteSaving" @click="saveNote">保存</button>
+					</view>
+				</view>
+			</view>
+		</view>
+
 		<view v-if="showRespondSwap" class="swap-mask" @click="showRespondSwap = false">
 			<view class="swap-pop" @click.stop>
 				<text class="swap-pop-title">回应换座</text>
@@ -137,7 +174,7 @@
 <script>
 	import { api } from '../../utils/request.js'
 	import { getAppOptions } from '../../utils/options.js'
-	import { formatTime, statusText } from '../../utils/format.js'
+	import { formatTime, statusText, parseDate } from '../../utils/format.js'
 	import { subscribeFor } from '../../utils/subscribe.js'
 
 	export default {
@@ -158,6 +195,10 @@
 				seatSwap: null,
 				showRespondSwap: false,
 				responding: false,
+				notes: [],
+				noteEditor: false,
+				noteContent: '',
+				noteSaving: false,
 				resp: { floor: 0, area: 0, zone: 0, seat: 0 },
 				want: { floor: 0, area: 0, zone: 0 },
 				durationOptions: [
@@ -191,6 +232,9 @@
 			this.load()
 		},
 		computed: {
+			myNote() {
+				return this.notes.find(n => n.isOwner) || null
+			},
 			// 换座原因（后台可配置）
 			reasonOptions() {
 				return getAppOptions().swapReasons
@@ -278,6 +322,7 @@
 						this.seat.statusText = '待分享'
 					}
 					this.shares = await api.getShares(this.id)
+					try { this.notes = (await api.getSeatNotes(this.id)) || [] } catch (e) { this.notes = [] }
 					const token = uni.getStorageSync('token')
 					if (token) {
 						try {
@@ -352,6 +397,55 @@
 			},
 			goShare() {
 				uni.navigateTo({ url: `/pages/share/share?seatId=${this.id}` })
+			},
+			openNote(n) {
+				if (!this.checkLogin()) return
+				this.noteContent = n ? n.content : (this.myNote ? this.myNote.content : '')
+				this.noteEditor = true
+			},
+			async saveNote() {
+				const content = (this.noteContent || '').trim()
+				if (!content) {
+					uni.showToast({ title: '请先写点什么', icon: 'none' })
+					return
+				}
+				this.noteSaving = true
+				try {
+					await api.createSeatNote({ seatId: Number(this.id), content })
+					this.noteEditor = false
+					uni.showToast({ title: '已发布', icon: 'success' })
+					this.notes = (await api.getSeatNotes(this.id)) || []
+				} catch (e) {
+					uni.showToast({ title: e.message || '发布失败', icon: 'none' })
+				} finally {
+					this.noteSaving = false
+				}
+			},
+			removeNote(n) {
+				uni.showModal({
+					title: '删除便签',
+					content: '确定删除你的便签吗？',
+					success: async (res) => {
+						if (!res.confirm) return
+						try {
+							await api.deleteSeatNote(n.id)
+							uni.showToast({ title: '已删除', icon: 'success' })
+							this.notes = (await api.getSeatNotes(this.id)) || []
+						} catch (e) {
+							uni.showToast({ title: e.message || '删除失败', icon: 'none' })
+						}
+					}
+				})
+			},
+			reportNote(n) {
+				if (!this.checkLogin()) return
+				uni.navigateTo({ url: `/pages/report/report?targetType=SeatNote&targetId=${n.id}` })
+			},
+			noteTime(s) {
+				const d = parseDate(s)
+				if (!d) return ''
+				const p = (x) => (x < 10 ? '0' + x : x)
+				return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`
 			},
 			report(share) {
 				if (!this.checkLogin()) return
@@ -764,4 +858,23 @@
 		line-height: 2.4;
 		padding: 0;
 	}
+
+	/* 座位便签 */
+	.note-head { display: flex; align-items: center; justify-content: space-between; margin: 0 4rpx 16rpx; }
+	.note-add { font-size: 26rpx; color: var(--primary); }
+	.note-list { display: flex; flex-direction: column; }
+	.note { position: relative; padding: 30rpx 24rpx 18rpx; border-radius: 6rpx; box-shadow: 0 6rpx 18rpx rgba(0,0,0,0.08); margin-top: 24rpx; }
+	.note-0 { background: #FFF7D6; transform: rotate(-1.2deg); }
+	.note-1 { background: #E8F5E9; transform: rotate(0.9deg); }
+	.note-2 { background: #E3F2FD; transform: rotate(-0.7deg); }
+	.note-3 { background: #FCE4EC; transform: rotate(1.1deg); }
+	.note-tape { position: absolute; top: -12rpx; left: 50%; width: 120rpx; height: 26rpx; margin-left: -60rpx; background: rgba(255,255,255,0.6); border: 1rpx solid rgba(0,0,0,0.05); transform: rotate(-2deg); }
+	.note-content { display: block; font-size: 30rpx; color: #4A4A42; line-height: 1.6; }
+	.note-foot { display: flex; align-items: center; justify-content: space-between; margin-top: 16rpx; }
+	.note-meta { font-size: 22rpx; color: #9A9A8C; }
+	.note-actions { display: flex; gap: 22rpx; }
+	.note-act { font-size: 22rpx; color: var(--primary); }
+	.note-act.danger { color: #B85450; }
+	.note-input { width: 100%; box-sizing: border-box; height: 190rpx; background: #FFFDF3; border-radius: 12rpx; padding: 20rpx; font-size: 28rpx; }
+	.note-count { display: block; text-align: right; font-size: 22rpx; color: #B0B0AB; margin-top: 8rpx; }
 </style>

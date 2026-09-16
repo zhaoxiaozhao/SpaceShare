@@ -197,7 +197,12 @@ export const api = {
 	getBookListBoard: () => request('/reading/list-shares/board', { auth: false }),
 	toggleBookListFavorite: (token) => request(`/reading/list-shares/${token}/favorite`, { method: 'POST' }),
 	setBookListVisibility: (token, isPublic) => request(`/reading/list-shares/${token}/visibility`, { method: 'POST', data: { isPublic } }),
-	deleteBookListShare: (token) => request(`/reading/list-shares/${token}`, { method: 'DELETE' })
+	deleteBookListShare: (token) => request(`/reading/list-shares/${token}`, { method: 'DELETE' }),
+
+	// ===== 座位便签 =====
+	getSeatNotes: (seatId) => request(`/seat-notes?seatId=${seatId}`),
+	createSeatNote: (data) => request('/seat-notes', { method: 'POST', data }),
+	deleteSeatNote: (id) => request(`/seat-notes/${id}`, { method: 'DELETE' })
 }
 
 function qs(params) {

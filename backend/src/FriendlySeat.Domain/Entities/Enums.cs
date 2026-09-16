@@ -38,6 +38,13 @@ public enum SeatStatus
     Unavailable
 }
 
+/// <summary>座位便签状态：正常展示 / 被举报隐藏待审核</summary>
+public enum SeatNoteStatus
+{
+    Visible,
+    Hidden
+}
+
 public enum SeatSessionStatus
 {
     Pending,
@@ -102,7 +109,8 @@ public enum ReportTargetType
     Review,
     Feedback,
     Activity,
-    BookListShare
+    BookListShare,
+    SeatNote
 }
 
 public enum ReportStatus
