@@ -3,8 +3,8 @@
 		<view class="page">
 		<view class="tabs">
 			<view class="tab" :class="{ active: tab === 'discover' }" @click="tab = 'discover'">发现</view>
-			<view class="tab" :class="{ active: tab === 'joined' }" @click="tab = 'joined'">我报名的</view>
-			<view class="tab" :class="{ active: tab === 'mine' }" @click="tab = 'mine'">我发布的</view>
+			<view class="tab" :class="{ active: tab === 'joined' }" @click="setTab('joined')">我报名的</view>
+			<view class="tab" :class="{ active: tab === 'mine' }" @click="setTab('mine')">我发布的</view>
 		</view>
 
 		<view v-if="tab === 'discover'" class="cats">
@@ -80,13 +80,22 @@
 		methods: {
 			formatTime,
 			async load() {
+				// 活动列表匿名可浏览；「我报名的/我发布的」需登录
+				try { this.discover = await api.getActivities(this.category) } catch (e) {}
 				if (!uni.getStorageSync('token')) {
+					this.joined = []
+					this.mine = []
+					return
+				}
+				try { this.joined = await api.getJoinedActivities() } catch (e) {}
+				try { this.mine = await api.getMyActivities() } catch (e) {}
+			},
+			setTab(t) {
+				if (t !== 'discover' && !uni.getStorageSync('token')) {
 					uni.navigateTo({ url: '/pages/login/login' })
 					return
 				}
-				try { this.discover = await api.getActivities(this.category) } catch (e) {}
-				try { this.joined = await api.getJoinedActivities() } catch (e) {}
-				try { this.mine = await api.getMyActivities() } catch (e) {}
+				this.tab = t
 			},
 			setCategory(code) {
 				this.category = code

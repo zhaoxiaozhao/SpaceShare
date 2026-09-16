@@ -20,11 +20,12 @@ public class ActivityController : ControllerBase
         _currentUser = currentUser;
     }
 
-    /// <summary>活动列表（已发布、未结束）</summary>
+    /// <summary>活动列表（已发布、未结束；匿名可浏览）</summary>
     [HttpGet("activities")]
+    [AllowAnonymous]
     public async Task<ActionResult<List<ActivityDto>>> List([FromQuery] string? category, CancellationToken ct)
     {
-        return Ok(await _activities.GetListAsync(_currentUser.UserId!.Value, category, ct));
+        return Ok(await _activities.GetListAsync(_currentUser.UserId ?? 0, category, ct));
     }
 
     /// <summary>我发布的活动</summary>
@@ -41,11 +42,12 @@ public class ActivityController : ControllerBase
         return Ok(await _activities.GetJoinedAsync(_currentUser.UserId!.Value, ct));
     }
 
-    /// <summary>活动详情</summary>
+    /// <summary>活动详情（已发布活动匿名可看）</summary>
     [HttpGet("activities/{id:long}")]
+    [AllowAnonymous]
     public async Task<ActionResult<ActivityDto>> Detail(long id, CancellationToken ct)
     {
-        var dto = await _activities.GetDetailAsync(id, _currentUser.UserId!.Value, ct);
+        var dto = await _activities.GetDetailAsync(id, _currentUser.UserId ?? 0, ct);
         if (dto is null) return NotFound();
         return Ok(dto);
     }
