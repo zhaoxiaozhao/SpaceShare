@@ -155,8 +155,16 @@ public class StudyService
     {
         if (!Enum.TryParse<GoalPeriod>(request.Period, true, out var period))
             throw AppException.BadRequest("period_invalid", "目标周期无效");
-        if (request.TargetMinutes is < 30 or > 1440)
-            throw AppException.BadRequest("target_invalid", "目标时长需在 30 到 1440 分钟之间");
+
+        // 上限按周期区分：日 24h、周 7×24h、月 31×24h
+        var maxMinutes = period switch
+        {
+            GoalPeriod.Daily => 1440,
+            GoalPeriod.Weekly => 7 * 1440,
+            _ => 31 * 1440
+        };
+        if (request.TargetMinutes is < 30 || request.TargetMinutes > maxMinutes)
+            throw AppException.BadRequest("target_invalid", $"目标时长需在 30 到 {maxMinutes} 分钟之间");
 
         var now = ToCn(DateTime.UtcNow);
         var (start, end) = GetPeriodRange(period, now);

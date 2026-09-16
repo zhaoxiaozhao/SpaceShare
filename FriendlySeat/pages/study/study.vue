@@ -35,19 +35,24 @@
 			<button class="btn-outline end-btn" @click="endStudy">结束学习</button>
 		</view>
 
-		<!-- 今日目标 -->
+		<!-- 学习目标 -->
 		<view class="card">
 			<view class="goal-head">
-				<text class="section-label">今日目标</text>
-				<text class="goal-edit" @click="showGoalModal = true">{{today.targetMinutes ? '调整' : '设置'}}</text>
+				<text class="section-label">学习目标</text>
+				<text class="goal-edit" @click="openGoal">{{currentGoal ? '调整' : '设置'}}</text>
 			</view>
-			<template v-if="today.targetMinutes">
+			<view class="goal-tabs">
+				<text class="goal-tab" :class="{ active: goalPeriod === 'Daily' }" @click="goalPeriod = 'Daily'">今日</text>
+				<text class="goal-tab" :class="{ active: goalPeriod === 'Weekly' }" @click="goalPeriod = 'Weekly'">本周</text>
+				<text class="goal-tab" :class="{ active: goalPeriod === 'Monthly' }" @click="goalPeriod = 'Monthly'">本月</text>
+			</view>
+			<template v-if="currentGoal">
 				<view class="progress-bar">
-					<view class="progress-fill" :style="{ width: Math.min(today.targetProgress, 100) + '%' }"></view>
+					<view class="progress-fill" :style="{ width: Math.min(currentGoal.progress, 100) + '%' }"></view>
 				</view>
-				<text class="progress-text">{{today.todayMinutes}} / {{today.targetMinutes}} 分钟 · {{today.targetProgress}}%</text>
+				<text class="progress-text">{{formatMinutes(currentGoal.achievedMinutes)}} / {{formatMinutes(currentGoal.targetMinutes)}} · {{currentGoal.progress}}%</text>
 			</template>
-			<text class="goal-empty" v-else>设置今日目标，让学习更有方向</text>
+			<text class="goal-empty" v-else>设置{{periodLabel}}目标，让学习更有方向</text>
 		</view>
 
 		<!-- 快捷入口 -->
@@ -87,15 +92,9 @@
 		<!-- 目标设置弹层 -->
 		<view class="modal-mask" v-if="showGoalModal" @click="showGoalModal = false">
 			<view class="modal" @click.stop>
-				<text class="modal-title">设置今日目标</text>
+				<text class="modal-title">设置{{periodLabel}}目标</text>
 				<view class="goal-options">
-					<view
-						class="goal-opt"
-						:class="{ active: goalMinutes === g }"
-						v-for="g in [30, 60, 120, 240, 360]"
-						:key="g"
-						@click="goalMinutes = g"
-					>{{g}} 分钟</view>
+					<view class="goal-opt" :class="{ active: goalMinutes === g }" v-for="g in goalOptions" :key="g" @click="goalMinutes = g">{{formatMinutes(g)}}</view>
 				</view>
 				<button class="btn-primary modal-btn" @click="saveGoal">保存目标</button>
 			</view>
@@ -123,6 +122,8 @@
 				studyTypes: STUDY_TYPES,
 				studyType: 'Programming',
 				season: getSeasonKey(),
+				goalPeriod: 'Daily',
+				goals: [],
 				today: {},
 				sessions: [],
 				showGoalModal: false,
@@ -130,6 +131,19 @@
 				activeElapsed: 0,
 				activeElapsedText: '00:00',
 				timer: null
+			}
+		},
+		computed: {
+			currentGoal() {
+				return this.goals.find((g) => g.period === this.goalPeriod) || null
+			},
+			periodLabel() {
+				return this.goalPeriod === 'Weekly' ? '本周' : (this.goalPeriod === 'Monthly' ? '本月' : '今日')
+			},
+			goalOptions() {
+				if (this.goalPeriod === 'Weekly') return [300, 600, 1200, 2100, 3000]
+				if (this.goalPeriod === 'Monthly') return [1200, 3000, 6000, 10800, 18000]
+				return [30, 60, 120, 240, 360]
 			}
 		},
 		onShow() {
@@ -147,7 +161,8 @@
 				try {
 					this.today = await api.getStudyToday()
 					this.sessions = await api.getStudySessions(20)
-					if (this.today.targetMinutes) this.goalMinutes = this.today.targetMinutes
+					try { this.goals = (await api.getStudyGoals()) || [] } catch (e) { this.goals = [] }
+					if (this.currentGoal) this.goalMinutes = this.currentGoal.targetMinutes
 				} catch (e) {}
 			},
 			startTimer() {
@@ -205,10 +220,14 @@
 					}
 				})
 			},
+			openGoal() {
+				this.goalMinutes = this.currentGoal ? this.currentGoal.targetMinutes : this.goalOptions[1]
+				this.showGoalModal = true
+			},
 			async saveGoal() {
 				uni.showLoading({ title: '保存中', mask: true })
 				try {
-					await api.setStudyGoal({ period: 'Daily', targetMinutes: this.goalMinutes })
+					await api.setStudyGoal({ period: this.goalPeriod, targetMinutes: this.goalMinutes })
 					uni.hideLoading()
 					this.showGoalModal = false
 					uni.showToast({ title: '已保存', icon: 'success' })
@@ -306,6 +325,22 @@
 	}
 	.end-btn {
 		margin-top: 30rpx;
+	}
+	.goal-tabs {
+		display: flex;
+		gap: 12rpx;
+		margin: 16rpx 0 4rpx;
+	}
+	.goal-tab {
+		padding: 8rpx 28rpx;
+		border-radius: 30rpx;
+		font-size: 26rpx;
+		background: #F7F5EF;
+		color: #55554F;
+	}
+	.goal-tab.active {
+		background: var(--primary);
+		color: #FFFFFF;
 	}
 	.goal-head {
 		display: flex;
