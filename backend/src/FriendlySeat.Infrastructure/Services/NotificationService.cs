@@ -29,7 +29,8 @@ public class NotificationService : INotificationService
         [NotificationType.System] = "system",
         [NotificationType.ActivityReview] = "activity_review",
         [NotificationType.ActivityStarting] = "activity_starting",
-        [NotificationType.SwapRequested] = "swap_request"
+        [NotificationType.SwapRequested] = "swap_request",
+        [NotificationType.SwapConfirmed] = "swap_confirmed"
     };
 
     public NotificationService(IAppDbContext db, ILogger<NotificationService> logger, IWechatService wechat, ConfigService config)
@@ -91,6 +92,7 @@ public class NotificationService : INotificationService
             NotificationType.ActivityReview => "pages/activity/activity",
             NotificationType.ActivityStarting => "pages/activity/activity",
             NotificationType.SwapRequested => "pages/reservations/reservations",
+            NotificationType.SwapConfirmed => "pages/reservations/reservations",
             _ => "pages/index/index"
         };
 
@@ -297,6 +299,43 @@ public class NotificationService : INotificationService
                 ["thing1"] = new SubscribeDataItem(Clip(currentSeat, 20)),
                 ["thing2"] = new SubscribeDataItem(Clip(wantSeat, 20)),
                 ["thing3"] = new SubscribeDataItem(Clip(remark, 20))
+            };
+        }
+
+        // 换座确认通知（模板 77883）：原座位=thing1、更换后座位=thing2、确认状态=phrase3、时间=time4
+        if (type == NotificationType.SwapConfirmed)
+        {
+            var currentSeat = string.Empty;
+            var newSeat = string.Empty;
+            var status = "已同意";
+            var timeCn = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, ChinaTz).ToString("yyyy-MM-dd HH:mm");
+
+            if (!string.IsNullOrWhiteSpace(data))
+            {
+                try
+                {
+                    using var doc = JsonDocument.Parse(data);
+                    var root = doc.RootElement;
+                    if (root.TryGetProperty("currentSeat", out var cs) && cs.ValueKind == JsonValueKind.String)
+                        currentSeat = cs.GetString() ?? currentSeat;
+                    if (root.TryGetProperty("newSeat", out var ns) && ns.ValueKind == JsonValueKind.String)
+                        newSeat = ns.GetString() ?? newSeat;
+                    if (root.TryGetProperty("status", out var ss) && ss.ValueKind == JsonValueKind.String)
+                        status = ss.GetString() ?? status;
+                    if (root.TryGetProperty("time", out var tm) && tm.ValueKind == JsonValueKind.String
+                        && DateTime.TryParse(tm.GetString(), CultureInfo.InvariantCulture,
+                            DateTimeStyles.AdjustToUniversal | DateTimeStyles.AssumeUniversal, out var tdt))
+                        timeCn = TimeZoneInfo.ConvertTimeFromUtc(tdt, ChinaTz).ToString("yyyy-MM-dd HH:mm");
+                }
+                catch (JsonException) { }
+            }
+
+            return new Dictionary<string, SubscribeDataItem>
+            {
+                ["thing1"] = new SubscribeDataItem(Clip(currentSeat, 20)),
+                ["thing2"] = new SubscribeDataItem(Clip(newSeat, 20)),
+                ["phrase3"] = new SubscribeDataItem(Clip(status, 5)),
+                ["time4"] = new SubscribeDataItem(timeCn)
             };
         }
 

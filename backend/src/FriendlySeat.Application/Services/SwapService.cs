@@ -241,8 +241,20 @@ public class SwapService
         req.MatchedResponseId = responseId;
         await _db.SaveChangesAsync(ct);
 
-        await _notifications.SendAsync(chosen.UserId, NotificationType.System,
-            "对方已同意换座", "对方已同意与你交换座位，可以按双方座位进行线下物理交换了。", null, ct);
+        // 换座确认通知：原座位=响应者座位、更换后座位=发布者座位
+        var fromSeat = await _db.Seats.FirstOrDefaultAsync(s => s.Id == chosen.SeatId, ct);
+        var toSeat = await _db.Seats.FirstOrDefaultAsync(s => s.Id == req.SeatId, ct);
+        var fromCode = fromSeat is not null ? await SeatDisplayHelper.ShortCodeAsync(_db, fromSeat, ct) : string.Empty;
+        var toCode = toSeat is not null ? await SeatDisplayHelper.ShortCodeAsync(_db, toSeat, ct) : string.Empty;
+        var confirmData = JsonSerializer.Serialize(new
+        {
+            currentSeat = fromCode,
+            newSeat = toCode,
+            status = "已同意",
+            time = now
+        });
+        await _notifications.SendAsync(chosen.UserId, NotificationType.SwapConfirmed,
+            "对方已同意换座", "对方已同意与你交换座位，请按双方座位线下自行协商。", confirmData, ct);
 
         return await GetDtoAsync(requestId, userId, includeResponses: true, ct) ?? throw AppException.NotFound();
     }

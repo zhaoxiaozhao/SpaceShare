@@ -162,7 +162,8 @@ public enum NotificationType
     System,
     ActivityReview,
     ActivityStarting,
-    SwapRequested
+    SwapRequested,
+    SwapConfirmed
 }
 
 public enum ConfigCategory

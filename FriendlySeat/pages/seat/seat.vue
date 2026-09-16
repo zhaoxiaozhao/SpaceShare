@@ -618,7 +618,7 @@
 				try {
 					await api.respondSwap(this.seatSwap.id, { seatId: seat.id })
 					this.showRespondSwap = false
-					subscribeFor(['system'])
+					subscribeFor(['swap_confirmed', 'system'])
 					uni.showModal({ title: '已提交', content: '回应已提交，等待对方确认。', showCancel: false })
 				} catch (e) {
 					uni.showToast({ title: (e && e.message) || '提交失败', icon: 'none' })
