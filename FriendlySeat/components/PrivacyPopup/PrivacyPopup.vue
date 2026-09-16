@@ -6,7 +6,12 @@
 			<text class="pv-link" @click="openContract">查看《隐私保护指引》</text>
 			<view class="pv-actions">
 				<view class="pv-btn ghost" @click="reject">拒绝</view>
-				<view class="pv-btn primary" @click="agree">同意并继续</view>
+				<button
+					id="privacy-agree-btn"
+					class="pv-btn primary"
+					open-type="agreePrivacyAuthorization"
+					@agreeprivacyauthorization="agree"
+				>同意并继续</button>
 			</view>
 		</view>
 	</view>
@@ -99,5 +104,12 @@
 	.pv-btn.primary {
 		background: var(--primary);
 		color: #FFFFFF;
+		padding: 22rpx 0;
+		line-height: 1.5;
+		font-size: 28rpx;
+		border-radius: 40rpx;
+	}
+	.pv-btn.primary::after {
+		border: none;
 	}
 </style>
