@@ -42,6 +42,11 @@ public static class DependencyInjection
                 {
                     mysqlConn = mysqlConn.TrimEnd(';') + ";ConvertZeroDateTime=True;AllowZeroDateTime=True;";
                 }
+                // 使用 utf8mb4 连接字符集，避免 4 字节字符（emoji 等）插入报 "Incorrect string value"
+                if (!mysqlConn.Contains("CharSet", StringComparison.OrdinalIgnoreCase))
+                {
+                    mysqlConn = mysqlConn.TrimEnd(';') + ";CharSet=utf8mb4;";
+                }
                 options.UseMySQL(mysqlConn);
             }
             else
