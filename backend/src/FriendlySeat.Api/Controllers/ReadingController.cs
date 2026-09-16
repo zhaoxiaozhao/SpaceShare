@@ -111,6 +111,11 @@ public class ReadingController : ControllerBase
     public async Task<ActionResult<List<BookListShareBoardItemDto>>> GetListShareBoard([FromQuery] int take, CancellationToken ct)
         => Ok(await _bookLists.GetBoardAsync(take, ct));
 
+    /// <summary>我收藏的书单</summary>
+    [HttpGet("list-shares/favorites")]
+    public async Task<ActionResult<List<BookListShareBoardItemDto>>> GetListShareFavorites(CancellationToken ct)
+        => Ok(await _bookLists.GetFavoritesAsync(_currentUser.UserId!.Value, ct));
+
     [HttpPost("list-shares/{token}/favorite")]
     public async Task<ActionResult<BookListShareDto>> ToggleListShareFavorite(string token, CancellationToken ct)
         => Ok(await _bookLists.ToggleFavoriteAsync(_currentUser.UserId!.Value, token, ct));

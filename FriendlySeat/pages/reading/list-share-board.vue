@@ -4,6 +4,7 @@
 		<view class="tabs">
 			<view class="tab" :class="{ active: tab === 'hot' }" @click="switchTab('hot')">热门</view>
 			<view class="tab" :class="{ active: tab === 'mine' }" @click="switchTab('mine')">我的</view>
+			<view class="tab" :class="{ active: tab === 'favorites' }" @click="switchTab('favorites')">收藏</view>
 		</view>
 
 		<!-- 热门 -->
@@ -31,7 +32,7 @@
 		</block>
 
 		<!-- 我的 -->
-		<block v-else>
+		<block v-else-if="tab === 'mine'">
 			<view v-if="mine.length" class="list">
 				<view class="card mine-card" v-for="s in mine" :key="s.token" @click="open(s.token)">
 					<view class="info">
@@ -53,6 +54,27 @@
 			<view v-else class="empty">加载中…</view>
 		</block>
 
+		<!-- 收藏 -->
+		<block v-else>
+			<view v-if="favorites.length" class="list">
+				<view class="card board-card" v-for="s in favorites" :key="s.id" @click="open(s.token)">
+					<view class="info">
+						<text class="title">{{s.title}}</text>
+						<text class="remark" v-if="s.remark">{{s.remark}}</text>
+						<view class="meta">
+							<text class="owner">{{s.ownerName}}</text>
+							<text class="dot">·</text>
+							<text>{{s.count}} 本</text>
+							<text class="dot">·</text>
+							<text class="fav">{{s.favoriteCount}} 收藏</text>
+						</view>
+					</view>
+				</view>
+			</view>
+			<view v-else-if="loaded" class="empty">还没有收藏的书单</view>
+			<view v-else class="empty">加载中…</view>
+		</block>
+
 		<view class="bottom-space"></view>
 		<view class="fab" @click="goCreate">＋ 生成书单</view>
 	</view>
@@ -67,6 +89,7 @@
 				tab: 'hot',
 				hot: [],
 				mine: [],
+				favorites: [],
 				loaded: false
 			}
 		},
@@ -79,6 +102,8 @@
 				try {
 					if (this.tab === 'hot') {
 						this.hot = (await api.getBookListBoard()) || []
+					} else if (this.tab === 'favorites') {
+						this.favorites = (await api.getMyBookListFavorites()) || []
 					} else {
 						this.mine = (await api.getMyBookListShares()) || []
 					}

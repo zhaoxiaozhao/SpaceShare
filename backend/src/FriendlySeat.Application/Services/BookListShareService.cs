@@ -208,6 +208,42 @@ public class BookListShareService
         await _db.SaveChangesAsync(ct);
     }
 
+    /// <summary>我收藏的书单（按收藏时间倒序）</summary>
+    public async Task<List<BookListShareBoardItemDto>> GetFavoritesAsync(long userId, CancellationToken ct = default)
+    {
+        var ids = await _db.BookListShareFavorites
+            .Where(f => f.UserId == userId)
+            .OrderByDescending(f => f.CreatedAt)
+            .Select(f => f.ShareId)
+            .Take(100)
+            .ToListAsync(ct);
+        if (ids.Count == 0) return new();
+
+        var shares = await _db.BookListShares
+            .Include(s => s.User)
+            .Include(s => s.Favorites)
+            .Where(s => ids.Contains(s.Id))
+            .ToListAsync(ct);
+
+        return ids
+            .Select(id => shares.FirstOrDefault(s => s.Id == id))
+            .Where(s => s is not null)
+            .Select(s => new BookListShareBoardItemDto
+            {
+                Id = s!.Id,
+                Token = s.Token,
+                Title = s.Title,
+                Remark = s.Remark,
+                OwnerName = s.User?.Nickname ?? "书友",
+                OwnerAvatar = s.User?.AvatarUrl,
+                Count = Deserialize(s.ItemsJson).Count,
+                FavoriteCount = s.Favorites.Count,
+                ViewCount = s.ViewCount,
+                CreatedAt = s.CreatedAt
+            })
+            .ToList();
+    }
+
     /// <summary>书单封面：后端代理云存储取回并以 base64 返回（绕开小程序云下载/域名限制）</summary>
     public async Task<BookListCoversDto> GetCoversAsync(string token, CancellationToken ct = default)
     {
