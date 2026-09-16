@@ -860,9 +860,10 @@
 	}
 
 	/* 座位便签 */
-	.note-head { display: flex; align-items: center; justify-content: space-between; margin: 0 4rpx 16rpx; }
+	.note-head { display: flex; align-items: center; justify-content: space-between; margin: 0 20rpx 12rpx; }
+	.note-head .section-title { margin: 0; }
 	.note-add { font-size: 26rpx; color: var(--primary); }
-	.note-list { display: flex; flex-direction: column; }
+	.note-list { display: flex; flex-direction: column; padding: 0 20rpx; }
 	.note { position: relative; padding: 30rpx 24rpx 18rpx; border-radius: 6rpx; box-shadow: 0 6rpx 18rpx rgba(0,0,0,0.08); margin-top: 24rpx; }
 	.note-0 { background: #FFF7D6; transform: rotate(-1.2deg); }
 	.note-1 { background: #E8F5E9; transform: rotate(0.9deg); }
@@ -875,6 +876,6 @@
 	.note-actions { display: flex; gap: 22rpx; }
 	.note-act { font-size: 22rpx; color: var(--primary); }
 	.note-act.danger { color: #B85450; }
-	.note-input { width: 100%; box-sizing: border-box; height: 190rpx; background: #FFFDF3; border-radius: 12rpx; padding: 20rpx; font-size: 28rpx; }
+	.note-input { width: 100%; box-sizing: border-box; height: 190rpx; background: #FFFDF3; border-radius: 12rpx; padding: 20rpx; font-size: 28rpx; margin-top: 8rpx; }
 	.note-count { display: block; text-align: right; font-size: 22rpx; color: #B0B0AB; margin-top: 8rpx; }
 </style>
