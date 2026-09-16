@@ -86,7 +86,7 @@
 		<view class="section">
 			<view class="note-head">
 				<text class="section-title">座位便签</text>
-				<text class="note-add" @click="openNote(myNote)">{{myNote ? '修改便签' : '＋ 写便签'}}</text>
+				<text v-if="!myNote" class="note-add" @click="openNote(null)">＋ 写便签</text>
 			</view>
 
 			<view v-if="notes.length" class="note-list">
