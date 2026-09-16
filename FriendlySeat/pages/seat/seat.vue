@@ -96,9 +96,9 @@
 					<view class="note-foot">
 						<text class="note-meta">{{n.ownerName}} · {{noteTime(n.updatedAt)}}</text>
 						<view class="note-actions">
-							<text v-if="n.isOwner" class="note-act" @click.stop="openNote(n)">修改</text>
-							<text v-if="n.isOwner" class="note-act danger" @click.stop="removeNote(n)">删除</text>
-							<text v-else class="note-act" @click.stop="reportNote(n)">举报</text>
+							<image v-if="n.isOwner" class="note-icon" :src="`/static/icons/edit-${season}.png`" mode="aspectFit" @click.stop="openNote(n)" />
+							<image v-if="n.isOwner" class="note-icon" src="/static/icons/trash.png" mode="aspectFit" @click.stop="removeNote(n)" />
+							<image v-else class="note-icon" src="/static/icons/flag.png" mode="aspectFit" @click.stop="reportNote(n)" />
 						</view>
 					</view>
 				</view>
@@ -176,6 +176,7 @@
 	import { getAppOptions } from '../../utils/options.js'
 	import { formatTime, statusText, parseDate } from '../../utils/format.js'
 	import { subscribeFor } from '../../utils/subscribe.js'
+	import { getSeasonKey } from '../../utils/theme.js'
 
 	export default {
 		data() {
@@ -196,6 +197,7 @@
 				showRespondSwap: false,
 				responding: false,
 				notes: [],
+				season: getSeasonKey(),
 				noteEditor: false,
 				noteContent: '',
 				noteSaving: false,
@@ -874,8 +876,7 @@
 	.note-foot { display: flex; align-items: center; justify-content: space-between; margin-top: 16rpx; }
 	.note-meta { font-size: 22rpx; color: #9A9A8C; }
 	.note-actions { display: flex; gap: 22rpx; }
-	.note-act { font-size: 22rpx; color: var(--primary); }
-	.note-act.danger { color: #B85450; }
+	.note-icon { width: 36rpx; height: 36rpx; }
 	.note-input { width: 100%; box-sizing: border-box; height: 190rpx; background: #FFFDF3; border-radius: 12rpx; padding: 20rpx; font-size: 28rpx; margin-top: 8rpx; }
 	.note-count { display: block; text-align: right; font-size: 22rpx; color: #B0B0AB; margin-top: 8rpx; }
 </style>
