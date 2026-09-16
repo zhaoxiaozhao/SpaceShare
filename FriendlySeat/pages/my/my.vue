@@ -1,5 +1,6 @@
 <template>
 	<page-meta :page-style="pageThemeStyle" />
+	<PrivacyPopup />
 		<view>
 		<view class="card profile-card">
 			<view class="avatar-btn" @click="chooseAvatar">
@@ -44,6 +45,10 @@
 				<text>💬 意见反馈</text>
 				<text class="arrow">›</text>
 			</view>
+			<button class="menu-item contact-btn" open-type="contact">
+				<text>🎧 在线客服</text>
+				<text class="arrow">›</text>
+			</button>
 			<view class="menu-item" @click="openAgreement">
 				<text>📄 用户服务协议</text>
 				<text class="arrow">›</text>
@@ -305,6 +310,15 @@
 	}
 	.menu-item:last-child {
 		border-bottom: none;
+	}
+	.contact-btn {
+		background: transparent;
+		border-radius: 0;
+		line-height: 1.5;
+		text-align: left;
+	}
+	.contact-btn::after {
+		border: none;
 	}
 	.arrow {
 		color: #C0C0BB;

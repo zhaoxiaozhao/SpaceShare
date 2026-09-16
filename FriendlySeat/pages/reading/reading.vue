@@ -1,5 +1,6 @@
 <template>
 	<page-meta :page-style="pageThemeStyle" />
+	<PrivacyPopup />
 		<view>
 		<!-- 今日阅读卡片 -->
 		<view class="card today-card" :class="{ active: stats.activeSession }">

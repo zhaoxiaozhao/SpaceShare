@@ -1,5 +1,6 @@
 <template>
 	<page-meta :page-style="pageThemeStyle" />
+	<PrivacyPopup />
 	<view class="page">
 		<view class="card">
 			<text class="lb">活动标题</text>

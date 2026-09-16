@@ -1,5 +1,6 @@
 <template>
 	<page-meta :page-style="pageThemeStyle" />
+	<PrivacyPopup />
 		<view>
 		<view v-if="targetType">
 			<!-- 被举报人 -->

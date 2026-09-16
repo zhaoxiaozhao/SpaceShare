@@ -1,5 +1,6 @@
 <template>
 	<page-meta :page-style="pageThemeStyle" />
+	<PrivacyPopup />
 		<view>
 		<view class="tabs">
 			<view class="tab" :class="{ active: tab === 'upcoming' }" @click="tab = 'upcoming'">待使用</view>

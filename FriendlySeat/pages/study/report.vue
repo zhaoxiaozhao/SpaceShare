@@ -1,5 +1,6 @@
 <template>
 	<page-meta :page-style="pageThemeStyle" />
+	<PrivacyPopup />
 		<view>
 		<view class="report-header">
 			<view class="period-tabs">

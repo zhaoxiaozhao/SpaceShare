@@ -1,5 +1,6 @@
 <template>
 	<page-meta :page-style="pageThemeStyle" />
+	<PrivacyPopup />
 		<view>
 		<view class="quick-actions">
 			<view class="action-btn" @click="goFindSeat">
@@ -154,14 +155,10 @@
 				this.loadSwaps()
 				this.loadActivities()
 				try {
-					const location = await this.getLocation()
-					this.nearby = await api.getVenues({
-						lat: location.latitude,
-						lng: location.longitude,
-						radiusKm: 20,
-						page: 1,
-						pageSize: 10
-					})
+					const location = await this.getAuthorizedLocation()
+					this.nearby = location
+						? await api.getVenues({ lat: location.latitude, lng: location.longitude, radiusKm: 20, page: 1, pageSize: 10 })
+						: await api.getVenues({})
 					if (!this.nearby.length) {
 						this.nearby = await api.getVenues({})
 					}
@@ -196,12 +193,20 @@
 					}
 				} catch (e) {}
 			},
+			// 仅在已授权定位时才使用位置，避免启动即弹权限（合规）
+			async getAuthorizedLocation() {
+				const setting = await new Promise((resolve) => {
+					uni.getSetting({ success: (r) => resolve(r), fail: () => resolve(null) })
+				})
+				if (!setting || !setting.authSetting || !setting.authSetting['scope.userLocation']) return null
+				return await this.getLocation()
+			},
 			getLocation() {
 				return new Promise((resolve) => {
 					uni.getLocation({
 						type: 'gcj02',
 						success: (res) => resolve({ latitude: res.latitude, longitude: res.longitude }),
-						fail: () => resolve({ latitude: 30.5728, longitude: 104.0668 })
+						fail: () => resolve(null)
 					})
 				})
 			},

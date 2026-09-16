@@ -59,9 +59,11 @@
         },
         "usingComponents" : true,
         "lazyCodeLoading" : "requiredComponents",
+        "__usePrivacyCheck__" : true,
+        "requiredPrivateInfos" : [ "getLocation" ],
         "permission" : {
             "scope.userLocation" : {
-                "desc" : "用于附近场馆展示与预约到座核验"
+                "desc" : "用于附近场馆排序和到座校验"
             }
         }
     },

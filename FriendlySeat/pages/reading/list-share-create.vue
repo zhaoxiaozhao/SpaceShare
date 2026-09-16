@@ -1,5 +1,6 @@
 <template>
 	<page-meta :page-style="pageThemeStyle" />
+	<PrivacyPopup />
 	<view>
 		<!-- 选择书籍 -->
 		<view class="card">

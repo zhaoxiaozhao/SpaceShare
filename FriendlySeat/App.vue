@@ -3,6 +3,7 @@
 	import { CLOUD_ENV, USE_CLOUD } from './utils/config.js'
 	import { getTheme, getSeasonKey } from './utils/theme.js'
 	import { refreshAppOptions } from './utils/options.js'
+	import { setupPrivacy } from './utils/privacy.js'
 
 	export default {
 		onLaunch: function() {
@@ -25,6 +26,9 @@
 
 			// 拉取可配置选项（活动分类/换座原因/座位标签）
 			refreshAppOptions()
+
+			// 隐私合规：注册隐私授权监听（配合 PrivacyPopup 组件）
+			setupPrivacy()
 
 			const token = uni.getStorageSync('token')
 			if (token) {

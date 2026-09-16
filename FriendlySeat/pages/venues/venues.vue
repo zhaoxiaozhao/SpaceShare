@@ -1,5 +1,6 @@
 <template>
 	<page-meta :page-style="pageThemeStyle" />
+	<PrivacyPopup />
 		<view>
 		<view class="search-bar">
 			<input class="search-input" v-model="keyword" placeholder="搜索场馆名称" confirm-type="search" @confirm="search" />
