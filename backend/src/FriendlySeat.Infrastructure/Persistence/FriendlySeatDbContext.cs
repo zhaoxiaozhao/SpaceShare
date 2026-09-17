@@ -51,6 +51,7 @@ public class FriendlySeatDbContext : DbContext, IAppDbContext
     public DbSet<BookListShare> BookListShares => Set<BookListShare>();
     public DbSet<BookListShareFavorite> BookListShareFavorites => Set<BookListShareFavorite>();
     public DbSet<SeatNote> SeatNotes => Set<SeatNote>();
+    public DbSet<ActivityComment> ActivityComments => Set<ActivityComment>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -255,6 +256,21 @@ public class FriendlySeatDbContext : DbContext, IAppDbContext
             .HasOne(n => n.User)
             .WithMany()
             .HasForeignKey(n => n.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<ActivityComment>()
+            .HasIndex(c => new { c.ActivityId, c.Status });
+
+        modelBuilder.Entity<ActivityComment>()
+            .HasOne(c => c.Activity)
+            .WithMany()
+            .HasForeignKey(c => c.ActivityId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<ActivityComment>()
+            .HasOne(c => c.User)
+            .WithMany()
+            .HasForeignKey(c => c.UserId)
             .OnDelete(DeleteBehavior.Cascade);
     }
 }

@@ -79,3 +79,8 @@ export const seatNoteApi = {
   list: (status) => request.get(`/seat-notes?status=${status || ''}`),
   review: (id, approve) => request.post(`/seat-notes/${id}/review`, { approve })
 }
+
+export const activityCommentApi = {
+  list: (status) => request.get(`/activity-comments?status=${status || ''}`),
+  review: (id, approve) => request.post(`/activity-comments/${id}/review`, { approve })
+}

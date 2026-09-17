@@ -78,6 +78,18 @@ public class ReportService
                     throw AppException.BadRequest("cannot_report_own", "不能举报自己的便签");
                 targetUserId = note.UserId;
             }
+            else if (targetType == ReportTargetType.ActivityComment)
+            {
+                var comment = await _db.ActivityComments
+                    .Where(c => c.Id == request.TargetId.Value)
+                    .Select(c => new { c.UserId })
+                    .FirstOrDefaultAsync(ct);
+                if (comment is null)
+                    throw AppException.NotFound("留言不存在");
+                if (comment.UserId == reporterId)
+                    throw AppException.BadRequest("cannot_report_own", "不能举报自己的留言");
+                targetUserId = comment.UserId;
+            }
         }
 
         var report = new Report
@@ -136,6 +148,21 @@ public class ReportService
                 await _notifications.SendAsync(note.UserId, NotificationType.System,
                     "便签被举报，已暂时隐藏",
                     "你发布的座位便签被举报，已暂时隐藏并进入审核。", null, ct);
+            }
+        }
+
+        // 活动留言被举报：立即隐藏，进入后台审核
+        if (targetType == ReportTargetType.ActivityComment && request.TargetId.HasValue)
+        {
+            var comment = await _db.ActivityComments.FirstOrDefaultAsync(c => c.Id == request.TargetId.Value, ct);
+            if (comment is not null && comment.Status == CommentStatus.Visible)
+            {
+                comment.Status = CommentStatus.Hidden;
+                comment.UpdatedAt = DateTime.UtcNow;
+                await _db.SaveChangesAsync(ct);
+                await _notifications.SendAsync(comment.UserId, NotificationType.System,
+                    "留言被举报，已暂时隐藏",
+                    "你在活动下的留言被举报，已暂时隐藏并进入审核。", null, ct);
             }
         }
 

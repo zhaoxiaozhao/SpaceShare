@@ -45,6 +45,13 @@ public enum SeatNoteStatus
     Hidden
 }
 
+/// <summary>留言/评论状态：正常展示 / 被举报隐藏待审核</summary>
+public enum CommentStatus
+{
+    Visible,
+    Hidden
+}
+
 public enum SeatSessionStatus
 {
     Pending,
@@ -110,7 +117,8 @@ public enum ReportTargetType
     Feedback,
     Activity,
     BookListShare,
-    SeatNote
+    SeatNote,
+    ActivityComment
 }
 
 public enum ReportStatus

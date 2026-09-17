@@ -66,20 +66,48 @@
 
 		<button class="btn-outline share-btn" open-type="share">分享给好友 / 朋友圈</button>
 		<text class="report-link" v-if="!a.isMine" @click="report">举报该活动</text>
+
+		<!-- 留言鼓励 -->
+		<view class="card cm-card">
+			<view class="cm-head">
+				<text class="cm-title">留言鼓励</text>
+				<text class="cm-count" v-if="comments.length">{{comments.length}} 条</text>
+			</view>
+
+			<view v-if="comments.length" class="cm-list">
+				<view class="cm-item" v-for="c in comments" :key="c.id">
+					<Avatar :url="c.ownerAvatar" :name="c.ownerName" :size="56" />
+					<view class="cm-body">
+						<text class="cm-name">{{c.ownerName}}</text>
+						<text class="cm-content">{{c.content}}</text>
+						<text class="cm-time">{{commentTime(c.createdAt)}}</text>
+					</view>
+					<image v-if="c.isOwner" class="cm-icon" src="/static/icons/trash.png" mode="aspectFit" @click.stop="removeComment(c)" />
+					<image v-else class="cm-icon" src="/static/icons/flag.png" mode="aspectFit" @click.stop="reportComment(c)" />
+				</view>
+			</view>
+			<text v-else class="cm-empty">还没有留言，来给这场活动加一句鼓励吧～</text>
+
+			<view class="cm-input-row">
+				<input class="cm-input" v-model="commentInput" :maxlength="50" placeholder="说点鼓励的话（最多 50 字）" confirm-type="send" @confirm="sendComment" />
+				<button class="cm-send" :loading="commentSending" @click="sendComment">发送</button>
+			</view>
+		</view>
 	</view>
 	<view v-else class="empty">活动不存在或已结束</view>
 </template>
 
 <script>
 	import { api } from '../../utils/request.js'
-	import { formatTime } from '../../utils/format.js'
+	import { formatTime, parseDate } from '../../utils/format.js'
 	import { getTempFileUrl } from '../../utils/profile.js'
 	import { activityCategoryLabel } from '../../utils/activity.js'
 	import { subscribeFor } from '../../utils/subscribe.js'
 
 	export default {
 		data() {
-			return { id: null, a: null, shareImage: '', showParticipants: false }
+			return { id: null, a: null, shareImage: '', showParticipants: false,
+				comments: [], commentInput: '', commentSending: false }
 		},
 		computed: {
 			signupClosedText() {
@@ -120,6 +148,7 @@
 				} catch (e) {
 					this.a = null
 				}
+				try { this.comments = (await api.getActivityComments(this.id)) || [] } catch (e) { this.comments = [] }
 			},
 			// 分享图：活动海报 -> 云存储 fileID 转临时 https -> 下载为本地文件（分享卡片用本地图最稳）
 			async resolveShareImage() {
@@ -160,6 +189,58 @@
 				if (this.a && this.a.coverImage) {
 					uni.previewImage({ urls: [this.a.coverImage] })
 				}
+			},
+			commentTime(s) {
+				const d = parseDate(s)
+				if (!d) return ''
+				const p = (x) => (x < 10 ? '0' + x : x)
+				return `${d.getMonth() + 1}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`
+			},
+			async sendComment() {
+				if (this.commentSending) return
+				const content = (this.commentInput || '').trim()
+				if (!content) {
+					uni.showToast({ title: '请先写点什么', icon: 'none' })
+					return
+				}
+				if (!uni.getStorageSync('token')) {
+					uni.navigateTo({ url: '/pages/login/login' })
+					return
+				}
+				this.commentSending = true
+				try {
+					await api.createActivityComment({ activityId: Number(this.id), content })
+					this.commentInput = ''
+					uni.showToast({ title: '已发送', icon: 'success' })
+					this.comments = (await api.getActivityComments(this.id)) || []
+				} catch (e) {
+					uni.showToast({ title: e.message || '发送失败', icon: 'none' })
+				} finally {
+					this.commentSending = false
+				}
+			},
+			removeComment(c) {
+				uni.showModal({
+					title: '删除留言',
+					content: '确定删除这条留言吗？',
+					success: async (res) => {
+						if (!res.confirm) return
+						try {
+							await api.deleteActivityComment(c.id)
+							uni.showToast({ title: '已删除', icon: 'success' })
+							this.comments = (await api.getActivityComments(this.id)) || []
+						} catch (e) {
+							uni.showToast({ title: e.message || '删除失败', icon: 'none' })
+						}
+					}
+				})
+			},
+			reportComment(c) {
+				if (!uni.getStorageSync('token')) {
+					uni.navigateTo({ url: '/pages/login/login' })
+					return
+				}
+				uni.navigateTo({ url: `/pages/report/report?targetType=ActivityComment&targetId=${c.id}` })
 			},
 			report() {
 				const nick = encodeURIComponent(this.a.creatorNickname || '')
@@ -395,4 +476,23 @@
 		font-size: 26rpx;
 		padding: 120rpx 0;
 	}
+
+	/* 活动留言 */
+	.cm-card { margin-top: 20rpx; }
+	.cm-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12rpx; }
+	.cm-title { font-size: 30rpx; font-weight: 600; }
+	.cm-count { font-size: 22rpx; color: #B0B0AB; }
+	.cm-list { display: flex; flex-direction: column; }
+	.cm-item { display: flex; align-items: flex-start; gap: 16rpx; padding: 18rpx 0; border-bottom: 1rpx solid #F0EFEA; }
+	.cm-item:last-child { border-bottom: none; }
+	.cm-body { flex: 1; min-width: 0; }
+	.cm-name { display: block; font-size: 24rpx; color: #8A8A86; }
+	.cm-content { display: block; font-size: 28rpx; color: #33332E; line-height: 1.6; margin-top: 4rpx; }
+	.cm-time { display: block; font-size: 20rpx; color: #C4C2BB; margin-top: 6rpx; }
+	.cm-icon { width: 34rpx; height: 34rpx; flex-shrink: 0; margin-top: 6rpx; }
+	.cm-empty { display: block; font-size: 26rpx; color: #B0B0AB; padding: 12rpx 0 18rpx; }
+	.cm-input-row { display: flex; align-items: center; gap: 16rpx; margin-top: 16rpx; }
+	.cm-input { flex: 1; background: #F7F5EF; border-radius: 36rpx; padding: 16rpx 26rpx; font-size: 28rpx; }
+	.cm-send { flex-shrink: 0; margin: 0; padding: 0 34rpx; height: 72rpx; line-height: 72rpx; border-radius: 36rpx; background: var(--primary); color: #FFFFFF; font-size: 28rpx; }
+	.cm-send::after { border: none; }
 </style>

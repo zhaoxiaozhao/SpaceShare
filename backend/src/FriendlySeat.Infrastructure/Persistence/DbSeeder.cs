@@ -349,6 +349,27 @@ CREATE TABLE `SeatNotes` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
         }
 
+        // 活动留言表 ActivityComments（已有库补建表）
+        if (!await tableExists("ActivityComments"))
+        {
+            logger.LogInformation("MySQL 补建活动留言表（ActivityComments）");
+            await db.Database.ExecuteSqlRawAsync(@"
+CREATE TABLE `ActivityComments` (
+  `Id` bigint NOT NULL AUTO_INCREMENT,
+  `ActivityId` bigint NOT NULL,
+  `UserId` bigint NOT NULL,
+  `Content` longtext NOT NULL,
+  `Status` int NOT NULL,
+  `CreatedAt` datetime(6) NOT NULL,
+  `UpdatedAt` datetime(6) NOT NULL,
+  PRIMARY KEY (`Id`),
+  KEY `IX_ActivityComments_ActivityId_Status` (`ActivityId`, `Status`),
+  KEY `IX_ActivityComments_UserId` (`UserId`),
+  CONSTRAINT `FK_ActivityComments_Activities_ActivityId` FOREIGN KEY (`ActivityId`) REFERENCES `Activities` (`Id`) ON DELETE CASCADE,
+  CONSTRAINT `FK_ActivityComments_Users_UserId` FOREIGN KEY (`UserId`) REFERENCES `Users` (`Id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
+        }
+
         // SeatShares.CheckInCode 列（到座核销码）：已有表补列
         // 注意：MySQL 的 TEXT 列不允许 DEFAULT 值，非空约束由应用层保证
         if (await tableExists("SeatShares") && !await ColumnExistsAsync(db, "SeatShares", "CheckInCode"))

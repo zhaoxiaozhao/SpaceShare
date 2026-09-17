@@ -18,6 +18,7 @@ const routes = [
       { path: 'swaps', component: () => import('../views/Swaps.vue'), meta: { title: '换座管理' } },
       { path: 'activities', component: () => import('../views/Activities.vue'), meta: { title: '活动管理' } },
       { path: 'seat-notes', component: () => import('../views/SeatNotes.vue'), meta: { title: '座位便签' } },
+      { path: 'activity-comments', component: () => import('../views/ActivityComments.vue'), meta: { title: '活动留言' } },
       { path: 'audit', component: () => import('../views/AuditLogs.vue'), meta: { title: '审计日志' } }
     ]
   }

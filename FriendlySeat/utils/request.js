@@ -203,7 +203,12 @@ export const api = {
 	// ===== 座位便签 =====
 	getSeatNotes: (seatId) => request(`/seat-notes?seatId=${seatId}`),
 	createSeatNote: (data) => request('/seat-notes', { method: 'POST', data }),
-	deleteSeatNote: (id) => request(`/seat-notes/${id}`, { method: 'DELETE' })
+	deleteSeatNote: (id) => request(`/seat-notes/${id}`, { method: 'DELETE' }),
+
+	// ===== 活动留言 =====
+	getActivityComments: (activityId) => request(`/activity-comments?activityId=${activityId}`, { auth: false }),
+	createActivityComment: (data) => request('/activity-comments', { method: 'POST', data }),
+	deleteActivityComment: (id) => request(`/activity-comments/${id}`, { method: 'DELETE' })
 }
 
 function qs(params) {
