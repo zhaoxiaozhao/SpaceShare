@@ -14,6 +14,17 @@
 			<text class="hero-hint">结果仅供参考，不是专业心理测评</text>
 		</view>
 
+		<!-- 文人气质 -->
+		<view class="card poet-card" v-if="p.poet">
+			<view class="poet-top">
+				<text class="poet-label">学习气质 · 像</text>
+				<text class="poet-name">{{p.poet}}</text>
+			</view>
+			<text class="poet-line" v-if="p.poetLine">「{{p.poetLine}}」</text>
+			<text class="poet-why" v-if="p.poetWhy">{{p.poetWhy}}</text>
+			<text class="poet-hint">与你气质相近的古代文人，仅供娱乐参考</text>
+		</view>
+
 		<!-- 标签 & 角色 -->
 		<view class="card">
 			<view class="tags">
@@ -222,7 +233,7 @@
 				const W = 640
 				const pad = 40
 				const topY = 36
-				const topH = 300
+				const topH = 340
 				const tagsH = 84
 				const dimsH = 396
 				const pairH = 56 + (p.pairings || []).length * 96 + 16
@@ -279,14 +290,20 @@
 				ctx.font = 'bold 56px sans-serif'
 				ctx.fillText(p.typeName, pad + 30, topY + 124)
 
+				if (p.poet) {
+					ctx.fillStyle = 'rgba(255,255,255,0.9)'
+					ctx.font = '24px sans-serif'
+					ctx.fillText('学习气质 · 像 ' + p.poet, pad + 30, topY + 166)
+				}
+
 				ctx.fillStyle = 'rgba(255,255,255,0.92)'
 				ctx.font = '24px sans-serif'
-				this.wrap(ctx, p.typeDesc, pad + 30, topY + 166, W - pad * 2 - 60, 34, 2)
+				this.wrap(ctx, p.typeDesc, pad + 30, topY + 208, W - pad * 2 - 60, 34, 2)
 
 				if (p.quote) {
 					ctx.fillStyle = 'rgba(255,255,255,0.8)'
 					ctx.font = 'italic 22px sans-serif'
-					this.wrap(ctx, '「' + p.quote + '」', pad + 30, topY + 248, W - pad * 2 - 60, 30, 1)
+					this.wrap(ctx, '「' + p.quote + '」', pad + 30, topY + 300, W - pad * 2 - 60, 30, 1)
 				}
 
 				// 标签（两行内）
@@ -391,6 +408,13 @@
 	.hero-desc { display: block; font-size: 26rpx; line-height: 1.6; opacity: 0.92; margin-top: 14rpx; }
 	.hero-quote { display: block; font-size: 26rpx; opacity: 0.9; margin-top: 18rpx; }
 	.hero-hint { display: block; font-size: 20rpx; opacity: 0.7; margin-top: 20rpx; }
+	.poet-card { background: linear-gradient(160deg, var(--primary-bg), #FFFFFF); }
+	.poet-top { display: flex; align-items: baseline; gap: 12rpx; }
+	.poet-label { font-size: 24rpx; color: #8A8A86; }
+	.poet-name { font-size: 44rpx; font-weight: 700; color: var(--primary); }
+	.poet-line { display: block; font-size: 28rpx; color: #55554F; margin-top: 16rpx; }
+	.poet-why { display: block; font-size: 26rpx; color: #33332E; line-height: 1.6; margin-top: 12rpx; }
+	.poet-hint { display: block; font-size: 20rpx; color: #B0B0AB; margin-top: 14rpx; }
 	.card-title { display: block; font-size: 30rpx; font-weight: 600; margin-bottom: 16rpx; }
 	.tags { display: flex; flex-wrap: wrap; gap: 14rpx; }
 	.tag { font-size: 24rpx; color: var(--primary); background: var(--primary-bg); border-radius: 24rpx; padding: 8rpx 24rpx; }

@@ -130,6 +130,9 @@ public class PersonaService
             Quote = type.Quote,
             Color = type.Color,
             Scene = type.Scene,
+            Poet = type.Poet,
+            PoetLine = type.PoetLine,
+            PoetWhy = type.PoetWhy,
             Tags = PersonaCatalog.BuildTags(p.Social, p.Rhythm, p.Style, p.Plan, p.Interest, p.Focus, p.Motive).ToList(),
             Roles = PersonaCatalog.BuildRoles(p.Social, p.Style, p.Plan, p.Focus, p.Motive).ToList(),
             Dimensions = dims.Select(kv => new PersonaDimensionDto

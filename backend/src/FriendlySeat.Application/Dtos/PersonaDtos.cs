@@ -57,6 +57,9 @@ public class PersonaProfileDto
     public string Quote { get; set; } = string.Empty;
     public string Color { get; set; } = string.Empty;
     public string Scene { get; set; } = string.Empty;
+    public string Poet { get; set; } = string.Empty;
+    public string PoetLine { get; set; } = string.Empty;
+    public string PoetWhy { get; set; } = string.Empty;
     public List<string> Tags { get; set; } = new();
     public List<string> Roles { get; set; } = new();
     public List<PersonaDimensionDto> Dimensions { get; set; } = new();

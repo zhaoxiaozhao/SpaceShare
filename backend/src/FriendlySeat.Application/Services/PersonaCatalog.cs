@@ -10,7 +10,7 @@ public static class PersonaCatalog
 
     public sealed record Question(string Id, string Dimension, string Text, Option[] Options);
 
-    public sealed record PersonaType(string Code, string Name, string Desc, string Quote, string Color, string Scene);
+    public sealed record PersonaType(string Code, string Name, string Desc, string Quote, string Color, string Scene, string Poet, string PoetLine, string PoetWhy);
 
     public sealed record PairLevel(string Title, string Reason);
 
@@ -181,24 +181,21 @@ public static class PersonaCatalog
     public static readonly IReadOnlyDictionary<string, PersonaType> Types = new Dictionary<string, PersonaType>
     {
         // ===== 晨 · 独行 =====
-        ["morning_solo_immerser"] = new("morning_solo_immerser", "清晨书虫", "天亮就开始，安静地把计划一点点啃完。", "先把今天最难的那一页翻过去。", "#6BAF8B", "适合清晨自习、考研早起档"),
-        ["morning_solo_talker"] = new("morning_solo_talker", "早课提问党", "起得早、想得多，喜欢先弄懂再开口。", "想清楚再问，问出来就懂了。", "#2E8B94", "适合共读答疑、线上问题接龙"),
-        ["morning_solo_host"] = new("morning_solo_host", "晨间规划师", "早起、有计划，喜欢把一天先排明白。", "计划写下来的那一刻，就已经开始做了。", "#C98A3D", "适合长期备考、每周复盘小组"),
-
+        ["morning_solo_immerser"] = new("morning_solo_immerser", "清晨书虫", "天亮就开始，安静地把计划一点点啃完。", "先把今天最难的那一页翻过去。", "#6BAF8B", "适合清晨自习、考研早起档", "陶渊明", "采菊东篱下，悠然见南山", "你喜欢一个人，在清晨把日子过得有节奏。"),
+        ["morning_solo_talker"] = new("morning_solo_talker", "早课提问党", "起得早、想得多，喜欢先弄懂再开口。", "想清楚再问，问出来就懂了。", "#2E8B94", "适合共读答疑、线上问题接龙", "韩愈", "业精于勤，荒于嬉", "你起得早，更要紧的是把问题想清楚。"),
+        ["morning_solo_host"] = new("morning_solo_host", "晨间规划师", "早起、有计划，喜欢把一天先排明白。", "计划写下来的那一刻，就已经开始做了。", "#C98A3D", "适合长期备考、每周复盘小组", "范仲淹", "先天下之忧而忧", "你习惯先规划，再动手。"),
         // ===== 晨 · 结伴 =====
-        ["morning_group_immerser"] = new("morning_group_immerser", "晨读同行者", "喜欢有人一起，但各看各的书。", "安静地并肩，比热闹更长久。", "#8CC5A8", "适合图书馆共读、安静自习团"),
-        ["morning_group_talker"] = new("morning_group_talker", "早茶辩论队", "早上就话多，边吃边把一个话题聊开。", "一个观点聊开心了，一天都顺。", "#57AFB8", "适合读书会、话题早餐局"),
-        ["morning_group_host"] = new("morning_group_host", "晨光召集人", "早起、能聊，常常是那个把人聚起来的人。", "只要我先开个头，大家就都来了。", "#DBA968", "适合组织晨间共学、活动发起"),
-
+        ["morning_group_immerser"] = new("morning_group_immerser", "晨读同行者", "喜欢有人一起，但各看各的书。", "安静地并肩，比热闹更长久。", "#8CC5A8", "适合图书馆共读、安静自习团", "王维", "行到水穷处，坐看云起时", "你喜欢有人在旁，各看各的书。"),
+        ["morning_group_talker"] = new("morning_group_talker", "早茶辩论队", "早上就话多，边吃边把一个话题聊开。", "一个观点聊开心了，一天都顺。", "#57AFB8", "适合读书会、话题早餐局", "苏轼", "一蓑烟雨任平生", "你早上就话多，观点聊开心了一天都顺。"),
+        ["morning_group_host"] = new("morning_group_host", "晨光召集人", "早起、能聊，常常是那个把人聚起来的人。", "只要我先开个头，大家就都来了。", "#DBA968", "适合组织晨间共学、活动发起", "欧阳修", "醉翁之意不在酒", "你擅长把大家聚起来。"),
         // ===== 夜 · 独行 =====
-        ["night_solo_immerser"] = new("night_solo_immerser", "深夜码农", "越晚越清醒，一个人也能沉浸很久。", "夜一安静下来，效率就上来了。", "#5B6E8C", "适合熬夜冲刺、远程各自自习"),
-        ["night_solo_talker"] = new("night_solo_talker", "夜猫提问官", "夜里脑子转得快，问题一个接一个。", "问题想不通，就先丢出来。", "#7E90AC", "适合夜间答疑、互问互答"),
-        ["night_solo_host"] = new("night_solo_host", "深夜规划员", "夜里静下来，喜欢把计划和复盘做掉。", "白天做事，晚上收尾。", "#43536B", "适合每周复盘、长期目标管理"),
-
+        ["night_solo_immerser"] = new("night_solo_immerser", "深夜码农", "越晚越清醒，一个人也能沉浸很久。", "夜一安静下来，效率就上来了。", "#5B6E8C", "适合熬夜冲刺、远程各自自习", "贾岛", "两句三年得，一吟双泪流", "你在深夜和细节较劲。"),
+        ["night_solo_talker"] = new("night_solo_talker", "夜猫提问官", "夜里脑子转得快，问题一个接一个。", "问题想不通，就先丢出来。", "#7E90AC", "适合夜间答疑、互问互答", "屈原", "路漫漫其修远兮，吾将上下而求索", "你问题一个接一个，非要问到底。"),
+        ["night_solo_host"] = new("night_solo_host", "深夜规划员", "夜里静下来，喜欢把计划和复盘做掉。", "白天做事，晚上收尾。", "#43536B", "适合每周复盘、长期目标管理", "曹操", "老骥伏枥，志在千里", "夜里静下来，你把计划排明白。"),
         // ===== 夜 · 结伴 =====
-        ["night_group_immerser"] = new("night_group_immerser", "夜读搭子", "喜欢有人陪着，安静地一起把夜坐满。", "不用说话，知道你在就好。", "#8A93A8", "适合夜间安静共坐、晚自习"),
-        ["night_group_talker"] = new("night_group_talker", "深夜辩论咖", "夜里话最多，喜欢把一个观点聊透。", "把话说透，比憋着舒服。", "#A56C24", "适合读书辩论、友邻夜谈"),
-        ["night_group_host"] = new("night_group_host", "夜谈主持人", "夜里把大家聚起来，什么都聊一点。", "夜里的话，往往最真。", "#6BAF8B", "适合线上夜谈、活动收尾复盘")
+        ["night_group_immerser"] = new("night_group_immerser", "夜读搭子", "喜欢有人陪着，安静地一起把夜坐满。", "不用说话，知道你在就好。", "#8A93A8", "适合夜间安静共坐、晚自习", "李清照", "赌书消得泼茶香", "你想有人陪着，安静地把夜坐满。"),
+        ["night_group_talker"] = new("night_group_talker", "深夜辩论咖", "夜里话最多，喜欢把一个观点聊透。", "把话说透，比憋着舒服。", "#A56C24", "适合读书辩论、友邻夜谈", "李白", "天生我材必有用", "你夜里话最多，喜欢把观点聊透。"),
+        ["night_group_host"] = new("night_group_host", "夜谈主持人", "夜里把大家聚起来，什么都聊一点。", "夜里的话，往往最真。", "#6BAF8B", "适合线上夜谈、活动收尾复盘", "柳永", "今宵酒醒何处，杨柳岸晓风残月", "你总能把夜谈接住。"),
     };
 
     public static readonly string[] RoleKeys = { "规划者", "执行者", "陪读者", "破冰者" };
