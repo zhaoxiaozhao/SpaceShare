@@ -19,6 +19,10 @@ export function drawRadar(ctx, opts) {
 	const n = dims.length
 	if (!n) return
 
+	// 保存并对齐/基线状态，绘制结束后还原（避免影响同一画布的后续绘制）
+	const prevAlign = ctx.textAlign
+	const prevBaseline = ctx.textBaseline
+
 	const color = opts.color || '#6BAF8B'
 	const progress = opts.progress == null ? 1 : Math.max(0, Math.min(1, opts.progress))
 	const step = (Math.PI * 2) / n
@@ -111,7 +115,8 @@ export function drawRadar(ctx, opts) {
 		const [x, y] = pt(i, lr)
 		ctx.fillText(d.label, x, y)
 	})
-	ctx.textBaseline = 'alphabetic'
+	ctx.textAlign = prevAlign
+	ctx.textBaseline = prevBaseline
 }
 
 // 渐显动画：progress 0 → 1（ease-out），需要 canvas 节点（用于 requestAnimationFrame）
