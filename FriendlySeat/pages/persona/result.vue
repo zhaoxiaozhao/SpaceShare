@@ -26,12 +26,11 @@
 		<!-- 维度 -->
 		<view class="card">
 			<text class="card-title">偏好维度</text>
-			<view class="dim" v-for="d in p.dimensions" :key="d.key">
-				<text class="dim-label">{{d.label}}</text>
-				<view class="dim-bar">
-					<text class="dim-end">{{d.low}}</text>
-					<view class="dim-track"><view class="dim-fill" :style="{ width: (d.score / 4 * 100) + '%', background: p.color }"></view></view>
-					<text class="dim-end">{{d.high}}</text>
+			<canvas type="2d" id="radarChart" class="radar"></canvas>
+			<view class="dim-legend">
+				<view class="legend-item" v-for="d in p.dimensions" :key="d.key">
+					<text class="legend-label">{{d.label}}</text>
+					<text class="legend-score">{{d.low}} {{d.score}}/4 {{d.high}}</text>
 				</view>
 			</view>
 		</view>
@@ -79,6 +78,7 @@
 
 <script>
 	import { api } from '../../utils/request.js'
+	import { drawRadar } from '../../utils/radar.js'
 
 	export default {
 		data() {
@@ -113,7 +113,12 @@
 				try {
 					this.p = await api.getPersonaMe()
 				} catch (e) {}
-				if (!this.p) uni.redirectTo({ url: '/pages/persona/quiz' })
+				if (!this.p) {
+					uni.redirectTo({ url: '/pages/persona/quiz' })
+					return
+				}
+				await this.$nextTick()
+				this.drawRadarChart()
 			},
 			retake() {
 				uni.redirectTo({ url: '/pages/persona/quiz' })
@@ -128,6 +133,32 @@
 					this.p.isPublic = !isPublic
 					uni.showToast({ title: err.message || '操作失败', icon: 'none' })
 				}
+			},
+			async drawRadarChart() {
+				if (!this.p) return
+				const W = 320
+				const H = 300
+				const node = await new Promise((resolve) => {
+					wx.createSelectorQuery().in(this).select('#radarChart').fields({ node: true, size: true }).exec((res) => {
+						resolve(res && res[0] ? res[0].node : null)
+					})
+				})
+				if (!node) return
+				const dpr = uni.getSystemInfoSync().pixelRatio || 2
+				node.width = W * dpr
+				node.height = H * dpr
+				const ctx = node.getContext('2d')
+				ctx.scale(dpr, dpr)
+				ctx.clearRect(0, 0, W, H)
+				drawRadar(ctx, {
+					cx: W / 2,
+					cy: 150,
+					radius: 100,
+					dimensions: this.p.dimensions,
+					color: this.p.color,
+					labelColor: '#8A8A86',
+					labelFont: '13px sans-serif'
+				})
 			},
 			lighten(hex, ratio) {
 				const h = String(hex || '#6BAF8B').replace('#', '')
@@ -186,7 +217,7 @@
 				const topY = 36
 				const topH = 300
 				const tagsH = 84
-				const dimsH = 56 + p.dimensions.length * 60 + 16
+				const dimsH = 396
 				const pairH = 56 + (p.pairings || []).length * 96 + 16
 				const H = topY + topH + 26 + tagsH + 20 + dimsH + 20 + pairH + 110
 
@@ -258,27 +289,16 @@
 				ctx.fill()
 				ctx.fillStyle = dark
 				ctx.font = 'bold 28px sans-serif'
+				ctx.textAlign = 'left'
 				ctx.fillText('偏好维度', pad + 24, y + 44)
-
-				p.dimensions.forEach((d, i) => {
-					const ry = y + 50 + i * 60
-					ctx.fillStyle = dark
-					ctx.font = '24px sans-serif'
-					ctx.fillText(d.label, pad + 24, ry + 20)
-
-					const trackX = pad + 150
-					const trackW = W - pad * 2 - 150 - 90
-					ctx.fillStyle = sub
-					ctx.font = '20px sans-serif'
-					ctx.fillText(d.low, trackX, ry + 20)
-					ctx.fillText(d.high, trackX + trackW - 46, ry + 20)
-
-					ctx.fillStyle = 'rgba(0,0,0,0.06)'
-					this.rr(ctx, trackX, ry + 4, trackW, 12, 6)
-					ctx.fill()
-					ctx.fillStyle = primary
-					this.rr(ctx, trackX, ry + 4, Math.max(12, trackW * d.score / 4), 12, 6)
-					ctx.fill()
+				drawRadar(ctx, {
+					cx: W / 2,
+					cy: y + 52 + 156,
+					radius: 112,
+					dimensions: p.dimensions,
+					color: primary,
+					labelColor: sub,
+					labelFont: '22px sans-serif'
 				})
 
 				// 配型卡
@@ -359,6 +379,11 @@
 	.roles-label { font-size: 24rpx; color: #8A8A86; margin-right: 4rpx; }
 	.role { font-size: 24rpx; color: #C98A3D; background: #F7F0E4; border-radius: 20rpx; padding: 6rpx 20rpx; }
 	.scene { display: block; font-size: 24rpx; color: #55554F; margin-top: 18rpx; }
+	.radar { width: 320px; height: 300px; margin: 0 auto; display: block; }
+	.dim-legend { display: flex; flex-wrap: wrap; gap: 10rpx 18rpx; margin-top: 16rpx; }
+	.legend-item { display: flex; align-items: center; gap: 8rpx; }
+	.legend-label { font-size: 22rpx; color: #33332E; }
+	.legend-score { font-size: 20rpx; color: #B0B0AB; }
 	.dim { display: flex; align-items: center; margin-bottom: 20rpx; }
 	.dim-label { width: 130rpx; font-size: 26rpx; color: #33332E; }
 	.dim-bar { flex: 1; display: flex; align-items: center; gap: 10rpx; }
