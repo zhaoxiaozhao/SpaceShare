@@ -78,7 +78,7 @@
 
 <script>
 	import { api } from '../../utils/request.js'
-	import { drawRadar } from '../../utils/radar.js'
+	import { drawRadar, animateRadar } from '../../utils/radar.js'
 
 	export default {
 		data() {
@@ -149,16 +149,19 @@
 				node.height = H * dpr
 				const ctx = node.getContext('2d')
 				ctx.scale(dpr, dpr)
-				ctx.clearRect(0, 0, W, H)
-				drawRadar(ctx, {
+				await animateRadar(node, ctx, {
 					cx: W / 2,
 					cy: 150,
 					radius: 100,
+					width: W,
+					height: H,
 					dimensions: this.p.dimensions,
 					color: this.p.color,
 					labelColor: '#8A8A86',
-					labelFont: '13px sans-serif'
-				})
+					labelFont: '13px sans-serif',
+					showScale: true,
+					showScore: true
+				}, 700)
 			},
 			lighten(hex, ratio) {
 				const h = String(hex || '#6BAF8B').replace('#', '')
@@ -298,7 +301,11 @@
 					dimensions: p.dimensions,
 					color: primary,
 					labelColor: sub,
-					labelFont: '22px sans-serif'
+					labelFont: '22px sans-serif',
+					showScale: true,
+					showScore: true,
+					scaleFont: '16px sans-serif',
+					scoreFont: '20px sans-serif'
 				})
 
 				// 配型卡
