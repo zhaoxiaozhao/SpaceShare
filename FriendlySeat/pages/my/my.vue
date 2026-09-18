@@ -30,6 +30,10 @@
 				<text>🏅 友邻贡献</text>
 				<text class="arrow">›</text>
 			</view>
+			<view class="menu-item" @click="goPersona">
+				<text>🧭 友邻画像</text>
+				<text class="arrow">›</text>
+			</view>
 			<view class="menu-item" @click="goNotifications">
 				<text>🔔 消息通知</text>
 				<view class="menu-right">
@@ -159,6 +163,18 @@
 			},
 			goContribution() {
 				uni.navigateTo({ url: '/pages/contribution/contribution' })
+			},
+			async goPersona() {
+				if (!uni.getStorageSync('token')) {
+					uni.navigateTo({ url: '/pages/login/login' })
+					return
+				}
+				try {
+					const p = await api.getPersonaMe()
+					uni.navigateTo({ url: p ? '/pages/persona/result' : '/pages/persona/quiz' })
+				} catch (e) {
+					uni.navigateTo({ url: '/pages/persona/quiz' })
+				}
 			},
 			goNotifications() {
 				uni.switchTab({ url: '/pages/notifications/notifications' })

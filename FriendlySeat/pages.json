@@ -96,6 +96,20 @@
 			}
 		},
 		{
+			"path": "pages/persona/quiz",
+			"style": {
+				"navigationBarTitleText": "友邻画像"
+			}
+		},
+		{
+			"path": "pages/persona/result",
+			"style": {
+				"navigationBarTitleText": "我的画像",
+				"enableShareAppMessage": true,
+				"enableShareTimeline": true
+			}
+		},
+		{
 			"path": "pages/notifications/notifications",
 			"style": {
 				"navigationBarTitleText": "消息"

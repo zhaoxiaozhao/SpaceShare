@@ -370,6 +370,29 @@ CREATE TABLE `ActivityComments` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
         }
 
+        // 友邻画像表 PersonaProfiles（已有库补建表）
+        if (!await tableExists("PersonaProfiles"))
+        {
+            logger.LogInformation("MySQL 补建友邻画像表（PersonaProfiles）");
+            await db.Database.ExecuteSqlRawAsync(@"
+CREATE TABLE `PersonaProfiles` (
+  `Id` bigint NOT NULL AUTO_INCREMENT,
+  `UserId` bigint NOT NULL,
+  `Social` int NOT NULL,
+  `Rhythm` int NOT NULL,
+  `Style` int NOT NULL,
+  `Plan` int NOT NULL,
+  `Interest` int NOT NULL,
+  `TypeCode` varchar(64) NOT NULL,
+  `IsPublic` tinyint(1) NOT NULL DEFAULT 0,
+  `CreatedAt` datetime(6) NOT NULL,
+  `UpdatedAt` datetime(6) NOT NULL,
+  PRIMARY KEY (`Id`),
+  UNIQUE KEY `IX_PersonaProfiles_UserId` (`UserId`),
+  CONSTRAINT `FK_PersonaProfiles_Users_UserId` FOREIGN KEY (`UserId`) REFERENCES `Users` (`Id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
+        }
+
         // SeatShares.CheckInCode 列（到座核销码）：已有表补列
         // 注意：MySQL 的 TEXT 列不允许 DEFAULT 值，非空约束由应用层保证
         if (await tableExists("SeatShares") && !await ColumnExistsAsync(db, "SeatShares", "CheckInCode"))

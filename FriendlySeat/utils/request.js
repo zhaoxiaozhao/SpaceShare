@@ -208,7 +208,13 @@ export const api = {
 	// ===== 活动留言 =====
 	getActivityComments: (activityId) => request(`/activity-comments?activityId=${activityId}`, { auth: false }),
 	createActivityComment: (data) => request('/activity-comments', { method: 'POST', data }),
-	deleteActivityComment: (id) => request(`/activity-comments/${id}`, { method: 'DELETE' })
+	deleteActivityComment: (id) => request(`/activity-comments/${id}`, { method: 'DELETE' }),
+
+	// ===== 友邻画像 =====
+	getPersonaQuestions: () => request('/persona/questions', { auth: false }),
+	submitPersona: (data) => request('/persona/submit', { method: 'POST', data }),
+	getPersonaMe: () => request('/persona/me'),
+	setPersonaVisibility: (isPublic) => request('/persona/visibility', { method: 'POST', data: { isPublic } })
 }
 
 function qs(params) {
