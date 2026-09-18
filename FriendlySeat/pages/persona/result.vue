@@ -79,9 +79,10 @@
 		<view class="modal-mask" v-if="showPreview" @click="showPreview = false">
 			<view class="preview" @click.stop>
 				<text class="modal-title">我的友邻画像</text>
-				<image class="poster" :src="posterPath" mode="aspectFit" />
+				<image class="poster" :src="posterPath" mode="aspectFit" show-menu-by-longpress />
 				<button class="btn-primary modal-btn" open-type="share">分享给好友</button>
 				<button class="btn-outline modal-btn" @click="savePoster">保存图片</button>
+				<text class="modal-tip">也可长按上方图片直接保存或转发</text>
 			</view>
 		</view>
 
@@ -387,11 +388,26 @@
 				})
 			},
 			savePoster() {
-				if (!this.posterPath) return
+				if (!this.posterPath) {
+					uni.showToast({ title: '请先生成画像卡', icon: 'none' })
+					return
+				}
 				uni.saveImageToPhotosAlbum({
 					filePath: this.posterPath,
 					success: () => uni.showToast({ title: '已保存到相册', icon: 'success' }),
-					fail: () => uni.showToast({ title: '保存失败', icon: 'none' })
+					fail: (e) => {
+						const msg = (e && e.errMsg) || ''
+						if (msg.indexOf('auth') > -1 || msg.indexOf('authorize') > -1) {
+							uni.showModal({
+								title: '需要相册权限',
+								content: '请允许保存到相册（或长按图片直接保存/转发）',
+								confirmText: '去设置',
+								success: (r) => { if (r.confirm) uni.openSetting({}) }
+							})
+						} else {
+							uni.showToast({ title: '保存失败，可长按图片保存', icon: 'none' })
+						}
+					}
 				})
 			}
 		}
@@ -447,6 +463,7 @@
 	.preview { width: 600rpx; max-height: 86vh; background: #FFFFFF; border-radius: 24rpx; padding: 30rpx; display: flex; flex-direction: column; align-items: center; }
 	.modal-title { font-size: 32rpx; font-weight: 600; margin-bottom: 20rpx; }
 	.poster { width: 460rpx; height: 700rpx; border-radius: 12rpx; background: #F5F3ED; }
+	.modal-tip { font-size: 20rpx; color: #B0B0AB; margin-top: 14rpx; }
 	.modal-btn { margin-top: 20rpx; width: 100%; }
 	.empty { display: flex; align-items: center; justify-content: center; min-height: 60vh; color: #B0B0AB; font-size: 26rpx; }
 </style>
