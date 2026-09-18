@@ -8,7 +8,7 @@ namespace FriendlySeat.Application.Services;
 /// <summary>友邻画像：固定问卷 + 规则算分，生成偏好侧写（非心理测评）。默认私密。</summary>
 public class PersonaService
 {
-    private static readonly string[] Dimensions = { "social", "rhythm", "style", "plan", "interest" };
+    private static readonly string[] Dimensions = { "social", "rhythm", "style", "plan", "interest", "focus", "motive" };
 
     private readonly IAppDbContext _db;
 
@@ -48,8 +48,7 @@ public class PersonaService
             counts[q.Dimension]++;
         }
 
-        var missing = Dimensions.Where(d => counts[d] == 0).ToList();
-        if (missing.Count > 0)
+        if (Dimensions.Any(d => counts[d] == 0))
             throw AppException.BadRequest("answers_incomplete", "请先完成全部题目");
 
         int Score(string d) => Math.Clamp((int)Math.Round((double)sums[d] / counts[d]), 1, 4);
@@ -59,8 +58,10 @@ public class PersonaService
         var style = Score("style");
         var plan = Score("plan");
         var interest = Score("interest");
+        var focus = Score("focus");
+        var motive = Score("motive");
 
-        var typeCode = PersonaCatalog.ResolveTypeCode(social, rhythm, style);
+        var typeCode = PersonaCatalog.ResolveTypeCode(social, rhythm, style, plan);
 
         var profile = await _db.PersonaProfiles.FirstOrDefaultAsync(p => p.UserId == userId, ct);
         if (profile is null)
@@ -73,6 +74,8 @@ public class PersonaService
         profile.Style = style;
         profile.Plan = plan;
         profile.Interest = interest;
+        profile.Focus = focus;
+        profile.Motive = motive;
         profile.TypeCode = typeCode;
         profile.UpdatedAt = DateTime.UtcNow;
 
@@ -98,23 +101,37 @@ public class PersonaService
 
     private static PersonaProfileDto ToDto(PersonaProfile p)
     {
-        var type = PersonaCatalog.Types.TryGetValue(p.TypeCode, out var t) ? t : PersonaCatalog.Types["morning_solo_focus"];
+        var type = PersonaCatalog.Types.TryGetValue(p.TypeCode, out var t)
+            ? t
+            : PersonaCatalog.Types["morning_solo_immerser"];
+
         var dims = new Dictionary<string, int>
         {
             ["social"] = p.Social,
             ["rhythm"] = p.Rhythm,
             ["style"] = p.Style,
             ["plan"] = p.Plan,
-            ["interest"] = p.Interest
+            ["interest"] = p.Interest,
+            ["focus"] = p.Focus,
+            ["motive"] = p.Motive
         };
+
+        var (high, complement, warmup) = PersonaCatalog.BuildPairings(type.Code);
+
+        static List<PersonaMatchDto> Map(IEnumerable<PersonaCatalog.PersonaType> list) => list
+            .Select(x => new PersonaMatchDto { Code = x.Code, Name = x.Name, Desc = x.Desc })
+            .ToList();
 
         return new PersonaProfileDto
         {
             TypeCode = type.Code,
             TypeName = type.Name,
             TypeDesc = type.Desc,
-            Advice = type.Advice,
-            Tags = PersonaCatalog.BuildTags(p.Social, p.Rhythm, p.Style, p.Plan, p.Interest).ToList(),
+            Quote = type.Quote,
+            Color = type.Color,
+            Scene = type.Scene,
+            Tags = PersonaCatalog.BuildTags(p.Social, p.Rhythm, p.Style, p.Plan, p.Interest, p.Focus, p.Motive).ToList(),
+            Roles = PersonaCatalog.BuildRoles(p.Social, p.Style, p.Plan, p.Focus, p.Motive).ToList(),
             Dimensions = dims.Select(kv => new PersonaDimensionDto
             {
                 Key = kv.Key,
@@ -123,14 +140,12 @@ public class PersonaService
                 High = PersonaCatalog.DimensionHigh(kv.Key),
                 Score = kv.Value
             }).ToList(),
-            Matches = type.MatchCodes
-                .Where(code => PersonaCatalog.Types.ContainsKey(code))
-                .Select(code =>
-                {
-                    var m = PersonaCatalog.Types[code];
-                    return new PersonaMatchDto { Code = m.Code, Name = m.Name, Desc = m.Desc };
-                })
-                .ToList(),
+            Pairings = new List<PersonaPairGroupDto>
+            {
+                new() { Title = "高契合搭子", Reason = "作息、节奏都合得上，约起来最省心", Items = Map(high) },
+                new() { Title = "互补搭子", Reason = "有些地方不一样，正好互相补位", Items = Map(complement) },
+                new() { Title = "需要磨合", Reason = "作息或节奏差得较多，建议先商量好规则", Items = Map(warmup) }
+            },
             IsPublic = p.IsPublic,
             UpdatedAt = p.UpdatedAt
         };

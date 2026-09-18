@@ -383,6 +383,8 @@ CREATE TABLE `PersonaProfiles` (
   `Style` int NOT NULL,
   `Plan` int NOT NULL,
   `Interest` int NOT NULL,
+  `Focus` int NOT NULL,
+  `Motive` int NOT NULL,
   `TypeCode` varchar(64) NOT NULL,
   `IsPublic` tinyint(1) NOT NULL DEFAULT 0,
   `CreatedAt` datetime(6) NOT NULL,
@@ -391,6 +393,14 @@ CREATE TABLE `PersonaProfiles` (
   UNIQUE KEY `IX_PersonaProfiles_UserId` (`UserId`),
   CONSTRAINT `FK_PersonaProfiles_Users_UserId` FOREIGN KEY (`UserId`) REFERENCES `Users` (`Id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
+        }
+
+        // PersonaProfiles.Focus / Motive 列（画像扩展维度）：已有表补列
+        if (await tableExists("PersonaProfiles") && !await ColumnExistsAsync(db, "PersonaProfiles", "Focus"))
+        {
+            logger.LogInformation("MySQL 补充 PersonaProfiles.Focus/Motive 列");
+            await db.Database.ExecuteSqlRawAsync("ALTER TABLE `PersonaProfiles` ADD COLUMN `Focus` int NOT NULL DEFAULT 0;");
+            await db.Database.ExecuteSqlRawAsync("ALTER TABLE `PersonaProfiles` ADD COLUMN `Motive` int NOT NULL DEFAULT 0;");
         }
 
         // SeatShares.CheckInCode 列（到座核销码）：已有表补列

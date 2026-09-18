@@ -42,15 +42,25 @@ public class PersonaMatchDto
     public string Desc { get; set; } = string.Empty;
 }
 
+public class PersonaPairGroupDto
+{
+    public string Title { get; set; } = string.Empty;
+    public string Reason { get; set; } = string.Empty;
+    public List<PersonaMatchDto> Items { get; set; } = new();
+}
+
 public class PersonaProfileDto
 {
     public string TypeCode { get; set; } = string.Empty;
     public string TypeName { get; set; } = string.Empty;
     public string TypeDesc { get; set; } = string.Empty;
-    public string Advice { get; set; } = string.Empty;
+    public string Quote { get; set; } = string.Empty;
+    public string Color { get; set; } = string.Empty;
+    public string Scene { get; set; } = string.Empty;
     public List<string> Tags { get; set; } = new();
+    public List<string> Roles { get; set; } = new();
     public List<PersonaDimensionDto> Dimensions { get; set; } = new();
-    public List<PersonaMatchDto> Matches { get; set; } = new();
+    public List<PersonaPairGroupDto> Pairings { get; set; } = new();
     public bool IsPublic { get; set; }
     public DateTime UpdatedAt { get; set; }
 }

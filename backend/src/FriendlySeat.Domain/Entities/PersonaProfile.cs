@@ -24,6 +24,12 @@ public class PersonaProfile
     /// <summary>兴趣取向：1 人文 ↔ 4 实用</summary>
     public int Interest { get; set; }
 
+    /// <summary>专注节奏：1 短冲刺 ↔ 4 长时段沉浸</summary>
+    public int Focus { get; set; }
+
+    /// <summary>共学动机：1 自我驱动 ↔ 4 陪伴监督</summary>
+    public int Motive { get; set; }
+
     /// <summary>类型 code（见 PersonaCatalog.Types）</summary>
     public string TypeCode { get; set; } = string.Empty;
 
