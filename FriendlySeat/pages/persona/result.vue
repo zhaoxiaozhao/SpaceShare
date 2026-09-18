@@ -310,7 +310,9 @@
 					this.showPreview = true
 				} catch (e) {
 					uni.hideLoading()
-					uni.showToast({ title: '生成失败，请重试', icon: 'none' })
+					const msg = (e && (e.errMsg || e.message)) || String(e || '未知错误')
+					console.error('[persona] 生成画像卡失败', e)
+					uni.showModal({ title: '生成失败', content: msg, showCancel: false })
 				}
 			},
 			async drawPoster() {
@@ -330,7 +332,7 @@
 						resolve(res && res[0] ? res[0].node : null)
 					})
 				})
-				if (!node) throw new Error('canvas_not_found')
+				if (!node) throw new Error('canvas_not_found 未取到 #personaCard 画布节点')
 
 				const dpr = Math.min(uni.getSystemInfoSync().pixelRatio || 2, 2)
 				node.width = W * dpr
@@ -499,7 +501,7 @@
 								this.posterPath = res.tempFilePath
 								resolve()
 							},
-							fail: reject
+							fail: (err) => reject(new Error('canvasToTempFilePath ' + ((err && err.errMsg) || '')))
 						}, this)
 					}, 200)
 				})
