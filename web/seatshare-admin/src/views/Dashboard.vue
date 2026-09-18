@@ -34,8 +34,19 @@ const cards = computed(() => [
   { label: '进行中预约', value: overview.value.activeReservations ?? '-' },
   { label: '到达率', value: overview.value.arrivalRate != null ? overview.value.arrivalRate + '%' : '-' },
   { label: '爽约率', value: overview.value.noShowRate != null ? overview.value.noShowRate + '%' : '-' },
-  { label: '待处理举报', value: overview.value.pendingReports ?? '-' }
+  { label: '待处理举报', value: overview.value.pendingReports ?? '-' },
+  { label: '学习总时长(小时)', value: fmtHours(overview.value.studyTotalMinutes) },
+  { label: '学习用户数', value: overview.value.studyUserCount ?? '-' },
+  { label: '今日学习(分钟)', value: overview.value.studyTodayMinutes ?? '-' },
+  { label: '阅读总时长(小时)', value: fmtHours(overview.value.readingTotalMinutes) },
+  { label: '阅读用户数', value: overview.value.readingUserCount ?? '-' },
+  { label: '读完书籍', value: overview.value.finishedBookCount ?? '-' }
 ])
+
+function fmtHours(min) {
+  if (min == null) return '-'
+  return (min / 60).toFixed(1).replace('.0', '')
+}
 
 onMounted(async () => {
   const [o, t] = await Promise.all([statsApi.overview(), statsApi.trend(days.value)])

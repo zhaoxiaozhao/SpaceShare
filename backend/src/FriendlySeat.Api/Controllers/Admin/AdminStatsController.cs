@@ -20,4 +20,14 @@ public class AdminStatsController : AdminControllerBase
     [HttpGet("stats/trend")]
     public async Task<ActionResult<DailyTrendDto>> Trend(CancellationToken ct, [FromQuery] int days = 14)
         => Ok(await _stats.GetDailyTrendAsync(days, ct));
+
+    /// <summary>学习/阅读 聚合概览（含近 N 日趋势）</summary>
+    [HttpGet("stats/learning")]
+    public async Task<ActionResult<LearningOverviewDto>> Learning(CancellationToken ct, [FromQuery] int days = 7)
+        => Ok(await _stats.GetLearningOverviewAsync(days, ct));
+
+    /// <summary>学习/阅读 用户维度列表</summary>
+    [HttpGet("stats/learning/users")]
+    public async Task<ActionResult<List<LearningUserDto>>> LearningUsers(CancellationToken ct, [FromQuery] int take = 100)
+        => Ok(await _stats.GetLearningUsersAsync(take, ct));
 }

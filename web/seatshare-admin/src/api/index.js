@@ -7,7 +7,9 @@ export const authApi = {
 
 export const statsApi = {
   overview: () => request.get('/stats/overview'),
-  trend: (days = 14) => request.get(`/stats/trend?days=${days}`)
+  trend: (days = 14) => request.get(`/stats/trend?days=${days}`),
+  learning: (days = 7) => request.get(`/stats/learning?days=${days}`),
+  learningUsers: (take = 100) => request.get(`/stats/learning/users?take=${take}`)
 }
 
 export const userApi = {

@@ -7,6 +7,7 @@
       </div>
       <el-menu :default-active="$route.path" router background-color="#2B403C" text-color="#B8CCC7" active-text-color="#ffffff">
         <el-menu-item index="/dashboard"><el-icon><DataAnalysis /></el-icon>数据统计</el-menu-item>
+        <el-menu-item index="/learning"><el-icon><Notebook /></el-icon>学习/阅读</el-menu-item>
         <el-menu-item index="/users"><el-icon><User /></el-icon>用户管理</el-menu-item>
         <el-menu-item index="/admins"><el-icon><Avatar /></el-icon>管理员管理</el-menu-item>
         <el-menu-item index="/venues"><el-icon><OfficeBuilding /></el-icon>场馆管理</el-menu-item>
