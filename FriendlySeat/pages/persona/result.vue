@@ -184,7 +184,7 @@
 					})
 				})
 				if (!node) return
-				const dpr = uni.getSystemInfoSync().pixelRatio || 2
+				const dpr = Math.min(uni.getSystemInfoSync().pixelRatio || 2, 2)
 				node.width = W * dpr
 				node.height = H * dpr
 				const ctx = node.getContext('2d')
@@ -202,6 +202,12 @@
 					showScale: true,
 					showScore: true
 				}, 700)
+			},
+			withTimeout(promise, ms, fallback) {
+				return Promise.race([
+					Promise.resolve(promise).catch(() => fallback),
+					new Promise((resolve) => setTimeout(() => resolve(fallback), ms))
+				])
 			},
 			saveDataUrl(dataUrl) {
 				return new Promise((resolve) => {
@@ -224,6 +230,10 @@
 					const dataUrl = this.avatarInfo && this.avatarInfo.dataUrl
 					if (!dataUrl) {
 						console.warn('[persona] 无头像数据（后端未返回 dataUrl）')
+						return resolve(null)
+					}
+					if (String(dataUrl).length > 1500000) {
+						console.warn('[persona] 头像过大，跳过', String(dataUrl).length)
 						return resolve(null)
 					}
 					const build = (pth) => {
@@ -322,13 +332,13 @@
 				})
 				if (!node) throw new Error('canvas_not_found')
 
-				const dpr = uni.getSystemInfoSync().pixelRatio || 2
+				const dpr = Math.min(uni.getSystemInfoSync().pixelRatio || 2, 2)
 				node.width = W * dpr
 				node.height = H * dpr
 				const ctx = node.getContext('2d')
 				ctx.scale(dpr, dpr)
 
-				this.avatarImg = await this.loadAvatarImage(node)
+				this.avatarImg = await this.withTimeout(this.loadAvatarImage(node), 3000, null)
 
 				const theme = getTheme()
 				const primary = theme.primary

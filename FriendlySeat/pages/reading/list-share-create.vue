@@ -236,7 +236,7 @@
 				})
 				if (!node) throw new Error('canvas_not_found')
 
-				const dpr = uni.getSystemInfoSync().pixelRatio || 2
+				const dpr = Math.min(uni.getSystemInfoSync().pixelRatio || 2, 2)
 				node.width = W * dpr
 				node.height = H * dpr
 				const ctx = node.getContext('2d')
