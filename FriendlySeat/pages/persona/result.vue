@@ -355,7 +355,7 @@
 				const W = 640
 				const pad = 40
 				const topY = 36
-				const topH = 340
+				const topH = 372
 				const tagsH = 84
 				const dimsH = 396
 				const pairH = 56 + (p.pairings || []).length * 96 + 16
@@ -451,14 +451,20 @@
 					ctx.fillText('学习气质 · 像 ' + p.poet, pad + 30, topY + 166)
 				}
 
+				if (p.poetLine) {
+					ctx.fillStyle = 'rgba(255,255,255,0.88)'
+					ctx.font = 'italic 24px sans-serif'
+					this.wrap(ctx, '「' + p.poetLine + '」', pad + 30, topY + 202, W - pad * 2 - 60, 30, 1)
+				}
+
 				ctx.fillStyle = 'rgba(255,255,255,0.92)'
 				ctx.font = '24px sans-serif'
-				this.wrap(ctx, p.typeDesc, pad + 30, topY + 208, W - pad * 2 - 60, 34, 2)
+				this.wrap(ctx, p.typeDesc, pad + 30, topY + 244, W - pad * 2 - 60, 34, 2)
 
 				if (p.quote) {
 					ctx.fillStyle = 'rgba(255,255,255,0.8)'
 					ctx.font = 'italic 22px sans-serif'
-					this.wrap(ctx, '「' + p.quote + '」', pad + 30, topY + 300, W - pad * 2 - 60, 30, 1)
+					this.wrap(ctx, '「' + p.quote + '」', pad + 30, topY + 328, W - pad * 2 - 60, 30, 1)
 				}
 
 				// 标签（两行内）
