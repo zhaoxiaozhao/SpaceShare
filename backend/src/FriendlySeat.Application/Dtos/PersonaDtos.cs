@@ -72,3 +72,10 @@ public class PersonaVisibilityRequest
 {
     public bool IsPublic { get; set; }
 }
+
+/// <summary>画像海报用：昵称 + 头像（云存储代理为 base64 data URL）</summary>
+public class PersonaAvatarDto
+{
+    public string Name { get; set; } = string.Empty;
+    public string? DataUrl { get; set; }
+}

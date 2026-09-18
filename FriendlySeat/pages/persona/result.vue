@@ -5,8 +5,14 @@
 		<!-- 画像卡 -->
 		<view class="hero">
 			<view class="hero-top">
-				<view class="type-dot" :style="{ background: p.color }"></view>
-				<text class="hero-label">友邻画像 · 偏好侧写</text>
+				<view class="hero-left">
+					<view class="type-dot" :style="{ background: p.color }"></view>
+					<text class="hero-label">友邻画像 · 偏好侧写</text>
+				</view>
+				<view class="hero-user">
+					<text class="hero-name">{{userName}}</text>
+					<Avatar :url="userAvatar" :name="userName" :size="56" />
+				</view>
 			</view>
 			<text class="hero-type">{{p.typeName}}</text>
 			<text class="hero-desc">{{p.typeDesc}}</text>
@@ -100,8 +106,19 @@
 		data() {
 			return {
 				p: null,
+				avatarInfo: { name: '', dataUrl: '' },
+				user: uni.getStorageSync('user') || {},
+				avatarImg: null,
 				posterPath: '',
 				showPreview: false
+			}
+		},
+		computed: {
+			userName() {
+				return this.avatarInfo.name || this.user.nickname || '友邻'
+			},
+			userAvatar() {
+				return this.avatarInfo.dataUrl || this.user.avatarUrl || ''
 			}
 		},
 		onLoad() {
@@ -133,6 +150,10 @@
 					uni.redirectTo({ url: '/pages/persona/quiz' })
 					return
 				}
+				try {
+					const info = await api.getPersonaAvatar()
+					if (info) this.avatarInfo = info
+				} catch (e) {}
 				await this.$nextTick()
 				this.drawRadarChart()
 			},
@@ -178,6 +199,35 @@
 					showScale: true,
 					showScore: true
 				}, 700)
+			},
+			saveDataUrl(dataUrl) {
+				return new Promise((resolve) => {
+					try {
+						const i = String(dataUrl).indexOf(',')
+						const b64 = i >= 0 ? dataUrl.slice(i + 1) : dataUrl
+						const m = /^data:image\/(\w+)/.exec(String(dataUrl))
+						const ext = m ? m[1] : 'jpg'
+						const fs = wx.getFileSystemManager()
+						const pth = `${wx.env.USER_DATA_PATH}/persona_avatar.${ext}`
+						fs.writeFileSync(pth, b64, 'base64')
+						resolve(pth)
+					} catch (e) {
+						resolve(null)
+					}
+				})
+			},
+			loadAvatarImage(canvas) {
+				return new Promise((resolve) => {
+					const dataUrl = this.avatarInfo && this.avatarInfo.dataUrl
+					if (!dataUrl) return resolve(null)
+					this.saveDataUrl(dataUrl).then((pth) => {
+						if (!pth) return resolve(null)
+						const img = canvas.createImage()
+						img.onload = () => resolve(img)
+						img.onerror = () => resolve(null)
+						img.src = pth
+					})
+				})
 			},
 			lighten(hex, ratio) {
 				const h = String(hex || '#6BAF8B').replace('#', '')
@@ -254,6 +304,8 @@
 				const ctx = node.getContext('2d')
 				ctx.scale(dpr, dpr)
 
+				this.avatarImg = await this.loadAvatarImage(node)
+
 				const theme = getTheme()
 				const primary = theme.primary
 				const primaryLight = theme.primaryLight
@@ -286,6 +338,37 @@
 				ctx.fillStyle = 'rgba(255,255,255,0.85)'
 				ctx.font = '22px sans-serif'
 				ctx.fillText('友邻画像 · 偏好侧写', pad + 56, topY + 52)
+
+				// 右上角：头像 + 昵称
+				const nick = (this.userName || '友邻').slice(0, 6)
+				const avSize = 46
+				const avX = W - pad - 30 - avSize
+				const avY = topY + 28
+				if (this.avatarImg) {
+					ctx.save()
+					ctx.beginPath()
+					ctx.arc(avX + avSize / 2, avY + avSize / 2, avSize / 2, 0, Math.PI * 2)
+					ctx.clip()
+					ctx.drawImage(this.avatarImg, avX, avY, avSize, avSize)
+					ctx.restore()
+				} else {
+					ctx.fillStyle = 'rgba(255,255,255,0.35)'
+					ctx.beginPath()
+					ctx.arc(avX + avSize / 2, avY + avSize / 2, avSize / 2, 0, Math.PI * 2)
+					ctx.fill()
+					ctx.fillStyle = '#FFFFFF'
+					ctx.font = 'bold 22px sans-serif'
+					ctx.textAlign = 'center'
+					ctx.textBaseline = 'middle'
+					ctx.fillText(nick.slice(0, 1) || '友', avX + avSize / 2, avY + avSize / 2)
+					ctx.textAlign = 'left'
+					ctx.textBaseline = 'alphabetic'
+				}
+				ctx.textAlign = 'right'
+				ctx.fillStyle = 'rgba(255,255,255,0.95)'
+				ctx.font = '22px sans-serif'
+				ctx.fillText(nick, avX - 12, avY + avSize / 2 + 7)
+				ctx.textAlign = 'left'
 
 				ctx.fillStyle = '#FFFFFF'
 				ctx.font = 'bold 56px sans-serif'
@@ -417,7 +500,10 @@
 <style scoped>
 	.page { padding-bottom: 40rpx; }
 	.hero { margin: 20rpx; border-radius: 28rpx; color: #FFFFFF; padding: 44rpx 36rpx; box-shadow: 0 10rpx 30rpx rgba(0,0,0,0.08); background: linear-gradient(160deg, var(--primary), var(--primary-light)); }
-	.hero-top { display: flex; align-items: center; gap: 10rpx; }
+	.hero-top { display: flex; align-items: center; justify-content: space-between; gap: 16rpx; }
+	.hero-left { display: flex; align-items: center; gap: 10rpx; min-width: 0; }
+	.hero-user { display: flex; align-items: center; gap: 12rpx; flex-shrink: 0; }
+	.hero-name { font-size: 24rpx; opacity: 0.9; max-width: 220rpx; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 	.type-dot { width: 16rpx; height: 16rpx; border-radius: 50%; flex-shrink: 0; }
 	.hero-label { display: block; font-size: 24rpx; opacity: 0.85; }
 	.hero-type { display: block; font-size: 60rpx; font-weight: 700; margin-top: 16rpx; }

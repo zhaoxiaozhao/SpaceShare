@@ -44,4 +44,9 @@ public class PersonaController : ControllerBase
     [HttpPost("visibility")]
     public async Task<ActionResult<PersonaProfileDto>> Visibility([FromBody] PersonaVisibilityRequest request, CancellationToken ct)
         => Ok(await _persona.SetVisibilityAsync(_currentUser.UserId!.Value, request.IsPublic, ct));
+
+    /// <summary>画像海报用：昵称 + 头像</summary>
+    [HttpGet("avatar")]
+    public async Task<ActionResult<PersonaAvatarDto>> Avatar(CancellationToken ct)
+        => Ok(await _persona.GetAvatarAsync(_currentUser.UserId!.Value, ct));
 }

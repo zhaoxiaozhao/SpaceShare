@@ -214,6 +214,7 @@ export const api = {
 	getPersonaQuestions: () => request('/persona/questions', { auth: false }),
 	submitPersona: (data) => request('/persona/submit', { method: 'POST', data }),
 	getPersonaMe: () => request('/persona/me'),
+	getPersonaAvatar: () => request('/persona/avatar'),
 	setPersonaVisibility: (isPublic) => request('/persona/visibility', { method: 'POST', data: { isPublic } })
 }
 

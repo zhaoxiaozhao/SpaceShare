@@ -11,10 +11,12 @@ public class PersonaService
     private static readonly string[] Dimensions = { "social", "rhythm", "style", "plan", "interest", "focus", "motive" };
 
     private readonly IAppDbContext _db;
+    private readonly IWechatService _wechat;
 
-    public PersonaService(IAppDbContext db)
+    public PersonaService(IAppDbContext db, IWechatService wechat)
     {
         _db = db;
+        _wechat = wechat;
     }
 
     public Task<List<PersonaQuestionDto>> GetQuestionsAsync(CancellationToken ct = default)
@@ -97,6 +99,44 @@ public class PersonaService
         profile.UpdatedAt = DateTime.UtcNow;
         await _db.SaveChangesAsync(ct);
         return ToDto(profile);
+    }
+
+    /// <summary>画像海报用：昵称 + 头像（云存储 fileID 由后端代理取回并转 base64）</summary>
+    public async Task<PersonaAvatarDto> GetAvatarAsync(long userId, CancellationToken ct = default)
+    {
+        var user = await _db.Users.Where(u => u.Id == userId)
+            .Select(u => new { u.Nickname, u.AvatarUrl })
+            .FirstOrDefaultAsync(ct);
+        if (user is null) return new PersonaAvatarDto();
+
+        string? dataUrl = null;
+        var url = user.AvatarUrl;
+        if (!string.IsNullOrWhiteSpace(url))
+        {
+            if (url.StartsWith("cloud://", StringComparison.OrdinalIgnoreCase))
+            {
+                var bytes = await _wechat.DownloadCloudFileAsync(url, ct);
+                if (bytes is { Length: > 0 } && bytes.Length <= 2_000_000)
+                {
+                    dataUrl = $"data:{DetectImageMime(bytes)};base64,{Convert.ToBase64String(bytes)}";
+                }
+            }
+            else
+            {
+                dataUrl = url;
+            }
+        }
+
+        return new PersonaAvatarDto { Name = user.Nickname ?? "友邻", DataUrl = dataUrl };
+    }
+
+    private static string DetectImageMime(byte[] b)
+    {
+        if (b.Length >= 3 && b[0] == 0xFF && b[1] == 0xD8) return "image/jpeg";
+        if (b.Length >= 4 && b[0] == 0x89 && b[1] == 0x50 && b[2] == 0x4E && b[3] == 0x47) return "image/png";
+        if (b.Length >= 12 && b[8] == 0x57 && b[9] == 0x45 && b[10] == 0x42 && b[11] == 0x50) return "image/webp";
+        if (b.Length >= 3 && b[0] == 0x47 && b[1] == 0x49 && b[2] == 0x46) return "image/gif";
+        return "image/jpeg";
     }
 
     private static PersonaProfileDto ToDto(PersonaProfile p)
