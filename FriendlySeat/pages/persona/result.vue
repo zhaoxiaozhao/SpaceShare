@@ -153,7 +153,10 @@
 				try {
 					const info = await api.getPersonaAvatar()
 					if (info) this.avatarInfo = info
-				} catch (e) {}
+					console.log('[persona] 头像数据：', info)
+				} catch (e) {
+					console.warn('[persona] 获取头像失败', e)
+				}
 				await this.$nextTick()
 				this.drawRadarChart()
 			},
@@ -219,14 +222,35 @@
 			loadAvatarImage(canvas) {
 				return new Promise((resolve) => {
 					const dataUrl = this.avatarInfo && this.avatarInfo.dataUrl
-					if (!dataUrl) return resolve(null)
-					this.saveDataUrl(dataUrl).then((pth) => {
-						if (!pth) return resolve(null)
+					if (!dataUrl) {
+						console.warn('[persona] 无头像数据（后端未返回 dataUrl）')
+						return resolve(null)
+					}
+					const build = (pth) => {
+						if (!pth) {
+							console.warn('[persona] 头像本地路径为空')
+							return resolve(null)
+						}
 						const img = canvas.createImage()
 						img.onload = () => resolve(img)
-						img.onerror = () => resolve(null)
+						img.onerror = (e) => {
+							console.warn('[persona] 头像图片加载失败', e)
+							resolve(null)
+						}
 						img.src = pth
-					})
+					}
+					if (/^https?:/.test(String(dataUrl))) {
+						uni.downloadFile({
+							url: dataUrl,
+							success: (r) => build(r.statusCode === 200 ? r.tempFilePath : null),
+							fail: (e) => {
+								console.warn('[persona] 头像下载失败', e)
+								resolve(null)
+							}
+						})
+					} else {
+						this.saveDataUrl(dataUrl).then(build)
+					}
 				})
 			},
 			lighten(hex, ratio) {
