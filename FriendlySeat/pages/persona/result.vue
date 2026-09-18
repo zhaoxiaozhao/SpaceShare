@@ -98,6 +98,7 @@
 </template>
 
 <script>
+	import { markRaw } from 'vue'
 	import { api } from '../../utils/request.js'
 	import { drawRadar } from '../../utils/radar.js'
 	import { getTheme } from '../../utils/theme.js'
@@ -269,7 +270,14 @@
 							return resolve(null)
 						}
 						const img = canvas.createImage()
-						img.onload = () => resolve(img && img.width > 0 && img.height > 0 ? img : null)
+						img.onload = () => {
+							try {
+								if (img.width > 0 && img.height > 0) return resolve(markRaw(img))
+							} catch (e) {
+								console.warn('[persona] 头像尺寸读取失败', e)
+							}
+							resolve(null)
+						}
 						img.onerror = (e) => {
 							console.warn('[persona] 头像图片加载失败', e)
 							resolve(null)
@@ -407,7 +415,7 @@
 				const avSize = 46
 				const avX = W - pad - 30 - avSize
 				const avY = topY + 28
-				if (this.avatarImg && this.avatarImg.width > 0 && this.avatarImg.height > 0) {
+				if (this.avatarImg) {
 					ctx.save()
 					ctx.beginPath()
 					ctx.arc(avX + avSize / 2, avY + avSize / 2, avSize / 2, 0, Math.PI * 2)
