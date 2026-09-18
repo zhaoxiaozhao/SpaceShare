@@ -46,7 +46,7 @@
 		<!-- 维度 -->
 		<view class="card">
 			<text class="card-title">偏好维度</text>
-			<canvas type="2d" id="radarChart" class="radar"></canvas>
+			<canvas canvas-id="radarChart" id="radarChart" class="radar"></canvas>
 			<view class="dim-legend">
 				<view class="legend-item" v-for="d in p.dimensions" :key="d.key">
 					<text class="legend-label">{{d.label}}</text>
@@ -99,7 +99,7 @@
 
 <script>
 	import { api } from '../../utils/request.js'
-	import { drawRadar, animateRadar } from '../../utils/radar.js'
+	import { drawRadar } from '../../utils/radar.js'
 	import { getTheme } from '../../utils/theme.js'
 
 	export default {
@@ -174,34 +174,61 @@
 					uni.showToast({ title: err.message || '操作失败', icon: 'none' })
 				}
 			},
-			async drawRadarChart() {
+			// 老版 canvas API 适配器：把 2d 的属性写法映射为 setXxx 方法
+			legacyCtx(ctx) {
+				const a = {
+					beginPath: () => ctx.beginPath(),
+					moveTo: (x, y) => ctx.moveTo(x, y),
+					lineTo: (x, y) => ctx.lineTo(x, y),
+					closePath: () => ctx.closePath(),
+					stroke: () => ctx.stroke(),
+					fill: () => ctx.fill(),
+					arc: (x, y, r, s, e) => ctx.arc(x, y, r, s, e),
+					fillText: (t, x, y) => ctx.fillText(t, x, y),
+					measureText: (t) => ctx.measureText(t),
+					clearRect: (x, y, w, h) => ctx.clearRect(x, y, w, h)
+				}
+				Object.defineProperty(a, 'fillStyle', { set: (v) => ctx.setFillStyle(v) })
+				Object.defineProperty(a, 'strokeStyle', { set: (v) => ctx.setStrokeStyle(v) })
+				Object.defineProperty(a, 'lineWidth', { set: (v) => ctx.setLineWidth(v) })
+				Object.defineProperty(a, 'textAlign', { set: (v) => ctx.setTextAlign(v), get: () => 'left' })
+				Object.defineProperty(a, 'textBaseline', { set: (v) => ctx.setTextBaseline(v), get: () => 'alphabetic' })
+				Object.defineProperty(a, 'font', {
+					set: (v) => {
+						const m = /(\d+)/.exec(String(v))
+						ctx.setFontSize(m ? Number(m[1]) : 14)
+					}
+				})
+				return a
+			},
+			drawRadarChart() {
 				if (!this.p) return
 				const W = 320
 				const H = 300
-				const node = await new Promise((resolve) => {
-					wx.createSelectorQuery().in(this).select('#radarChart').fields({ node: true, size: true }).exec((res) => {
-						resolve(res && res[0] ? res[0].node : null)
-					})
-				})
-				if (!node) return
-				const dpr = Math.min(uni.getSystemInfoSync().pixelRatio || 2, 2)
-				node.width = W * dpr
-				node.height = H * dpr
-				const ctx = node.getContext('2d')
-				ctx.scale(dpr, dpr)
-				await animateRadar(node, ctx, {
+				const ctx = uni.createCanvasContext('radarChart', this)
+				const adapter = this.legacyCtx(ctx)
+				const opts = {
 					cx: W / 2,
 					cy: 150,
 					radius: 100,
-					width: W,
-					height: H,
 					dimensions: this.p.dimensions,
 					color: getTheme().primary,
 					labelColor: '#8A8A86',
 					labelFont: '13px sans-serif',
 					showScale: true,
 					showScore: true
-				}, 700)
+				}
+				const frames = 12
+				let i = 0
+				const tick = () => {
+					i++
+					const eased = 1 - Math.pow(1 - i / frames, 3)
+					ctx.clearRect(0, 0, W, H)
+					drawRadar(adapter, Object.assign({}, opts, { progress: eased }))
+					ctx.draw()
+					if (i < frames) setTimeout(tick, 40)
+				}
+				tick()
 			},
 			withTimeout(promise, ms, fallback) {
 				return Promise.race([
