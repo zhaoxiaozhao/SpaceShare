@@ -269,7 +269,7 @@
 							return resolve(null)
 						}
 						const img = canvas.createImage()
-						img.onload = () => resolve(img)
+						img.onload = () => resolve(img && img.width > 0 && img.height > 0 ? img : null)
 						img.onerror = (e) => {
 							console.warn('[persona] 头像图片加载失败', e)
 							resolve(null)
@@ -407,7 +407,7 @@
 				const avSize = 46
 				const avX = W - pad - 30 - avSize
 				const avY = topY + 28
-				if (this.avatarImg) {
+				if (this.avatarImg && this.avatarImg.width > 0 && this.avatarImg.height > 0) {
 					ctx.save()
 					ctx.beginPath()
 					ctx.arc(avX + avSize / 2, avY + avSize / 2, avSize / 2, 0, Math.PI * 2)
@@ -529,7 +529,7 @@
 								resolve()
 							},
 							fail: (err) => reject(new Error('canvasToTempFilePath ' + ((err && err.errMsg) || '')))
-						}, this)
+						})
 					}, 200)
 				})
 			},
