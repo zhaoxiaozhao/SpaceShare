@@ -3,8 +3,11 @@
 	<PrivacyPopup />
 	<view v-if="p" class="page">
 		<!-- 画像卡 -->
-		<view class="hero" :style="{ background: p.color }">
-			<text class="hero-label">友邻画像 · 偏好侧写</text>
+		<view class="hero">
+			<view class="hero-top">
+				<view class="type-dot" :style="{ background: p.color }"></view>
+				<text class="hero-label">友邻画像 · 偏好侧写</text>
+			</view>
 			<text class="hero-type">{{p.typeName}}</text>
 			<text class="hero-desc">{{p.typeDesc}}</text>
 			<text class="hero-quote" v-if="p.quote">「{{p.quote}}」</text>
@@ -79,6 +82,7 @@
 <script>
 	import { api } from '../../utils/request.js'
 	import { drawRadar, animateRadar } from '../../utils/radar.js'
+	import { getTheme } from '../../utils/theme.js'
 
 	export default {
 		data() {
@@ -156,7 +160,7 @@
 					width: W,
 					height: H,
 					dimensions: this.p.dimensions,
-					color: this.p.color,
+					color: getTheme().primary,
 					labelColor: '#8A8A86',
 					labelFont: '13px sans-serif',
 					showScale: true,
@@ -238,7 +242,10 @@
 				const ctx = node.getContext('2d')
 				ctx.scale(dpr, dpr)
 
-				const primary = p.color || '#6BAF8B'
+				const theme = getTheme()
+				const primary = theme.primary
+				const primaryLight = theme.primaryLight
+				const typeColor = p.color || primary
 				const dark = '#2B2B27'
 				const sub = '#9A9A94'
 
@@ -251,7 +258,7 @@
 				ctx.clip()
 				const g = ctx.createLinearGradient(pad, topY, W - pad, topY + topH)
 				g.addColorStop(0, primary)
-				g.addColorStop(1, this.lighten(primary, 0.35))
+				g.addColorStop(1, primaryLight)
 				ctx.fillStyle = g
 				ctx.fillRect(pad, topY, W - pad * 2, topH)
 				ctx.fillStyle = 'rgba(255,255,255,0.12)'
@@ -261,9 +268,12 @@
 				ctx.restore()
 
 				ctx.textAlign = 'left'
+				ctx.fillStyle = typeColor
+				this.rr(ctx, pad + 30, topY + 36, 16, 16, 8)
+				ctx.fill()
 				ctx.fillStyle = 'rgba(255,255,255,0.85)'
 				ctx.font = '22px sans-serif'
-				ctx.fillText('友邻画像 · 偏好侧写', pad + 30, topY + 52)
+				ctx.fillText('友邻画像 · 偏好侧写', pad + 56, topY + 52)
 
 				ctx.fillStyle = '#FFFFFF'
 				ctx.font = 'bold 56px sans-serif'
@@ -373,7 +383,9 @@
 
 <style scoped>
 	.page { padding-bottom: 40rpx; }
-	.hero { margin: 20rpx; border-radius: 28rpx; color: #FFFFFF; padding: 44rpx 36rpx; box-shadow: 0 10rpx 30rpx rgba(0,0,0,0.08); }
+	.hero { margin: 20rpx; border-radius: 28rpx; color: #FFFFFF; padding: 44rpx 36rpx; box-shadow: 0 10rpx 30rpx rgba(0,0,0,0.08); background: linear-gradient(160deg, var(--primary), var(--primary-light)); }
+	.hero-top { display: flex; align-items: center; gap: 10rpx; }
+	.type-dot { width: 16rpx; height: 16rpx; border-radius: 50%; flex-shrink: 0; }
 	.hero-label { display: block; font-size: 24rpx; opacity: 0.85; }
 	.hero-type { display: block; font-size: 60rpx; font-weight: 700; margin-top: 16rpx; }
 	.hero-desc { display: block; font-size: 26rpx; line-height: 1.6; opacity: 0.92; margin-top: 14rpx; }
@@ -384,7 +396,7 @@
 	.tag { font-size: 24rpx; color: var(--primary); background: var(--primary-bg); border-radius: 24rpx; padding: 8rpx 24rpx; }
 	.roles { display: flex; align-items: center; flex-wrap: wrap; gap: 12rpx; margin-top: 20rpx; }
 	.roles-label { font-size: 24rpx; color: #8A8A86; margin-right: 4rpx; }
-	.role { font-size: 24rpx; color: #C98A3D; background: #F7F0E4; border-radius: 20rpx; padding: 6rpx 20rpx; }
+	.role { font-size: 24rpx; color: var(--primary); background: var(--primary-bg); border-radius: 20rpx; padding: 6rpx 20rpx; }
 	.scene { display: block; font-size: 24rpx; color: #55554F; margin-top: 18rpx; }
 	.radar { width: 320px; height: 300px; margin: 0 auto; display: block; }
 	.dim-legend { display: flex; flex-wrap: wrap; gap: 10rpx 18rpx; margin-top: 16rpx; }
