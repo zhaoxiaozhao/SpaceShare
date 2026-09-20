@@ -5,6 +5,7 @@ public class ActivityCommentDto
     public long Id { get; set; }
     public long ActivityId { get; set; }
     public string Content { get; set; } = string.Empty;
+    public long OwnerId { get; set; }
     public string OwnerName { get; set; } = string.Empty;
     public string? OwnerAvatar { get; set; }
 

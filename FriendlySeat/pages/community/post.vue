@@ -8,7 +8,7 @@
 				<text class="p-pin" v-if="post.isPinned">置顶</text>
 			</view>
 			<text class="p-title">{{post.title}}</text>
-			<view class="p-by">
+			<view class="p-by" @click="openUser(post.ownerId)">
 				<Avatar :url="post.ownerAvatar" :name="post.ownerName" :size="48" />
 				<text class="p-name">{{post.ownerName}}</text>
 				<text class="p-time">{{timeText(post.createdAt)}}</text>
@@ -29,7 +29,9 @@
 			<view v-if="comments.length" class="c-list">
 				<view class="c-item" v-for="c in comments" :key="c.id">
 					<view class="c-main">
-						<Avatar :url="c.ownerAvatar" :name="c.ownerName" :size="44" />
+						<view @click.stop="openUser(c.ownerId)">
+							<Avatar :url="c.ownerAvatar" :name="c.ownerName" :size="44" />
+						</view>
 						<view class="c-body">
 							<text class="c-name">{{c.ownerName}}</text>
 							<text class="c-text">{{c.content}}</text>
@@ -45,7 +47,9 @@
 					<!-- 一级回复：默认显示 2 条，可展开 -->
 					<view v-if="c.replies && c.replies.length" class="r-list">
 						<view class="r-item" v-for="r in visibleReplies(c)" :key="r.id">
-							<Avatar :url="r.ownerAvatar" :name="r.ownerName" :size="36" />
+							<view @click.stop="openUser(r.ownerId)">
+								<Avatar :url="r.ownerAvatar" :name="r.ownerName" :size="36" />
+							</view>
 							<view class="c-body">
 								<text class="c-name">{{r.ownerName}}<text v-if="r.replyToName" class="r-to"> 回复 {{r.replyToName}}</text></text>
 								<text class="c-text">{{r.content}}</text>
@@ -161,6 +165,10 @@
 				if (this.post && this.post.coverImage) {
 					uni.previewImage({ urls: [this.post.coverImage] })
 				}
+			},
+			openUser(id) {
+				if (!id) return
+				uni.navigateTo({ url: `/pages/user/profile?id=${id}` })
 			},
 			async sendComment() {
 				if (this.sending) return

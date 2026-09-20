@@ -129,6 +129,12 @@
 			}
 		},
 		{
+			"path": "pages/user/profile",
+			"style": {
+				"navigationBarTitleText": "友邻主页"
+			}
+		},
+		{
 			"path": "pages/notifications/notifications",
 			"style": {
 				"navigationBarTitleText": "消息"

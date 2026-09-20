@@ -155,6 +155,7 @@ public class BookListShareDto
     public string Token { get; set; } = string.Empty;
     public string Title { get; set; } = string.Empty;
     public string? Remark { get; set; }
+    public long OwnerId { get; set; }
     public string OwnerName { get; set; } = string.Empty;
     public string? OwnerAvatar { get; set; }
     public int Count { get; set; }
@@ -175,6 +176,7 @@ public class BookListShareBoardItemDto
     public string Token { get; set; } = string.Empty;
     public string Title { get; set; } = string.Empty;
     public string? Remark { get; set; }
+    public long OwnerId { get; set; }
     public string OwnerName { get; set; } = string.Empty;
     public string? OwnerAvatar { get; set; }
     public int Count { get; set; }

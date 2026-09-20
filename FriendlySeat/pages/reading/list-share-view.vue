@@ -3,7 +3,7 @@
 	<view v-if="share">
 		<!-- 书单头部 -->
 		<view class="hero">
-			<view class="hero-top">
+			<view class="hero-top" @click="openUser(share.ownerId)">
 				<Avatar :url="share.ownerAvatar" :name="share.ownerName" :size="72" />
 				<view class="owner">
 					<text class="owner-name">{{share.ownerName || '书友'}}</text>
@@ -137,6 +137,10 @@
 			goReport() {
 				if (!this.share) return
 				uni.navigateTo({ url: `/pages/report/report?targetType=BookListShare&targetId=${this.share.id}` })
+			},
+			openUser(id) {
+				if (!id || !this.share || this.share.isOwner) return
+				uni.navigateTo({ url: `/pages/user/profile?id=${id}` })
 			},
 			async toggleFavorite() {
 				if (!this.token || this.favoriting) return

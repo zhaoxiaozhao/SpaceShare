@@ -135,6 +135,7 @@ export const api = {
 	getSwaps: (venueId) => request(`/swaps?venueId=${venueId}`),
 	getRecentSwaps: (take) => request(`/swaps/recent?take=${take || 20}`),
 	getSwapFeed: (take) => request(`/swaps/feed?take=${take || 20}`, { auth: false }),
+	getUserProfile: (id) => request(`/users/${id}/profile`, { auth: false }),
 	getVenueSwaps: (id) => request(`/venues/${id}/swaps`, { auth: false }),
 	getSwapBySeat: (seatId) => request(`/swaps/seat/${seatId}`),
 	getMySwaps: () => request('/swaps/mine'),

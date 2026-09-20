@@ -8,6 +8,7 @@
 		<view class="feed-sort">
 			<text class="fs" :class="{ on: sort === 'new' }" @click="switchSort('new')">最新</text>
 			<text class="fs" :class="{ on: sort === 'hot' }" @click="switchSort('hot')">最热</text>
+			<text class="fs-post" @click="$emit('create')">＋ 发帖</text>
 		</view>
 
 		<view v-if="posts.length">
@@ -25,8 +26,10 @@
 					<image v-if="p.coverImage" class="p-thumb" :src="p.coverImage" mode="aspectFill" />
 				</view>
 				<view class="p-foot">
-					<Avatar :url="p.ownerAvatar" :name="p.ownerName" :size="44" />
-					<text class="p-owner">{{p.ownerName}}</text>
+					<view class="p-user" @click.stop="openUser(p.ownerId)">
+						<Avatar :url="p.ownerAvatar" :name="p.ownerName" :size="44" />
+						<text class="p-owner">{{p.ownerName}}</text>
+					</view>
 					<view class="p-stats">
 						<text class="p-stat" :class="{ on: p.liked }" @click.stop="like(p)">赞 {{p.likeCount}}</text>
 						<text class="p-stat">评 {{p.commentCount}}</text>
@@ -97,6 +100,10 @@
 			open(id) {
 				uni.navigateTo({ url: `/pages/community/post?id=${id}` })
 			},
+			openUser(id) {
+				if (!id) return
+				uni.navigateTo({ url: `/pages/user/profile?id=${id}` })
+			},
 			timeText(s) {
 				const d = parseDate(s)
 				if (!d) return ''
@@ -127,6 +134,7 @@
 	.feed-sort { display: flex; gap: 26rpx; margin: 14rpx 24rpx 6rpx; }
 	.fs { font-size: 24rpx; color: #8A8A86; }
 	.fs.on { color: var(--primary); font-weight: 600; }
+	.fs-post { margin-left: auto; font-size: 24rpx; color: var(--primary); }
 	.post { display: flex; flex-direction: column; }
 	.p-top { display: flex; align-items: center; gap: 10rpx; }
 	.p-cat { font-size: 20rpx; color: var(--primary); background: var(--primary-bg); border-radius: 8rpx; padding: 4rpx 14rpx; }
@@ -138,6 +146,7 @@
 	.p-title { display: block; font-size: 28rpx; font-weight: 600; }
 	.p-excerpt { display: block; font-size: 24rpx; color: #55554F; line-height: 1.4; margin-top: 8rpx; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
 	.p-foot { display: flex; align-items: center; gap: 10rpx; margin-top: 16rpx; }
+	.p-user { display: flex; align-items: center; gap: 10rpx; min-width: 0; }
 	.p-owner { font-size: 24rpx; color: #8A8A86; }
 	.p-stats { margin-left: auto; display: flex; gap: 21rpx; }
 	.p-stat { font-size: 24rpx; color: #8A8A86; }

@@ -2,21 +2,6 @@
 	<page-meta :page-style="pageThemeStyle" />
 	<PrivacyPopup />
 		<view>
-		<view class="quick-actions">
-			<view class="action-btn" @click="goFindSeat">
-				<image class="action-icon" :src="`/static/icons/search-${season}.png`" mode="aspectFit" />
-				<text>找座位</text>
-			</view>
-			<view class="action-btn" @click="goStudy">
-				<image class="action-icon" :src="`/static/icons/study-${season}.png`" mode="aspectFit" />
-				<text>开始学习</text>
-			</view>
-			<view class="action-btn" @click="goReading">
-				<image class="action-icon" :src="`/static/icons/books-${season}.png`" mode="aspectFit" />
-				<text>我的阅读</text>
-			</view>
-		</view>
-
 		<!-- 当前图书馆（切换） -->
 		<view class="venue-bar">
 			<view class="vb-left" @click="showVenuePicker = true">
@@ -24,11 +9,31 @@
 				<text class="vb-name">{{currentVenueName || '选择图书馆'}}</text>
 				<text class="vb-switch">切换 ›</text>
 			</view>
-			<text class="vb-post" @click.stop="goCreatePost">＋ 发帖</text>
+		</view>
+
+		<view class="quick-actions">
+			<view class="action-btn" @click="goFindSeat">
+				<view class="action-chip">
+					<image class="action-icon" :src="`/static/icons/search-${season}.png`" mode="aspectFit" />
+				</view>
+				<text>找座位</text>
+			</view>
+			<view class="action-btn" @click="goStudy">
+				<view class="action-chip">
+					<image class="action-icon" :src="`/static/icons/study-${season}.png`" mode="aspectFit" />
+				</view>
+				<text>开始学习</text>
+			</view>
+			<view class="action-btn" @click="goReading">
+				<view class="action-chip">
+					<image class="action-icon" :src="`/static/icons/books-${season}.png`" mode="aspectFit" />
+				</view>
+				<text>我的阅读</text>
+			</view>
 		</view>
 
 		<!-- 场馆交流板 -->
-		<VenueFeed ref="feed" :venue-id="currentVenueId" />
+		<VenueFeed ref="feed" :venue-id="currentVenueId" @create="goCreatePost" />
 
 		<!-- 分享 / 换座 发现入口（详情与完整列表在场馆页 / 独立列表页） -->
 		<view class="card discover-card">
@@ -311,10 +316,10 @@
 <style scoped>
 	.quick-actions {
 		display: flex;
-		margin: 16rpx;
+		margin: 12rpx 16rpx;
 		background: #FFFFFF;
-		border-radius: 20rpx;
-		padding: 19rpx 0;
+		border-radius: 16rpx;
+		padding: 12rpx 0;
 		box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.06);
 		position: relative;
 		z-index: 1;
@@ -324,13 +329,22 @@
 		display: flex;
 		flex-direction: column;
 		align-items: center;
-		gap: 6rpx;
+		gap: 4rpx;
 		color: #33332E;
-		font-size: 24rpx;
+		font-size: 22rpx;
 	}
-	.action-icon {
+	.action-chip {
 		width: 56rpx;
 		height: 56rpx;
+		border-radius: 50%;
+		background: var(--primary-bg);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+	}
+	.action-icon {
+		width: 32rpx;
+		height: 32rpx;
 	}
 	.fab {
 		position: fixed;
@@ -580,7 +594,6 @@
 	.vb-label { font-size: 22rpx; color: #B0B0AB; }
 	.vb-name { font-size: 30rpx; font-weight: 700; color: #2B2B27; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 320rpx; }
 	.vb-switch { font-size: 24rpx; color: var(--primary); }
-	.vb-post { font-size: 24rpx; color: var(--primary); flex-shrink: 0; }
 	/* 分享 / 换座 发现入口 */
 	.discover-card { margin: 16rpx; padding: 4rpx 26rpx; background: #FFFFFF; border-radius: 20rpx; box-shadow: 0 4rpx 16rpx rgba(0,0,0,0.04); }
 	.discover-row { display: flex; align-items: center; justify-content: space-between; padding: 16rpx 0; border-bottom: 1rpx solid #F0EFEA; }

@@ -11,6 +11,7 @@ public class VenuePostDto
     public string Content { get; set; } = string.Empty;
     /// <summary>封面图（微信云存储 fileID）</summary>
     public string? CoverImage { get; set; }
+    public long OwnerId { get; set; }
     public string OwnerName { get; set; } = string.Empty;
     public string? OwnerAvatar { get; set; }
     public bool IsOwner { get; set; }
@@ -28,6 +29,7 @@ public class VenuePostCommentDto
     public long Id { get; set; }
     public long PostId { get; set; }
     public string Content { get; set; } = string.Empty;
+    public long OwnerId { get; set; }
     public string OwnerName { get; set; } = string.Empty;
     public string? OwnerAvatar { get; set; }
     public bool IsOwner { get; set; }

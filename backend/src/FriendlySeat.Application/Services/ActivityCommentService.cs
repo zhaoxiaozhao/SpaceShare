@@ -145,6 +145,7 @@ public class ActivityCommentService
         ActivityId = c.ActivityId,
         Content = c.Content,
         OwnerName = c.User?.Nickname ?? "友邻",
+        OwnerId = c.UserId,
         OwnerAvatar = c.User?.AvatarUrl,
         IsOwner = viewerId.HasValue && viewerId.Value == c.UserId,
         Status = c.Status.ToString(),

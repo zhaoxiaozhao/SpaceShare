@@ -139,6 +139,14 @@ public class PersonaService
         return "image/jpeg";
     }
 
+    /// <summary>访客视角：仅当对方主动公开时才返回画像</summary>
+    public async Task<PersonaProfileDto?> GetPublicAsync(long userId, CancellationToken ct = default)
+    {
+        var profile = await _db.PersonaProfiles.FirstOrDefaultAsync(p => p.UserId == userId, ct);
+        if (profile is null || !profile.IsPublic) return null;
+        return ToDto(profile);
+    }
+
     private static PersonaProfileDto ToDto(PersonaProfile p)
     {
         var type = PersonaCatalog.Types.TryGetValue(p.TypeCode, out var t)

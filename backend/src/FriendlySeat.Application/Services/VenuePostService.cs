@@ -56,6 +56,24 @@ public class VenuePostService
         return list.Select(p => ToDto(p, viewerId, labels, likedIds.Contains(p.Id))).ToList();
     }
 
+    /// <summary>某用户的公开帖子（访客主页展示）</summary>
+    public async Task<List<VenuePostDto>> GetPublicByUserAsync(long userId, long? viewerId, int take = 20, CancellationToken ct = default)
+    {
+        var list = await _db.VenuePosts.Include(p => p.User).Include(p => p.Venue)
+            .Where(p => p.UserId == userId && p.Status == CommentStatus.Visible)
+            .OrderByDescending(p => p.Id)
+            .Take(Math.Clamp(take, 1, 50))
+            .ToListAsync(ct);
+
+        var labels = await CategoryLabelsAsync(ct);
+        var likedIds = viewerId.HasValue
+            ? (await _db.VenuePostLikes.Where(l => l.UserId == viewerId.Value && list.Select(p => p.Id).Contains(l.PostId))
+                .Select(l => l.PostId).ToListAsync(ct)).ToHashSet()
+            : new HashSet<long>();
+
+        return list.Select(p => ToDto(p, viewerId, labels, likedIds.Contains(p.Id))).ToList();
+    }
+
     public async Task<VenuePostDetailDto?> GetDetailAsync(long id, long? viewerId, CancellationToken ct = default)
     {
         var post = await _db.VenuePosts.Include(p => p.User).Include(p => p.Venue)
@@ -418,6 +436,7 @@ public class VenuePostService
         Title = p.Title,
         Content = p.Content,
         CoverImage = p.CoverImage,
+        OwnerId = p.UserId,
         OwnerName = p.User?.Nickname ?? "友邻",
         OwnerAvatar = p.User?.AvatarUrl,
         IsOwner = viewerId.HasValue && viewerId.Value == p.UserId,
@@ -435,6 +454,7 @@ public class VenuePostService
         Id = c.Id,
         PostId = c.PostId,
         Content = c.Content,
+        OwnerId = c.UserId,
         OwnerName = c.User?.Nickname ?? "友邻",
         OwnerAvatar = c.User?.AvatarUrl,
         IsOwner = viewerId.HasValue && viewerId.Value == c.UserId,

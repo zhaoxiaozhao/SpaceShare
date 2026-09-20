@@ -30,7 +30,7 @@
 				<text class="part-all" v-if="a.signups.length > 8" @click="showParticipants = true">查看全部</text>
 			</view>
 			<view class="part-list">
-				<view class="part-item" v-for="p in a.signups.slice(0, 8)" :key="p.id">
+				<view class="part-item" v-for="p in a.signups.slice(0, 8)" :key="p.id" @click="openUser(p.userId)">
 					<Avatar :url="p.userAvatar" :name="p.userNickname" :size="72" />
 					<text class="part-name">{{p.userNickname || '友邻'}}</text>
 				</view>
@@ -42,7 +42,7 @@
 			<view class="p-pop" @click.stop>
 				<text class="p-title">已报名（{{a.signups.length}}）</text>
 				<scroll-view scroll-y class="p-scroll">
-					<view class="p-item" v-for="p in a.signups" :key="p.id">
+					<view class="p-item" v-for="p in a.signups" :key="p.id" @click="openUser(p.userId)">
 						<Avatar :url="p.userAvatar" :name="p.userNickname" :size="64" />
 						<text class="p-name">{{p.userNickname || '友邻'}}</text>
 					</view>
@@ -76,7 +76,9 @@
 
 			<view v-if="comments.length" class="cm-list">
 				<view class="cm-item" v-for="c in comments" :key="c.id">
-					<Avatar :url="c.ownerAvatar" :name="c.ownerName" :size="56" />
+					<view @click.stop="openUser(c.ownerId)">
+						<Avatar :url="c.ownerAvatar" :name="c.ownerName" :size="56" />
+					</view>
 					<view class="cm-body">
 						<text class="cm-name">{{c.ownerName}}</text>
 						<text class="cm-content">{{c.content}}</text>
@@ -241,6 +243,10 @@
 					return
 				}
 				uni.navigateTo({ url: `/pages/report/report?targetType=ActivityComment&targetId=${c.id}` })
+			},
+			openUser(id) {
+				if (!id) return
+				uni.navigateTo({ url: `/pages/user/profile?id=${id}` })
 			},
 			report() {
 				const nick = encodeURIComponent(this.a.creatorNickname || '')
