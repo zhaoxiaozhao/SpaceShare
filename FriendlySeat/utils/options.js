@@ -36,6 +36,14 @@ export const DEFAULT_OPTIONS = {
 		{ code: 'socket', label: '有插座' },
 		{ code: 'quiet', label: '安静' },
 		{ code: 'light', label: '光线好' }
+	],
+	venuePostCategories: [
+		{ code: 'help', label: '求助' },
+		{ code: 'study', label: '组队自习' },
+		{ code: 'books', label: '书籍推荐' },
+		{ code: 'advice', label: '场馆建议' },
+		{ code: 'lost', label: '失物招领' },
+		{ code: 'chat', label: '闲聊' }
 	]
 }
 
@@ -48,7 +56,8 @@ export function getAppOptions() {
 			return {
 				activityCategories: cached.activityCategories,
 				swapReasons: cached.swapReasons && cached.swapReasons.length ? cached.swapReasons : DEFAULT_OPTIONS.swapReasons,
-				seatTags: cached.seatTags && cached.seatTags.length ? cached.seatTags : DEFAULT_OPTIONS.seatTags
+				seatTags: cached.seatTags && cached.seatTags.length ? cached.seatTags : DEFAULT_OPTIONS.seatTags,
+				venuePostCategories: cached.venuePostCategories && cached.venuePostCategories.length ? cached.venuePostCategories : DEFAULT_OPTIONS.venuePostCategories
 			}
 		}
 	} catch (e) {}

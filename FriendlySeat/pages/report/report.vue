@@ -80,6 +80,9 @@
 				if (this.targetType === 'ActivityComment') {
 					return ['内容违规', '广告导流', '联系方式违规', '辱骂骚扰', '虚假信息', '其他']
 				}
+				if (this.targetType === 'VenuePost' || this.targetType === 'VenuePostComment') {
+					return ['内容违规', '广告导流', '联系方式违规', '辱骂骚扰', '虚假信息', '其他']
+				}
 				return ['虚假座位', '座位不存在', '座位被占用', '座位交易', '恶意占座', '联系方式违规', '其他']
 			}
 		},

@@ -20,6 +20,7 @@ const routes = [
       { path: 'activities', component: () => import('../views/Activities.vue'), meta: { title: '活动管理' } },
       { path: 'seat-notes', component: () => import('../views/SeatNotes.vue'), meta: { title: '座位便签' } },
       { path: 'activity-comments', component: () => import('../views/ActivityComments.vue'), meta: { title: '活动留言' } },
+      { path: 'venue-posts', component: () => import('../views/VenuePosts.vue'), meta: { title: '交流板管理' } },
       { path: 'audit', component: () => import('../views/AuditLogs.vue'), meta: { title: '审计日志' } }
     ]
   }

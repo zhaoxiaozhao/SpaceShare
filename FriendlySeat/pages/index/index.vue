@@ -17,26 +17,18 @@
 			</view>
 		</view>
 
-		<view v-if="nearby.length" class="section">
-			<view class="sec-head">
-				<text class="section-title">附近场馆</text>
-				<text class="sec-more" @click="goVenues">更多</text>
+		<!-- 当前图书馆（切换） -->
+		<view class="venue-bar">
+			<view class="vb-left" @click="showVenuePicker = true">
+				<text class="vb-label">当前图书馆</text>
+				<text class="vb-name">{{currentVenueName || '选择图书馆'}}</text>
+				<text class="vb-switch">切换 ›</text>
 			</view>
-			<view class="card venue-card" v-for="v in nearby.slice(0, 3)" :key="v.id" @click="goVenue(v.id)">
-				<view class="venue-name-row">
-					<text class="venue-name">{{v.name}}</text>
-					<view class="venue-meta">
-						<text class="venue-count">{{v.seatCount || 0}} 座位</text>
-						<text class="venue-sep">丨</text>
-						<text class="venue-available" :class="{ none: v.availableCount === 0 }">可预约 {{v.availableCount || 0}}</text>
-					</view>
-				</view>
-				<view class="venue-addr-row">
-					<text class="venue-addr">{{v.address}}</text>
-					<text class="venue-distance" v-if="v.distanceKm">{{v.distanceKm}}km</text>
-				</view>
-			</view>
+			<text class="vb-post" @click.stop="goCreatePost">＋ 发帖</text>
 		</view>
+
+		<!-- 场馆交流板 -->
+		<VenueFeed ref="feed" :venue-id="currentVenueId" />
 
 		<view v-if="shares.length" class="section">
 			<view class="sec-head">
@@ -95,6 +87,20 @@
 			<text>正在加载附近的场馆与共享座位…</text>
 		</view>
 
+		<!-- 选择图书馆 -->
+		<view v-if="showVenuePicker" class="vk-mask" @click="showVenuePicker = false">
+			<view class="vk-sheet" @click.stop>
+				<text class="vk-title">选择图书馆</text>
+				<scroll-view scroll-y class="vk-list">
+					<view class="vk-item" :class="{ on: v.id === currentVenueId }" v-for="v in nearby" :key="v.id" @click="pickVenue(v)">
+						<text class="vk-name">{{v.name}}</text>
+						<text class="vk-meta">{{v.seatCount || 0}} 座位 · 可预约 {{v.availableCount || 0}}</text>
+					</view>
+				</scroll-view>
+				<button class="btn-outline" @click="goVenues">查看全部场馆</button>
+			</view>
+		</view>
+
 		<!-- 浮动分享入口 -->
 		<view class="fab" @click="goShare">
 			<view class="share-icon"></view>
@@ -114,6 +120,9 @@
 		data() {
 			return {
 				nearby: [],
+				currentVenueId: null,
+				currentVenueName: '',
+				showVenuePicker: false,
 				shares: [],
 				venueShares: [],
 				sharesVenueId: null,
@@ -129,6 +138,7 @@
 		},
 		onShow() {
 			this.loadData()
+			if (this.$refs.feed) this.$refs.feed.refresh()
 		},
 		onPullDownRefresh() {
 			this.loadData().then(() => uni.stopPullDownRefresh())
@@ -162,12 +172,11 @@
 					if (!this.nearby.length) {
 						this.nearby = await api.getVenues({})
 					}
-					if (this.nearby.length) {
-						const venueId = this.nearby[0].id
-						this.venueShares = await api.getVenueShares(venueId)
-						this.shares = this.venueShares.slice(0, 3)
-						this.sharesVenueId = venueId
+					if (this.nearby.length && !this.currentVenueId) {
+						this.currentVenueId = this.nearby[0].id
+						this.currentVenueName = this.nearby[0].name
 					}
+					await this.loadSharesForCurrent()
 				} catch (e) {
 					try {
 						this.nearby = await api.getVenues({})
@@ -212,6 +221,31 @@
 			},
 			goFindSeat() {
 				uni.navigateTo({ url: '/pages/venues/venues' })
+			},
+			async loadSharesForCurrent() {
+				if (!this.currentVenueId) return
+				try {
+					this.venueShares = await api.getVenueShares(this.currentVenueId)
+					this.shares = this.venueShares.slice(0, 3)
+					this.sharesVenueId = this.currentVenueId
+				} catch (e) {}
+			},
+			pickVenue(v) {
+				this.currentVenueId = v.id
+				this.currentVenueName = v.name
+				this.showVenuePicker = false
+				this.loadSharesForCurrent()
+			},
+			goCreatePost() {
+				if (!uni.getStorageSync('token')) {
+					uni.navigateTo({ url: '/pages/login/login' })
+					return
+				}
+				if (!this.currentVenueId) {
+					uni.showToast({ title: '请先选择图书馆', icon: 'none' })
+					return
+				}
+				uni.navigateTo({ url: `/pages/community/edit?venueId=${this.currentVenueId}&venueName=${encodeURIComponent(this.currentVenueName)}` })
 			},
 			goShare() {
 				if (!uni.getStorageSync('token')) {
@@ -560,4 +594,20 @@
 		background: var(--primary-bg, #EAF3F1);
 		color: var(--primary);
 	}
+
+	/* 当前图书馆栏 */
+	.venue-bar { display: flex; align-items: center; justify-content: space-between; margin: 20rpx; padding: 22rpx 26rpx; background: #FFFFFF; border-radius: 20rpx; box-shadow: 0 4rpx 16rpx rgba(0,0,0,0.04); }
+	.vb-left { display: flex; align-items: baseline; gap: 14rpx; min-width: 0; }
+	.vb-label { font-size: 22rpx; color: #B0B0AB; }
+	.vb-name { font-size: 32rpx; font-weight: 700; color: #2B2B27; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 320rpx; }
+	.vb-switch { font-size: 24rpx; color: var(--primary); }
+	.vb-post { font-size: 26rpx; color: var(--primary); flex-shrink: 0; }
+	.vk-mask { position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 999; display: flex; align-items: flex-end; }
+	.vk-sheet { width: 100%; background: #FFFFFF; border-radius: 24rpx 24rpx 0 0; padding: 30rpx; }
+	.vk-title { display: block; font-size: 32rpx; font-weight: 700; margin-bottom: 20rpx; }
+	.vk-list { max-height: 60vh; }
+	.vk-item { padding: 22rpx 0; border-bottom: 1rpx solid #F0EFEA; }
+	.vk-item.on .vk-name { color: var(--primary); }
+	.vk-name { display: block; font-size: 30rpx; font-weight: 600; }
+	.vk-meta { display: block; font-size: 22rpx; color: #8A8A86; margin-top: 4rpx; }
 </style>

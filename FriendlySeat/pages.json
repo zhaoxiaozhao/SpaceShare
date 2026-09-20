@@ -110,6 +110,25 @@
 			}
 		},
 		{
+			"path": "pages/community/list",
+			"style": {
+				"navigationBarTitleText": "交流板",
+				"enablePullDownRefresh": true
+			}
+		},
+		{
+			"path": "pages/community/post",
+			"style": {
+				"navigationBarTitleText": "帖子详情"
+			}
+		},
+		{
+			"path": "pages/community/edit",
+			"style": {
+				"navigationBarTitleText": "发帖"
+			}
+		},
+		{
 			"path": "pages/notifications/notifications",
 			"style": {
 				"navigationBarTitleText": "消息"

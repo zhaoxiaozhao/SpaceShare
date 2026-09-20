@@ -17,6 +17,7 @@
         <el-menu-item index="/activities"><el-icon><Calendar /></el-icon>活动管理</el-menu-item>
         <el-menu-item index="/seat-notes"><el-icon><Memo /></el-icon>座位便签</el-menu-item>
         <el-menu-item index="/activity-comments"><el-icon><ChatDotRound /></el-icon>活动留言</el-menu-item>
+        <el-menu-item index="/venue-posts"><el-icon><ChatLineSquare /></el-icon>交流板管理</el-menu-item>
         <el-menu-item index="/config"><el-icon><Setting /></el-icon>系统配置</el-menu-item>
         <el-menu-item index="/audit"><el-icon><Document /></el-icon>审计日志</el-menu-item>
       </el-menu>

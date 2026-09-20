@@ -86,3 +86,11 @@ export const activityCommentApi = {
   list: (status) => request.get(`/activity-comments?status=${status || ''}`),
   review: (id, approve) => request.post(`/activity-comments/${id}/review`, { approve })
 }
+
+export const venuePostApi = {
+  list: (status) => request.get(`/venue-posts?status=${status || ''}`),
+  review: (id, approve) => request.post(`/venue-posts/${id}/review`, { approve }),
+  pin: (id, pinned) => request.post(`/venue-posts/${id}/pin`, { pinned }),
+  comments: (status) => request.get(`/venue-post-comments?status=${status || ''}`),
+  commentReview: (id, approve) => request.post(`/venue-post-comments/${id}/review`, { approve })
+}

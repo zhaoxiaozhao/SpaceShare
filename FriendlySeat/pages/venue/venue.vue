@@ -8,6 +8,15 @@
 			<text class="venue-desc" v-if="venue.description">{{venue.description}}</text>
 		</view>
 
+		<!-- 交流板入口 -->
+		<view class="card community-entry" @click="goCommunity">
+			<view class="ce-left">
+				<text class="ce-title">场馆交流板</text>
+				<text class="ce-sub">求助 · 组队自习 · 书籍推荐 · 场馆建议</text>
+			</view>
+			<text class="ce-arrow">›</text>
+		</view>
+
 		<view class="card status-row">
 			<view class="stat">
 				<text class="stat-num">{{venue.seatCount}}</text>
@@ -859,6 +868,10 @@
 			goReserve(share) {
 				uni.navigateTo({ url: `/pages/seat/seat?id=${share.seatId}&shareId=${share.id}&venueId=${this.id}` })
 			},
+			goCommunity() {
+				if (!this.venue) return
+				uni.navigateTo({ url: `/pages/community/list?venueId=${this.venue.id}&venueName=${encodeURIComponent(this.venue.name || '')}` })
+			},
 			openWaitlist() {
 				if (!this.venue) return
 				const tabs = this.wlFloorTabs
@@ -1434,4 +1447,10 @@
 		padding: 0 24rpx;
 		margin: 0;
 	}
+
+	.community-entry { display: flex; align-items: center; justify-content: space-between; }
+	.ce-left { display: flex; flex-direction: column; gap: 6rpx; min-width: 0; }
+	.ce-title { font-size: 30rpx; font-weight: 600; color: #2B2B27; }
+	.ce-sub { font-size: 22rpx; color: #8A8A86; }
+	.ce-arrow { font-size: 36rpx; color: #C4C2BB; }
 </style>

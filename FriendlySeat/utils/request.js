@@ -215,7 +215,16 @@ export const api = {
 	submitPersona: (data) => request('/persona/submit', { method: 'POST', data }),
 	getPersonaMe: () => request('/persona/me'),
 	getPersonaAvatar: () => request('/persona/avatar'),
-	setPersonaVisibility: (isPublic) => request('/persona/visibility', { method: 'POST', data: { isPublic } })
+	setPersonaVisibility: (isPublic) => request('/persona/visibility', { method: 'POST', data: { isPublic } }),
+
+	// ===== 场馆交流板 =====
+	getVenuePosts: (venueId, category, sort) => request(`/venue-posts?venueId=${venueId}&category=${category || ''}&sort=${sort || 'new'}`, { auth: false }),
+	getVenuePost: (id) => request(`/venue-posts/${id}`, { auth: false }),
+	createVenuePost: (data) => request('/venue-posts', { method: 'POST', data }),
+	likeVenuePost: (id) => request(`/venue-posts/${id}/like`, { method: 'POST' }),
+	commentVenuePost: (id, content) => request(`/venue-posts/${id}/comments`, { method: 'POST', data: { content } }),
+	deleteVenuePost: (id) => request(`/venue-posts/${id}`, { method: 'DELETE' }),
+	deleteVenuePostComment: (id) => request(`/venue-posts/comments/${id}`, { method: 'DELETE' })
 }
 
 function qs(params) {
