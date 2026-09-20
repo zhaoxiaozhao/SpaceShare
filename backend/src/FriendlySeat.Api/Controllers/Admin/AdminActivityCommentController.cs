@@ -1,3 +1,4 @@
+using FriendlySeat.Application.Common;
 using FriendlySeat.Application.Dtos;
 using FriendlySeat.Application.Services;
 using Microsoft.AspNetCore.Mvc;
@@ -7,10 +8,12 @@ namespace FriendlySeat.Api.Controllers.Admin;
 public class AdminActivityCommentController : AdminControllerBase
 {
     private readonly ActivityCommentService _comments;
+    private readonly ICurrentAdmin _currentAdmin;
 
-    public AdminActivityCommentController(ActivityCommentService comments)
+    public AdminActivityCommentController(ActivityCommentService comments, ICurrentAdmin currentAdmin)
     {
         _comments = comments;
+        _currentAdmin = currentAdmin;
     }
 
     [HttpGet("activity-comments")]
@@ -21,7 +24,7 @@ public class AdminActivityCommentController : AdminControllerBase
     [HttpPost("activity-comments/{id:long}/review")]
     public async Task<IActionResult> Review(long id, AdminCommentReviewRequest request, CancellationToken ct)
     {
-        await _comments.AdminReviewAsync(id, request.Approve, ct);
+        await _comments.AdminReviewAsync(id, request.Approve, _currentAdmin.AdminId!.Value, ct);
         return Ok();
     }
 }

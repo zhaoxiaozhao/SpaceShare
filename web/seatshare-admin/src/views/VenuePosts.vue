@@ -50,6 +50,14 @@
     <el-table v-else :data="comments" border stripe>
       <el-table-column prop="id" label="ID" width="70" />
       <el-table-column prop="postId" label="帖子ID" width="90" />
+      <el-table-column label="类型" width="150">
+        <template #default="{ row }">
+          <el-tag v-if="row.parentCommentId" type="warning" size="small">
+            回复 {{ row.replyToName || '' }}<span v-if="!row.replyToName">#{{ row.replyToUserId }}</span>
+          </el-tag>
+          <el-tag v-else type="info" size="small">评论</el-tag>
+        </template>
+      </el-table-column>
       <el-table-column prop="content" label="评论" min-width="300" show-overflow-tooltip />
       <el-table-column label="作者" width="140">
         <template #default="{ row }">{{ row.ownerName || ('#' + row.userId) }}</template>
@@ -127,7 +135,7 @@ async function pin(row, pinned) {
 async function reviewComment(row, approve) {
   try {
     if (!approve) {
-      await ElMessageBox.confirm('驳回将删除该评论，确定吗？', '驳回', { type: 'warning' })
+      await ElMessageBox.confirm(row.parentCommentId ? '驳回将删除该回复，确定吗？' : '驳回将删除该评论及其下全部回复，确定吗？', '驳回', { type: 'warning' })
     }
     await venuePostApi.commentReview(row.id, approve)
     ElMessage.success(approve ? '已通过' : '已驳回并删除')

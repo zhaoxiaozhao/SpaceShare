@@ -28,7 +28,9 @@
 	export default {
 		data() {
 			return {
-				list: []
+				list: [],
+				venueId: null,
+				venueName: ''
 			}
 		},
 		computed: {
@@ -36,7 +38,14 @@
 				return getAppOptions().swapReasons
 			}
 		},
-		onLoad() {
+		onLoad(options) {
+			this.venueId = options && options.venueId ? Number(options.venueId) : null
+			this.venueName = options && options.venueName ? decodeURIComponent(options.venueName) : ''
+			if (this.venueName) {
+				uni.setNavigationBarTitle({ title: `${this.venueName} · 换座` })
+			} else {
+				uni.setNavigationBarTitle({ title: '换座' })
+			}
 			this.load()
 		},
 		onPullDownRefresh() {
@@ -44,12 +53,12 @@
 		},
 		methods: {
 			async load() {
-				if (!uni.getStorageSync('token')) {
-					uni.navigateTo({ url: '/pages/login/login' })
-					return
-				}
 				try {
-					this.list = await api.getRecentSwaps(50)
+					if (this.venueId) {
+						this.list = await api.getVenueSwaps(this.venueId)
+					} else {
+						this.list = await api.getSwapFeed(50)
+					}
 				} catch (e) {}
 			},
 			wantText(s) {
@@ -72,7 +81,7 @@
 
 <style scoped>
 	.page {
-		padding: 24rpx;
+		padding: 19rpx;
 	}
 	.swap-card {
 		margin-bottom: 20rpx;
@@ -81,12 +90,12 @@
 		display: flex;
 		justify-content: space-between;
 		align-items: center;
-		gap: 16rpx;
+		gap: 13rpx;
 	}
 	.swap-title {
 		flex: 1;
 		min-width: 0;
-		font-size: 28rpx;
+		font-size: 26rpx;
 		font-weight: 600;
 		overflow: hidden;
 		text-overflow: ellipsis;
@@ -103,25 +112,25 @@
 	.swap-route {
 		display: flex;
 		align-items: center;
-		gap: 12rpx;
+		gap: 10rpx;
 		margin-top: 16rpx;
 	}
 	.route-seat {
 		flex-shrink: 0;
-		font-size: 30rpx;
+		font-size: 28rpx;
 		font-weight: 700;
 		color: #33332E;
 	}
 	.route-arrow {
 		flex-shrink: 0;
-		font-size: 26rpx;
+		font-size: 24rpx;
 		font-weight: 700;
 		color: var(--primary);
 	}
 	.route-want {
 		flex: 1;
 		min-width: 0;
-		font-size: 26rpx;
+		font-size: 24rpx;
 		color: #55554F;
 		overflow: hidden;
 		text-overflow: ellipsis;
@@ -130,7 +139,7 @@
 	.reasons {
 		display: flex;
 		flex-wrap: wrap;
-		gap: 12rpx;
+		gap: 10rpx;
 		margin-top: 12rpx;
 	}
 	.chip {
@@ -143,7 +152,7 @@
 	.empty {
 		text-align: center;
 		color: #B0AEA8;
-		font-size: 26rpx;
-		padding: 120rpx 0;
+		font-size: 24rpx;
+		padding: 96rpx 0;
 	}
 </style>

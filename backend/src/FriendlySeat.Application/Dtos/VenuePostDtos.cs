@@ -31,6 +31,16 @@ public class VenuePostCommentDto
     public bool IsOwner { get; set; }
     public string Status { get; set; } = "Visible";
     public DateTime CreatedAt { get; set; }
+
+    /// <summary>所属一级评论 Id（一级评论为 null，回复有值）</summary>
+    public long? ParentCommentId { get; set; }
+
+    /// <summary>被回复者 Id / 昵称（仅回复有值）</summary>
+    public long? ReplyToUserId { get; set; }
+    public string? ReplyToName { get; set; }
+
+    /// <summary>回复列表（仅一级评论填充）</summary>
+    public List<VenuePostCommentDto> Replies { get; set; } = new();
 }
 
 public class VenuePostDetailDto
@@ -50,6 +60,9 @@ public class CreateVenuePostRequest
 public class CreateVenuePostCommentRequest
 {
     public string Content { get; set; } = string.Empty;
+
+    /// <summary>回复的目标评论 Id（为空表示发表一级评论）</summary>
+    public long? ParentCommentId { get; set; }
 }
 
 public class AdminVenuePostReviewRequest

@@ -225,7 +225,7 @@
 	.profile-card {
 		display: flex;
 		align-items: center;
-		gap: 24rpx;
+		gap: 19rpx;
 	}
 	.avatar-btn {
 		position: relative;
@@ -260,7 +260,7 @@
 	.nickname-row {
 		display: flex;
 		align-items: center;
-		gap: 16rpx;
+		gap: 13rpx;
 		margin-bottom: 12rpx;
 	}
 	.nickname-input {
@@ -269,7 +269,7 @@
 		font-weight: 600;
 	}
 	.random-btn {
-		font-size: 26rpx;
+		font-size: 24rpx;
 		color: var(--primary);
 		padding: 6rpx 16rpx;
 		background: var(--primary-bg);
@@ -291,14 +291,14 @@
 	.credit-row {
 		display: flex;
 		align-items: center;
-		gap: 12rpx;
+		gap: 10rpx;
 	}
 	.credit-label {
 		font-size: 24rpx;
 		color: #8A8A86;
 	}
 	.credit-score {
-		font-size: 28rpx;
+		font-size: 26rpx;
 		font-weight: 600;
 		color: var(--primary);
 	}
@@ -316,9 +316,9 @@
 		display: flex;
 		justify-content: space-between;
 		align-items: center;
-		padding: 28rpx;
+		padding: 22rpx;
 		border-bottom: 1rpx solid #F0EFEA;
-		font-size: 30rpx;
+		font-size: 28rpx;
 	}
 	.menu-item:last-child {
 		border-bottom: none;
@@ -330,7 +330,7 @@
 	.menu-right {
 		display: flex;
 		align-items: center;
-		gap: 12rpx;
+		gap: 10rpx;
 	}
 	.badge {
 		min-width: 36rpx;
@@ -346,11 +346,11 @@
 	.about {
 		display: flex;
 		flex-direction: column;
-		gap: 8rpx;
+		gap: 6rpx;
 		align-items: center;
 	}
 	.about-line {
-		font-size: 26rpx;
+		font-size: 24rpx;
 		color: var(--primary);
 	}
 	.about-line.small {
@@ -358,7 +358,7 @@
 		color: #B0B0AB;
 	}
 	.logout {
-		margin: 30rpx;
+		margin: 24rpx;
 		color: #B85450;
 		border-color: #B85450;
 	}

@@ -54,7 +54,7 @@
 <style scoped>
 	.section-label {
 		display: block;
-		font-size: 30rpx;
+		font-size: 28rpx;
 		font-weight: 600;
 		margin-bottom: 20rpx;
 	}
@@ -63,8 +63,8 @@
 		height: 240rpx;
 		background: #F7F5EF;
 		border-radius: 16rpx;
-		padding: 24rpx;
-		font-size: 28rpx;
+		padding: 19rpx;
+		font-size: 26rpx;
 		box-sizing: border-box;
 	}
 	.submit-btn {

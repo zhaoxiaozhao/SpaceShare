@@ -190,31 +190,31 @@
 	.search-bar {
 		display: flex;
 		align-items: center;
-		padding: 20rpx;
-		gap: 16rpx;
+		padding: 16rpx;
+		gap: 13rpx;
 	}
 	.search-input {
 		flex: 1;
 		background: #FFFFFF;
 		border-radius: 40rpx;
-		padding: 16rpx 30rpx;
-		font-size: 28rpx;
+		padding: 13rpx 30rpx;
+		font-size: 26rpx;
 	}
 	.search-btn {
 		color: var(--primary);
-		font-size: 28rpx;
+		font-size: 26rpx;
 	}
 	.city-scroll {
 		white-space: nowrap;
-		padding: 0 20rpx 10rpx;
+		padding: 0 20rpx 8rpx;
 	}
 	.city-chip {
 		display: inline-block;
-		padding: 10rpx 26rpx;
+		padding: 8rpx 26rpx;
 		margin-right: 16rpx;
 		background: #FFFFFF;
 		border-radius: 30rpx;
-		font-size: 26rpx;
+		font-size: 24rpx;
 		color: #55554F;
 	}
 	.city-chip.active {
@@ -230,10 +230,10 @@
 		flex: 1;
 		display: flex;
 		flex-direction: column;
-		gap: 6rpx;
+		gap: 5rpx;
 	}
 	.venue-name {
-		font-size: 30rpx;
+		font-size: 28rpx;
 		font-weight: 600;
 	}
 	.venue-type {
@@ -252,10 +252,10 @@
 		display: flex;
 		flex-direction: column;
 		align-items: flex-end;
-		gap: 6rpx;
+		gap: 5rpx;
 	}
 	.venue-count {
-		font-size: 26rpx;
+		font-size: 24rpx;
 		color: #55554F;
 	}
 	.venue-available {
@@ -270,7 +270,7 @@
 		color: #8A8A86;
 	}
 	.list-footer {
-		padding: 24rpx 0 40rpx;
+		padding: 19rpx 0 32rpx;
 		text-align: center;
 	}
 	.footer-text {

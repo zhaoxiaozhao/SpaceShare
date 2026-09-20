@@ -64,38 +64,38 @@
 		width: 580rpx;
 		background: #FFFFFF;
 		border-radius: 24rpx;
-		padding: 40rpx 36rpx 30rpx;
+		padding: 32rpx 36rpx 24rpx;
 		display: flex;
 		flex-direction: column;
 	}
 	.pv-title {
-		font-size: 32rpx;
+		font-size: 30rpx;
 		font-weight: 700;
 		color: #2B2B27;
 		text-align: center;
 	}
 	.pv-text {
-		font-size: 26rpx;
+		font-size: 24rpx;
 		color: #55554F;
-		line-height: 1.7;
+		line-height: 1.4;
 		margin-top: 24rpx;
 	}
 	.pv-link {
-		font-size: 26rpx;
+		font-size: 24rpx;
 		color: var(--primary);
 		margin-top: 14rpx;
 	}
 	.pv-actions {
 		display: flex;
-		gap: 20rpx;
+		gap: 16rpx;
 		margin-top: 40rpx;
 	}
 	.pv-btn {
 		flex: 1;
 		text-align: center;
-		padding: 22rpx 0;
+		padding: 18rpx 0;
 		border-radius: 40rpx;
-		font-size: 28rpx;
+		font-size: 26rpx;
 	}
 	.pv-btn.ghost {
 		background: #F1EFE9;
@@ -104,9 +104,9 @@
 	.pv-btn.primary {
 		background: var(--primary);
 		color: #FFFFFF;
-		padding: 22rpx 0;
-		line-height: 1.5;
-		font-size: 28rpx;
+		padding: 18rpx 0;
+		line-height: 1.4;
+		font-size: 26rpx;
 		border-radius: 40rpx;
 	}
 	.pv-btn.primary::after {

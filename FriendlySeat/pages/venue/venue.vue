@@ -235,9 +235,13 @@
 			<view v-else class="empty">该楼层暂无座位数据</view>
 		</view>
 
-		<view class="section" v-if="shares.length">
-			<text class="section-title">当前可预约座位</text>
-			<view class="card share-card" v-for="s in shares" :key="s.id" @click="goReserve(s)">
+		<!-- 馆内座位分享（前 3 条，更多单开页） -->
+		<view class="section">
+			<view class="sec-head">
+				<text class="section-title">馆内座位分享</text>
+				<text class="sec-more" @click="goSharesList">更多 ›</text>
+			</view>
+			<view class="card share-card" v-for="s in shares.slice(0, 3)" :key="s.id" @click="goReserve(s)">
 				<view class="share-top">
 					<text class="share-seat">{{s.displayCode || s.seatCode}}</text>
 					<text class="tag" :class="shareTagClass(s.status)">{{statusText(s.status)}}</text>
@@ -249,6 +253,29 @@
 				<view class="share-time">预计释放：{{formatTime(s.endAt)}}</view>
 				<text class="share-note" v-if="s.note">{{s.note}}</text>
 			</view>
+			<view v-if="!shares.length" class="empty-sm">暂无分享的座位</view>
+		</view>
+
+		<!-- 馆内换座（前 3 条，更多单开页） -->
+		<view class="section">
+			<view class="sec-head">
+				<text class="section-title">馆内换座</text>
+				<text class="sec-more" @click="goSwapList">更多 ›</text>
+			</view>
+			<view class="card swap-card" v-for="s in swaps.slice(0, 3)" :key="s.id" @click="goSwapSeat(s)">
+				<view class="swap-head">
+					<text class="swap-title">{{s.seatCode}}</text>
+					<text class="remain">剩{{remainMinutes(s.expireAt)}}分钟</text>
+				</view>
+				<view class="swap-route">
+					<text class="route-arrow">→</text>
+					<text class="route-want">{{wantText(s)}}</text>
+				</view>
+				<view class="reasons" v-if="s.reasons && s.reasons.length">
+					<text class="chip" v-for="r in s.reasons" :key="r">{{reasonLabel(r)}}</text>
+				</view>
+			</view>
+			<view v-if="!swaps.length" class="empty-sm">暂无换座需求</view>
 		</view>
 
 		<!-- 候补筛选弹窗 -->
@@ -301,6 +328,7 @@
 				currentFloor: null,
 				currentAreaId: null,
 				shares: [],
+				swaps: [],
 				windowWidth: 375,
 				fullscreen: false,
 				mapScale: 1.6,
@@ -420,6 +448,7 @@
 						this.loadedOnce = true
 					}
 					this.shares = await api.getVenueShares(this.id)
+					this.swaps = await api.getVenueSwaps(this.id)
 				} catch (e) {
 					uni.showToast({ title: '加载失败', icon: 'none' })
 				}
@@ -868,6 +897,28 @@
 			goReserve(share) {
 				uni.navigateTo({ url: `/pages/seat/seat?id=${share.seatId}&shareId=${share.id}&venueId=${this.id}` })
 			},
+			goSharesList() {
+				const name = this.venue ? encodeURIComponent(this.venue.name || '') : ''
+				uni.navigateTo({ url: `/pages/shares/list?venueId=${this.id}&venueName=${name}` })
+			},
+			goSwapList() {
+				const name = this.venue ? encodeURIComponent(this.venue.name || '') : ''
+				uni.navigateTo({ url: `/pages/swap/list?venueId=${this.id}&venueName=${name}` })
+			},
+			goSwapSeat(s) {
+				uni.navigateTo({ url: `/pages/seat/seat?id=${s.seatId}&venueId=${s.venueId || this.id}` })
+			},
+			wantText(s) {
+				const parts = [s.wantFloorName, s.wantAreaName, s.wantZoneName].filter(Boolean)
+				return parts.length ? parts.join(' / ') : '不限'
+			},
+			reasonLabel(code) {
+				const o = getAppOptions().swapReasons.find(r => r.code === code)
+				return o ? o.label : code
+			},
+			remainMinutes(expireAt) {
+				return Math.max(0, Math.round((new Date(expireAt).getTime() - Date.now()) / 60000))
+			},
 			goCommunity() {
 				if (!this.venue) return
 				uni.navigateTo({ url: `/pages/community/list?venueId=${this.venue.id}&venueName=${encodeURIComponent(this.venue.name || '')}` })
@@ -961,7 +1012,7 @@
 	.venue-header {
 		display: flex;
 		flex-direction: column;
-		gap: 8rpx;
+		gap: 6rpx;
 	}
 	.venue-name {
 		font-size: 36rpx;
@@ -1036,10 +1087,10 @@
 		width: 100%;
 		background: #fff;
 		border-radius: 24rpx 24rpx 0 0;
-		padding: 32rpx;
+		padding: 26rpx;
 	}
 	.wl-title {
-		font-size: 32rpx;
+		font-size: 30rpx;
 		font-weight: 700;
 		margin-bottom: 24rpx;
 		display: block;
@@ -1054,15 +1105,15 @@
 		display: flex;
 		justify-content: space-between;
 		align-items: center;
-		padding: 20rpx 8rpx;
+		padding: 16rpx 8rpx;
 		border-bottom: 1rpx solid #F0EFEB;
 	}
 	.wl-row .wl-label {
-		font-size: 28rpx;
+		font-size: 26rpx;
 		color: #55554F;
 	}
 	.wl-row .wl-value {
-		font-size: 28rpx;
+		font-size: 26rpx;
 		color: var(--primary);
 		font-weight: 600;
 		padding-right: 20rpx;
@@ -1074,7 +1125,7 @@
 	}
 	.wl-actions {
 		display: flex;
-		gap: 24rpx;
+		gap: 19rpx;
 		margin-top: 32rpx;
 	}
 	.wl-actions button {
@@ -1093,12 +1144,12 @@
 		display: flex;
 		align-items: center;
 		justify-content: space-between;
-		padding: 16rpx 24rpx;
+		padding: 13rpx 24rpx;
 		background: #FFFFFF;
 		border-bottom: 1rpx solid #E0DED6;
 	}
 	.fs-title {
-		font-size: 28rpx;
+		font-size: 26rpx;
 		font-weight: 600;
 		color: #33332E;
 		flex: 1;
@@ -1106,7 +1157,7 @@
 	.fs-zoom {
 		display: flex;
 		align-items: center;
-		gap: 12rpx;
+		gap: 10rpx;
 	}
 	.fs-zbtn {
 		width: 56rpx;
@@ -1116,7 +1167,7 @@
 		background: var(--primary);
 		color: #FFFFFF;
 		border-radius: 50%;
-		font-size: 32rpx;
+		font-size: 30rpx;
 	}
 	.fs-zlabel {
 		font-size: 24rpx;
@@ -1145,13 +1196,13 @@
 	}
 	.legend {
 		display: flex;
-		gap: 20rpx;
+		gap: 16rpx;
 		flex-wrap: wrap;
 	}
 	.legend-item {
 		display: flex;
 		align-items: center;
-		gap: 8rpx;
+		gap: 6rpx;
 		font-size: 22rpx;
 		color: #55554F;
 	}
@@ -1173,23 +1224,23 @@
 	}
 	.floor-tabs {
 		display: flex;
-		padding: 0 20rpx 10rpx;
-		gap: 16rpx;
+		padding: 0 20rpx 8rpx;
+		gap: 13rpx;
 		overflow-x: auto;
 	}
 	.floor-tab {
 		flex-shrink: 0;
-		padding: 10rpx 30rpx;
+		padding: 8rpx 30rpx;
 		background: #FFFFFF;
 		border-radius: 30rpx;
-		font-size: 26rpx;
+		font-size: 24rpx;
 		color: #55554F;
 	}
 	/* 空间区域切换 */
 	.area-tabs {
 		display: flex;
-		padding: 0 20rpx 14rpx;
-		gap: 14rpx;
+		padding: 0 20rpx 11rpx;
+		gap: 11rpx;
 		overflow-x: auto;
 	}
 	.area-tab {
@@ -1402,20 +1453,20 @@
 	.share-card {
 		display: flex;
 		flex-direction: column;
-		gap: 10rpx;
+		gap: 8rpx;
 	}
 	.share-top {
 		display: flex;
 		justify-content: space-between;
 	}
 	.share-seat {
-		font-size: 30rpx;
+		font-size: 28rpx;
 		font-weight: 600;
 		color: var(--primary);
 	}
 	.share-loc {
 		display: flex;
-		gap: 12rpx;
+		gap: 10rpx;
 		align-items: center;
 	}
 	.share-floor {
@@ -1430,7 +1481,7 @@
 		color: #8A8A86;
 	}
 	.share-time {
-		font-size: 26rpx;
+		font-size: 24rpx;
 	}
 	.share-note {
 		font-size: 24rpx;
@@ -1442,15 +1493,93 @@
 	}
 	.share-actions button {
 		flex: 1;
-		font-size: 26rpx;
+		font-size: 24rpx;
 		line-height: 2;
 		padding: 0 24rpx;
 		margin: 0;
 	}
 
+	/* 区块标题 + 更多 */
+	.sec-head {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		padding: 0 4rpx;
+	}
+	.sec-more {
+		font-size: 24rpx;
+		color: var(--primary);
+	}
+	.empty-sm {
+		text-align: center;
+		font-size: 24rpx;
+		color: #B0AEA8;
+		padding: 24rpx 0;
+	}
+	/* 换座卡片 */
+	.swap-card {
+		display: flex;
+		flex-direction: column;
+	}
+	.swap-head {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		gap: 13rpx;
+	}
+	.swap-title {
+		flex: 1;
+		min-width: 0;
+		font-size: 28rpx;
+		font-weight: 600;
+		color: #33332E;
+	}
+	.remain {
+		flex-shrink: 0;
+		font-size: 22rpx;
+		color: #8A8A86;
+		background: #F5F4EF;
+		padding: 6rpx 14rpx;
+		border-radius: 999rpx;
+	}
+	.swap-route {
+		display: flex;
+		align-items: center;
+		gap: 10rpx;
+		margin-top: 12rpx;
+	}
+	.route-arrow {
+		flex-shrink: 0;
+		font-size: 24rpx;
+		font-weight: 700;
+		color: var(--primary);
+	}
+	.route-want {
+		flex: 1;
+		min-width: 0;
+		font-size: 24rpx;
+		color: #55554F;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+	.reasons {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 10rpx;
+		margin-top: 12rpx;
+	}
+	.chip {
+		font-size: 22rpx;
+		padding: 6rpx 18rpx;
+		border-radius: 999rpx;
+		background: var(--primary-bg, #EAF3F1);
+		color: var(--primary);
+	}
+
 	.community-entry { display: flex; align-items: center; justify-content: space-between; }
-	.ce-left { display: flex; flex-direction: column; gap: 6rpx; min-width: 0; }
-	.ce-title { font-size: 30rpx; font-weight: 600; color: #2B2B27; }
+	.ce-left { display: flex; flex-direction: column; gap: 5rpx; min-width: 0; }
+	.ce-title { font-size: 28rpx; font-weight: 600; color: #2B2B27; }
 	.ce-sub { font-size: 22rpx; color: #8A8A86; }
 	.ce-arrow { font-size: 36rpx; color: #C4C2BB; }
 </style>

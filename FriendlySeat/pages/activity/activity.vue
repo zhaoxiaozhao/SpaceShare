@@ -127,19 +127,19 @@
 
 <style scoped>
 	.page {
-		padding: 24rpx;
+		padding: 19rpx;
 	}
 	.tabs {
 		display: flex;
 		background: #FFFFFF;
 		border-radius: 20rpx;
-		padding: 10rpx;
+		padding: 8rpx;
 	}
 	.tab {
 		flex: 1;
 		text-align: center;
-		padding: 16rpx 0;
-		font-size: 28rpx;
+		padding: 13rpx 0;
+		font-size: 26rpx;
 		color: #55554F;
 		border-radius: 14rpx;
 	}
@@ -151,8 +151,8 @@
 	.cats {
 		display: flex;
 		flex-wrap: wrap;
-		gap: 12rpx;
-		margin: 20rpx 0 4rpx;
+		gap: 10rpx;
+		margin: 16rpx 0 4rpx;
 	}
 	.cat {
 		font-size: 24rpx;
@@ -201,7 +201,7 @@
 	.st-cancelled, .st-finished { color: #B0AEA8; }
 	.st-published { color: var(--primary); }
 	.act-title {
-		font-size: 32rpx;
+		font-size: 30rpx;
 		font-weight: 700;
 	}
 	.act-time, .act-loc {
@@ -229,19 +229,19 @@
 	.empty {
 		text-align: center;
 		color: #B0AEA8;
-		font-size: 26rpx;
-		padding: 100rpx 0;
+		font-size: 24rpx;
+		padding: 80rpx 0;
 	}
 	.fab {
 		position: fixed;
 		right: 30rpx;
 		bottom: 60rpx;
 		z-index: 99;
-		padding: 20rpx 36rpx;
+		padding: 16rpx 36rpx;
 		border-radius: 44rpx;
 		background: var(--primary-gradient, linear-gradient(135deg, #3A8A7E, #5BA99C));
 		color: #fff;
-		font-size: 28rpx;
+		font-size: 26rpx;
 		font-weight: 600;
 		box-shadow: 0 8rpx 24rpx rgba(0, 0, 0, 0.18);
 	}

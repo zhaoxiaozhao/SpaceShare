@@ -113,7 +113,7 @@ public class ActivityCommentService
     }
 
     /// <summary>审核：通过=恢复展示；驳回=删除</summary>
-    public async Task AdminReviewAsync(long id, bool approve, CancellationToken ct = default)
+    public async Task AdminReviewAsync(long id, bool approve, long operatorId, CancellationToken ct = default)
     {
         var comment = await _db.ActivityComments.FirstOrDefaultAsync(c => c.Id == id, ct)
             ?? throw AppException.NotFound("留言不存在");
@@ -127,6 +127,15 @@ public class ActivityCommentService
         {
             _db.ActivityComments.Remove(comment);
         }
+        _db.AdminAuditLogs.Add(new AdminAuditLog
+        {
+            AdminUserId = operatorId,
+            Action = "activity_comment.review",
+            EntityType = "ActivityComment",
+            EntityId = id.ToString(),
+            Detail = approve ? "审核通过" : "驳回删除",
+            CreatedAt = DateTime.UtcNow
+        });
         await _db.SaveChangesAsync(ct);
     }
 

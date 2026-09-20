@@ -37,6 +37,7 @@
 			<text class="doc-p">4. 不出售、出租、转让座位，不利用平台进行座位交易。</text>
 			<text class="doc-p">5. 不发布骚扰、违法或侵权信息。</text>
 			<text class="doc-p">6. 不利用平台漏洞或自动化工具进行不当操作。</text>
+			<text class="doc-p">7. 若您为未满 14 周岁的未成年人，请在监护人陪同下使用本服务并征得监护人同意，且不要使用社区交流功能（发帖、评论、留言等）、不要发布任何内容。</text>
 		</view>
 
 		<view class="doc-section">
@@ -72,6 +73,7 @@
 			<text class="doc-p">2. 分享者一定按约分享、预约者一定按约到场。</text>
 			<text class="doc-p">3. 场馆一定允许共享或允许使用某个座位。</text>
 			<text class="doc-p">4. 用户之间线下交流、接触不存在任何风险。</text>
+			<text class="doc-p">5. 用户在交流板、便签、活动留言等处发布的内容真实、合法且不侵权。</text>
 			<text class="doc-p">用户应自行判断座位信息的真实性，对线下行为承担相应责任。</text>
 		</view>
 
@@ -92,12 +94,21 @@
 		</view>
 
 		<view class="doc-section">
-			<text class="doc-h2">十一、协议变更</text>
+			<text class="doc-h2">十一、社区交流规范</text>
+			<text class="doc-p">1. 场馆交流板、座位便签、活动留言等为公开内容，您发布的内容将对其他用户可见，请谨慎发布。</text>
+			<text class="doc-p">2. 禁止发布：违法违规信息，色情、暴力、赌博等内容，广告导流、联系方式、二维码，任何形式的交易或收费信息，以及人身攻击、骚扰、虚假信息。</text>
+			<text class="doc-p">3. 平台对发布内容进行审核（含敏感词过滤、内容安全检测与人工审核）；被举报内容将先自动隐藏并进入审核，违规内容将被删除，情节严重的将限制账号功能或封禁。</text>
+			<text class="doc-p">4. 您对自己发布的内容负责，因发布内容引发的争议与法律责任由发布者承担。</text>
+			<text class="doc-p">5. 您可通过帖子/评论上的举报入口或“意见反馈”进行投诉，我们将在合理期限内处理。</text>
+		</view>
+
+		<view class="doc-section">
+			<text class="doc-h2">十二、协议变更</text>
 			<text class="doc-p">平台可能不时更新本协议，更新后将在小程序内提示。您继续使用即视为接受更新后的协议。</text>
 		</view>
 
 		<view class="doc-section">
-			<text class="doc-h2">十二、联系我们</text>
+			<text class="doc-h2">十三、联系我们</text>
 			<text class="doc-p">如您对本协议有任何疑问，或需要申诉、反馈、注销账号，请通过小程序内的"问题反馈"或举报入口联系我们。</text>
 		</view>
 
@@ -107,7 +118,7 @@
 
 <style scoped>
 	.doc-page {
-		padding: 30rpx;
+		padding: 24rpx;
 	}
 	.doc-section {
 		margin-bottom: 30rpx;
@@ -126,15 +137,15 @@
 	}
 	.doc-h2 {
 		display: block;
-		font-size: 30rpx;
+		font-size: 28rpx;
 		font-weight: 600;
 		color: var(--primary);
 		margin-bottom: 12rpx;
 	}
 	.doc-p {
 		display: block;
-		font-size: 26rpx;
-		line-height: 1.7;
+		font-size: 24rpx;
+		line-height: 1.4;
 		color: #55554F;
 		margin-bottom: 8rpx;
 	}

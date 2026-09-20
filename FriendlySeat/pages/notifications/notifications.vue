@@ -85,11 +85,11 @@
 		display: flex;
 		justify-content: space-between;
 		align-items: center;
-		padding: 0 20rpx 16rpx;
+		padding: 0 20rpx 13rpx;
 	}
 	.tabs {
 		display: flex;
-		gap: 12rpx;
+		gap: 10rpx;
 	}
 	.tab {
 		padding: 8rpx 24rpx;
@@ -110,7 +110,7 @@
 		padding: 8rpx 12rpx;
 	}
 	.notif-card {
-		padding: 24rpx;
+		padding: 19rpx;
 	}
 	.notif-top {
 		display: flex;
@@ -119,7 +119,7 @@
 		margin-bottom: 8rpx;
 	}
 	.notif-title {
-		font-size: 30rpx;
+		font-size: 28rpx;
 		font-weight: 600;
 		color: #B0B0AB;
 	}
@@ -135,7 +135,7 @@
 	}
 	.notif-content {
 		display: block;
-		font-size: 26rpx;
+		font-size: 24rpx;
 		color: #55554F;
 		margin-bottom: 8rpx;
 	}

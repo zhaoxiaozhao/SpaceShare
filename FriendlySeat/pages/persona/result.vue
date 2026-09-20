@@ -576,57 +576,57 @@
 
 <style scoped>
 	.page { padding-bottom: 40rpx; }
-	.hero { margin: 20rpx; border-radius: 28rpx; color: #FFFFFF; padding: 44rpx 36rpx; box-shadow: 0 10rpx 30rpx rgba(0,0,0,0.08); background: linear-gradient(160deg, var(--primary), var(--primary-light)); }
-	.hero-top { display: flex; align-items: center; justify-content: space-between; gap: 16rpx; }
-	.hero-left { display: flex; align-items: center; gap: 10rpx; min-width: 0; }
-	.hero-user { display: flex; align-items: center; gap: 12rpx; flex-shrink: 0; }
+	.hero { margin: 16rpx; border-radius: 28rpx; color: #FFFFFF; padding: 35rpx 36rpx; box-shadow: 0 10rpx 30rpx rgba(0,0,0,0.08); background: linear-gradient(160deg, var(--primary), var(--primary-light)); }
+	.hero-top { display: flex; align-items: center; justify-content: space-between; gap: 13rpx; }
+	.hero-left { display: flex; align-items: center; gap: 8rpx; min-width: 0; }
+	.hero-user { display: flex; align-items: center; gap: 10rpx; flex-shrink: 0; }
 	.hero-name { font-size: 24rpx; opacity: 0.9; max-width: 220rpx; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 	.type-dot { width: 16rpx; height: 16rpx; border-radius: 50%; flex-shrink: 0; }
 	.hero-label { display: block; font-size: 24rpx; opacity: 0.85; }
 	.hero-type { display: block; font-size: 60rpx; font-weight: 700; margin-top: 16rpx; }
-	.hero-desc { display: block; font-size: 26rpx; line-height: 1.6; opacity: 0.92; margin-top: 14rpx; }
-	.hero-quote { display: block; font-size: 26rpx; opacity: 0.9; margin-top: 18rpx; }
+	.hero-desc { display: block; font-size: 24rpx; line-height: 1.4; opacity: 0.92; margin-top: 14rpx; }
+	.hero-quote { display: block; font-size: 24rpx; opacity: 0.9; margin-top: 18rpx; }
 	.hero-hint { display: block; font-size: 20rpx; opacity: 0.7; margin-top: 20rpx; }
 	.poet-card { background: linear-gradient(160deg, var(--primary-bg), #FFFFFF); }
-	.poet-top { display: flex; align-items: baseline; gap: 12rpx; }
+	.poet-top { display: flex; align-items: baseline; gap: 10rpx; }
 	.poet-label { font-size: 24rpx; color: #8A8A86; }
 	.poet-name { font-size: 44rpx; font-weight: 700; color: var(--primary); }
-	.poet-line { display: block; font-size: 28rpx; color: #55554F; margin-top: 16rpx; }
-	.poet-why { display: block; font-size: 26rpx; color: #33332E; line-height: 1.6; margin-top: 12rpx; }
+	.poet-line { display: block; font-size: 26rpx; color: #55554F; margin-top: 16rpx; }
+	.poet-why { display: block; font-size: 24rpx; color: #33332E; line-height: 1.4; margin-top: 12rpx; }
 	.poet-hint { display: block; font-size: 20rpx; color: #B0B0AB; margin-top: 14rpx; }
-	.card-title { display: block; font-size: 30rpx; font-weight: 600; margin-bottom: 16rpx; }
-	.tags { display: flex; flex-wrap: wrap; gap: 14rpx; }
+	.card-title { display: block; font-size: 28rpx; font-weight: 600; margin-bottom: 16rpx; }
+	.tags { display: flex; flex-wrap: wrap; gap: 11rpx; }
 	.tag { font-size: 24rpx; color: var(--primary); background: var(--primary-bg); border-radius: 24rpx; padding: 8rpx 24rpx; }
-	.roles { display: flex; align-items: center; flex-wrap: wrap; gap: 12rpx; margin-top: 20rpx; }
+	.roles { display: flex; align-items: center; flex-wrap: wrap; gap: 10rpx; margin-top: 20rpx; }
 	.roles-label { font-size: 24rpx; color: #8A8A86; margin-right: 4rpx; }
 	.role { font-size: 24rpx; color: var(--primary); background: var(--primary-bg); border-radius: 20rpx; padding: 6rpx 20rpx; }
 	.scene { display: block; font-size: 24rpx; color: #55554F; margin-top: 18rpx; }
 	.radar { width: 320px; height: 300px; margin: 0 auto; display: block; }
 	.dim-legend { display: flex; flex-wrap: wrap; gap: 10rpx 18rpx; margin-top: 16rpx; }
-	.legend-item { display: flex; align-items: center; gap: 8rpx; }
+	.legend-item { display: flex; align-items: center; gap: 6rpx; }
 	.legend-label { font-size: 22rpx; color: #33332E; }
 	.legend-score { font-size: 20rpx; color: #B0B0AB; }
 	.dim { display: flex; align-items: center; margin-bottom: 20rpx; }
-	.dim-label { width: 130rpx; font-size: 26rpx; color: #33332E; }
-	.dim-bar { flex: 1; display: flex; align-items: center; gap: 10rpx; }
+	.dim-label { width: 130rpx; font-size: 24rpx; color: #33332E; }
+	.dim-bar { flex: 1; display: flex; align-items: center; gap: 8rpx; }
 	.dim-end { font-size: 20rpx; color: #B0B0AB; }
 	.dim-track { flex: 1; height: 12rpx; background: #EFEEE9; border-radius: 6rpx; overflow: hidden; }
 	.dim-fill { height: 100%; border-radius: 6rpx; }
-	.pair-reason { display: block; font-size: 22rpx; color: #B0B0AB; margin: -6rpx 0 16rpx; }
+	.pair-reason { display: block; font-size: 22rpx; color: #B0B0AB; margin: -6rpx 0 13rpx; }
 	.pair-item { margin-bottom: 14rpx; }
-	.pair-name { display: block; font-size: 28rpx; font-weight: 600; color: var(--primary); }
+	.pair-name { display: block; font-size: 26rpx; font-weight: 600; color: var(--primary); }
 	.pair-desc { display: block; font-size: 24rpx; color: #8A8A86; margin-top: 4rpx; }
-	.row-card { display: flex; align-items: center; justify-content: space-between; gap: 20rpx; }
+	.row-card { display: flex; align-items: center; justify-content: space-between; gap: 16rpx; }
 	.row-info { flex: 1; min-width: 0; }
-	.row-label { display: block; font-size: 28rpx; color: #33332E; font-weight: 600; }
+	.row-label { display: block; font-size: 26rpx; color: #33332E; font-weight: 600; }
 	.row-tip { display: block; font-size: 21rpx; color: #B0B0AB; margin-top: 4rpx; }
-	.actions { margin: 20rpx; display: flex; flex-direction: column; gap: 20rpx; }
-	.foot { display: block; text-align: center; font-size: 22rpx; color: #B0B0AB; padding: 10rpx 0 30rpx; }
+	.actions { margin: 16rpx; display: flex; flex-direction: column; gap: 16rpx; }
+	.foot { display: block; text-align: center; font-size: 22rpx; color: #B0B0AB; padding: 8rpx 0 24rpx; }
 	.modal-mask { position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 999; display: flex; align-items: center; justify-content: center; }
-	.preview { width: 600rpx; max-height: 86vh; background: #FFFFFF; border-radius: 24rpx; padding: 30rpx; display: flex; flex-direction: column; align-items: center; }
-	.modal-title { font-size: 32rpx; font-weight: 600; margin-bottom: 20rpx; }
+	.preview { width: 600rpx; max-height: 86vh; background: #FFFFFF; border-radius: 24rpx; padding: 24rpx; display: flex; flex-direction: column; align-items: center; }
+	.modal-title { font-size: 30rpx; font-weight: 600; margin-bottom: 20rpx; }
 	.poster { width: 460rpx; height: 700rpx; border-radius: 12rpx; background: #F5F3ED; }
 	.modal-tip { font-size: 20rpx; color: #B0B0AB; margin-top: 14rpx; }
 	.modal-btn { margin-top: 20rpx; width: 100%; }
-	.empty { display: flex; align-items: center; justify-content: center; min-height: 60vh; color: #B0B0AB; font-size: 26rpx; }
+	.empty { display: flex; align-items: center; justify-content: center; min-height: 60vh; color: #B0B0AB; font-size: 24rpx; }
 </style>

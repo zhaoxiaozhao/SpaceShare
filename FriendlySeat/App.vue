@@ -82,14 +82,14 @@
 		--accent: #A85432;
 		background-color: #F7F5EF;
 		color: #33332E;
-		font-size: 28rpx;
+		font-size: 26rpx;
 	}
 
 	.card {
 		background: #FFFFFF;
 		border-radius: 20rpx;
-		padding: 28rpx;
-		margin: 20rpx;
+		padding: 22rpx;
+		margin: 16rpx;
 		box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.04);
 	}
 
@@ -97,7 +97,7 @@
 		background-color: var(--primary);
 		color: #FFFFFF;
 		border-radius: 44rpx;
-		font-size: 30rpx;
+		font-size: 28rpx;
 		line-height: 2.4;
 	}
 
@@ -111,7 +111,7 @@
 		color: var(--primary);
 		border: 2rpx solid var(--primary);
 		border-radius: 44rpx;
-		font-size: 30rpx;
+		font-size: 28rpx;
 		line-height: 2.3;
 	}
 
@@ -119,7 +119,7 @@
 		display: inline-block;
 		padding: 4rpx 16rpx;
 		border-radius: 10rpx;
-		font-size: 22rpx;
+		font-size: 20rpx;
 		background: var(--primary-bg);
 		color: var(--primary);
 		margin-right: 12rpx;
@@ -132,7 +132,7 @@
 	.status-active { color: var(--primary); }
 
 	.section-title {
-		font-size: 32rpx;
+		font-size: 28rpx;
 		font-weight: 600;
 		margin: 20rpx;
 		color: #2B2B27;
@@ -142,6 +142,6 @@
 		text-align: center;
 		color: #999;
 		padding: 80rpx 0;
-		font-size: 28rpx;
+		font-size: 26rpx;
 	}
 </style>

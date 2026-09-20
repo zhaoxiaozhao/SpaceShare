@@ -61,11 +61,11 @@
 		display: flex;
 		flex-direction: column;
 		align-items: center;
-		padding: 50rpx;
-		gap: 10rpx;
+		padding: 40rpx;
+		gap: 8rpx;
 	}
 	.score-label {
-		font-size: 26rpx;
+		font-size: 24rpx;
 		color: #8A8A86;
 	}
 	.score-num {
@@ -74,23 +74,23 @@
 		color: var(--primary);
 	}
 	.score-level {
-		font-size: 28rpx;
+		font-size: 26rpx;
 		color: #55554F;
 	}
 	.rules-title {
-		font-size: 30rpx;
+		font-size: 28rpx;
 		font-weight: 600;
 		display: block;
 		margin-bottom: 16rpx;
 	}
 	.rules-line {
 		display: block;
-		font-size: 26rpx;
+		font-size: 24rpx;
 		color: #55554F;
 		padding: 6rpx 0;
 	}
 	.tx-card {
-		padding: 24rpx;
+		padding: 19rpx;
 	}
 	.tx-top {
 		display: flex;
@@ -98,10 +98,10 @@
 		align-items: center;
 	}
 	.tx-reason {
-		font-size: 28rpx;
+		font-size: 26rpx;
 	}
 	.tx-change {
-		font-size: 30rpx;
+		font-size: 28rpx;
 		font-weight: 700;
 	}
 	.tx-change.plus { color: var(--primary); }

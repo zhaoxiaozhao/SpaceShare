@@ -295,7 +295,7 @@
 
 <style scoped>
 	.page {
-		padding: 24rpx;
+		padding: 19rpx;
 	}
 	.card {
 		margin-bottom: 20rpx;
@@ -330,14 +330,14 @@
 	.part-list {
 		display: flex;
 		flex-wrap: wrap;
-		gap: 20rpx;
+		gap: 16rpx;
 	}
 	.part-item {
 		width: 100rpx;
 		display: flex;
 		flex-direction: column;
 		align-items: center;
-		gap: 8rpx;
+		gap: 6rpx;
 	}
 	.part-avatar {
 		width: 72rpx;
@@ -367,12 +367,12 @@
 		max-height: 70vh;
 		background: #fff;
 		border-radius: 20rpx;
-		padding: 32rpx;
+		padding: 26rpx;
 		display: flex;
 		flex-direction: column;
 	}
 	.p-title {
-		font-size: 30rpx;
+		font-size: 28rpx;
 		font-weight: 700;
 		margin-bottom: 20rpx;
 	}
@@ -383,8 +383,8 @@
 	.p-item {
 		display: flex;
 		align-items: center;
-		gap: 16rpx;
-		padding: 12rpx 0;
+		gap: 13rpx;
+		padding: 10rpx 0;
 	}
 	.p-avatar {
 		width: 64rpx;
@@ -393,7 +393,7 @@
 		background: #F0EEE8;
 	}
 	.p-name {
-		font-size: 26rpx;
+		font-size: 24rpx;
 	}
 	.act-top {
 		display: flex;
@@ -423,14 +423,14 @@
 	}
 	.act-time, .act-loc {
 		display: block;
-		font-size: 26rpx;
+		font-size: 24rpx;
 		color: #55554F;
 		margin-top: 10rpx;
 	}
 	.meta {
 		display: flex;
 		flex-direction: column;
-		gap: 6rpx;
+		gap: 5rpx;
 		margin-top: 16rpx;
 		padding-top: 16rpx;
 		border-top: 1rpx solid #F0EEE8;
@@ -447,24 +447,24 @@
 	}
 	.section-title {
 		display: block;
-		font-size: 28rpx;
+		font-size: 26rpx;
 		font-weight: 700;
 		margin-bottom: 12rpx;
 	}
 	.desc {
-		font-size: 26rpx;
+		font-size: 24rpx;
 		color: #4A4945;
-		line-height: 1.7;
+		line-height: 1.4;
 	}
 	.signup {
 		display: block;
-		font-size: 26rpx;
+		font-size: 24rpx;
 		color: #4A4945;
 		padding: 8rpx 0;
 	}
 	.actions {
 		display: flex;
-		gap: 16rpx;
+		gap: 13rpx;
 		margin-top: 24rpx;
 	}
 	.actions button {
@@ -473,26 +473,26 @@
 	.empty {
 		text-align: center;
 		color: #B0AEA8;
-		font-size: 26rpx;
-		padding: 120rpx 0;
+		font-size: 24rpx;
+		padding: 96rpx 0;
 	}
 
 	/* 活动留言 */
 	.cm-card { margin-top: 20rpx; }
 	.cm-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12rpx; }
-	.cm-title { font-size: 30rpx; font-weight: 600; }
+	.cm-title { font-size: 28rpx; font-weight: 600; }
 	.cm-count { font-size: 22rpx; color: #B0B0AB; }
 	.cm-list { display: flex; flex-direction: column; }
-	.cm-item { display: flex; align-items: flex-start; gap: 16rpx; padding: 18rpx 0; border-bottom: 1rpx solid #F0EFEA; }
+	.cm-item { display: flex; align-items: flex-start; gap: 13rpx; padding: 14rpx 0; border-bottom: 1rpx solid #F0EFEA; }
 	.cm-item:last-child { border-bottom: none; }
 	.cm-body { flex: 1; min-width: 0; }
 	.cm-name { display: block; font-size: 24rpx; color: #8A8A86; }
-	.cm-content { display: block; font-size: 28rpx; color: #33332E; line-height: 1.6; margin-top: 4rpx; }
+	.cm-content { display: block; font-size: 26rpx; color: #33332E; line-height: 1.4; margin-top: 4rpx; }
 	.cm-time { display: block; font-size: 20rpx; color: #C4C2BB; margin-top: 6rpx; }
 	.cm-icon { width: 34rpx; height: 34rpx; flex-shrink: 0; margin-top: 6rpx; }
-	.cm-empty { display: block; font-size: 26rpx; color: #B0B0AB; padding: 12rpx 0 18rpx; }
-	.cm-input-row { display: flex; align-items: center; gap: 16rpx; margin-top: 16rpx; }
-	.cm-input { flex: 1; background: #F7F5EF; border-radius: 36rpx; padding: 16rpx 26rpx; font-size: 28rpx; }
-	.cm-send { flex-shrink: 0; margin: 0; padding: 0 34rpx; height: 72rpx; line-height: 72rpx; border-radius: 36rpx; background: var(--primary); color: #FFFFFF; font-size: 28rpx; }
+	.cm-empty { display: block; font-size: 24rpx; color: #B0B0AB; padding: 10rpx 0 14rpx; }
+	.cm-input-row { display: flex; align-items: center; gap: 13rpx; margin-top: 16rpx; }
+	.cm-input { flex: 1; background: #F7F5EF; border-radius: 36rpx; padding: 13rpx 26rpx; font-size: 26rpx; }
+	.cm-send { flex-shrink: 0; margin: 0; padding: 0 34rpx; height: 72rpx; line-height: 72rpx; border-radius: 36rpx; background: var(--primary); color: #FFFFFF; font-size: 26rpx; }
 	.cm-send::after { border: none; }
 </style>

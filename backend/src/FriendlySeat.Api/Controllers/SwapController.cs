@@ -41,6 +41,14 @@ public class SwapController : ControllerBase
         return Ok(await _swap.GetRecentAsync(_currentUser.UserId!.Value, take <= 0 ? 20 : take, ct));
     }
 
+    /// <summary>换座发现流（跨场馆，公开，未登录可浏览）</summary>
+    [AllowAnonymous]
+    [HttpGet("swaps/feed")]
+    public async Task<ActionResult<List<SeatSwapDto>>> GetFeed([FromQuery] int take, CancellationToken ct)
+    {
+        return Ok(await _swap.GetRecentAsync(0, take <= 0 ? 20 : take, ct));
+    }
+
     /// <summary>某座位当前进行中的换座意向（座位详情页判断按钮）</summary>
     [HttpGet("swaps/seat/{seatId:long}")]
     public async Task<ActionResult<SeatSwapDto?>> GetBySeat(long seatId, CancellationToken ct)

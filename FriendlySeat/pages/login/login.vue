@@ -87,7 +87,7 @@
 
 <style scoped>
 	.login-page {
-		padding: 160rpx 50rpx;
+		padding: 128rpx 50rpx;
 		display: flex;
 		flex-direction: column;
 		align-items: center;
@@ -96,7 +96,7 @@
 		display: flex;
 		flex-direction: column;
 		align-items: center;
-		gap: 16rpx;
+		gap: 13rpx;
 	}
 	.brand-name {
 		font-size: 64rpx;
@@ -105,7 +105,7 @@
 		letter-spacing: 10rpx;
 	}
 	.brand-slogan {
-		font-size: 30rpx;
+		font-size: 28rpx;
 		color: #55554F;
 	}
 	.login-desc {
@@ -113,8 +113,8 @@
 		display: flex;
 		flex-direction: column;
 		align-items: center;
-		gap: 8rpx;
-		font-size: 26rpx;
+		gap: 6rpx;
+		font-size: 24rpx;
 		color: #8A8A86;
 	}
 	.login-btn {
@@ -127,7 +127,7 @@
 		color: #B0B0AB;
 		display: flex;
 		align-items: center;
-		gap: 2rpx;
+		gap: 4rpx;
 		flex-wrap: wrap;
 		justify-content: center;
 	}

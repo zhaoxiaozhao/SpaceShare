@@ -10,11 +10,13 @@ public class VenuesController : ControllerBase
 {
     private readonly VenueService _venueService;
     private readonly ShareService _shareService;
+    private readonly SwapService _swapService;
 
-    public VenuesController(VenueService venueService, ShareService shareService)
+    public VenuesController(VenueService venueService, ShareService shareService, SwapService swapService)
     {
         _venueService = venueService;
         _shareService = shareService;
+        _swapService = swapService;
     }
 
     [HttpGet]
@@ -77,5 +79,12 @@ public class VenuesController : ControllerBase
 
         var shares = await _shareService.GetSharesBySeatIdsAsync(seatIds, ct);
         return Ok(shares);
+    }
+
+    /// <summary>场馆内进行中的换座意向（公开可见）</summary>
+    [HttpGet("{id:long}/swaps")]
+    public async Task<ActionResult<List<SeatSwapDto>>> GetVenueSwaps(long id, CancellationToken ct)
+    {
+        return Ok(await _swapService.GetOpenAsync(id, 0, ct));
     }
 }

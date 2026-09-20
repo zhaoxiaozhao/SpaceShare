@@ -93,27 +93,27 @@
 </script>
 
 <style scoped>
-	.quiz { padding: 30rpx 30rpx 60rpx; }
-	.q-top { display: flex; align-items: center; gap: 16rpx; }
+	.quiz { padding: 24rpx 30rpx 48rpx; }
+	.q-top { display: flex; align-items: center; gap: 13rpx; }
 	.q-index { font-size: 24rpx; color: var(--primary); font-weight: 600; }
 	.q-dim { font-size: 22rpx; color: #B0B0AB; margin-left: auto; }
 	.q-bar { flex: 1; height: 10rpx; background: #EFEEE9; border-radius: 5rpx; overflow: hidden; }
 	.q-bar-fill { height: 100%; background: var(--primary); border-radius: 5rpx; transition: width 0.25s; }
 	.q-card { margin-top: 60rpx; }
-	.q-text { display: block; font-size: 40rpx; font-weight: 700; line-height: 1.5; color: #2B2B27; }
+	.q-text { display: block; font-size: 40rpx; font-weight: 700; line-height: 1.4; color: #2B2B27; }
 	.q-opt {
 		margin-top: 24rpx;
 		background: #FFFFFF;
 		border-radius: 20rpx;
-		padding: 32rpx 30rpx;
-		font-size: 30rpx;
+		padding: 26rpx 30rpx;
+		font-size: 28rpx;
 		color: #33332E;
 		box-shadow: 0 4rpx 16rpx rgba(0,0,0,0.04);
 		border: 2rpx solid transparent;
 	}
 	.q-opt.on { border-color: var(--primary); background: var(--primary-bg); color: var(--primary); font-weight: 600; }
 	.q-foot { margin-top: 40rpx; text-align: center; }
-	.q-back { font-size: 26rpx; color: var(--primary); }
+	.q-back { font-size: 24rpx; color: var(--primary); }
 	.q-hint { font-size: 24rpx; color: #B0B0AB; }
-	.empty { display: flex; align-items: center; justify-content: center; min-height: 60vh; color: #B0B0AB; font-size: 26rpx; }
+	.empty { display: flex; align-items: center; justify-content: center; min-height: 60vh; color: #B0B0AB; font-size: 24rpx; }
 </style>

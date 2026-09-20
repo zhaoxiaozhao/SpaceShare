@@ -218,7 +218,7 @@
 
 <style scoped>
 	.section-label {
-		font-size: 26rpx;
+		font-size: 24rpx;
 		color: #8A8A86;
 		display: block;
 		margin-bottom: 12rpx;
@@ -232,7 +232,7 @@
 	}
 	.venue-name, .share-time {
 		display: block;
-		font-size: 26rpx;
+		font-size: 24rpx;
 		color: #55554F;
 		margin-bottom: 6rpx;
 	}
@@ -242,24 +242,24 @@
 	.warn-text {
 		display: block;
 		color: #B85450;
-		font-size: 26rpx;
+		font-size: 24rpx;
 		margin-bottom: 20rpx;
 	}
 	/* 离开时长选择 */
 	.duration-grid {
 		display: flex;
 		flex-wrap: wrap;
-		gap: 16rpx;
-		margin: 24rpx 0 8rpx;
+		gap: 13rpx;
+		margin: 19rpx 0 8rpx;
 	}
 	.duration-chip {
 		flex: 1;
 		min-width: 120rpx;
 		text-align: center;
-		padding: 20rpx 0;
+		padding: 16rpx 0;
 		background: #F7F5EF;
 		border-radius: 16rpx;
-		font-size: 28rpx;
+		font-size: 26rpx;
 		color: #55554F;
 		border: 2rpx solid transparent;
 	}
@@ -288,10 +288,10 @@
 		display: flex;
 		align-items: center;
 		justify-content: space-between;
-		padding: 18rpx 24rpx;
+		padding: 14rpx 24rpx;
 		background: #F7F5EF;
 		border-radius: 16rpx;
-		font-size: 26rpx;
+		font-size: 24rpx;
 		color: #55554F;
 		border: 2rpx solid transparent;
 	}
@@ -300,7 +300,7 @@
 		color: var(--primary);
 	}
 	.custom-value {
-		font-size: 26rpx;
+		font-size: 24rpx;
 		color: var(--primary);
 		font-weight: 600;
 	}
@@ -308,10 +308,10 @@
 		margin-top: 20rpx;
 		background: #F7F5EF;
 		border-radius: 12rpx;
-		padding: 16rpx 20rpx;
+		padding: 13rpx 20rpx;
 		display: flex;
 		align-items: center;
-		gap: 16rpx;
+		gap: 13rpx;
 	}
 	.share-summary.sub {
 		margin-top: 10rpx;
@@ -322,7 +322,7 @@
 		color: #8A8A86;
 	}
 	.summary-value {
-		font-size: 26rpx;
+		font-size: 24rpx;
 		color: var(--primary);
 		font-weight: 600;
 	}
@@ -330,7 +330,7 @@
 		margin-top: 20rpx;
 	}
 	.form-label {
-		font-size: 26rpx;
+		font-size: 24rpx;
 		color: #55554F;
 		display: block;
 		margin-bottom: 12rpx;
@@ -338,19 +338,19 @@
 	.form-input {
 		background: #F7F5EF;
 		border-radius: 12rpx;
-		padding: 16rpx 20rpx;
-		font-size: 28rpx;
+		padding: 13rpx 20rpx;
+		font-size: 26rpx;
 	}
 	.note-tags {
 		display: flex;
 		flex-wrap: wrap;
-		gap: 16rpx;
+		gap: 13rpx;
 	}
 	.note-tag {
-		padding: 10rpx 26rpx;
+		padding: 8rpx 26rpx;
 		background: #F7F5EF;
 		border-radius: 30rpx;
-		font-size: 26rpx;
+		font-size: 24rpx;
 		color: #55554F;
 		border: 2rpx solid transparent;
 	}

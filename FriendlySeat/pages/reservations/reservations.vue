@@ -430,15 +430,15 @@
 	.tabs {
 		display: flex;
 		background: #FFFFFF;
-		padding: 10rpx;
+		padding: 8rpx;
 		border-radius: 20rpx;
-		margin: 20rpx;
+		margin: 16rpx;
 	}
 	.tab {
 		flex: 1;
 		text-align: center;
-		padding: 16rpx 0;
-		font-size: 28rpx;
+		padding: 13rpx 0;
+		font-size: 26rpx;
 		color: #55554F;
 		border-radius: 14rpx;
 	}
@@ -450,7 +450,7 @@
 	.res-card {
 		display: flex;
 		flex-direction: column;
-		gap: 10rpx;
+		gap: 8rpx;
 	}
 	.res-top {
 		display: flex;
@@ -458,11 +458,11 @@
 		align-items: center;
 	}
 	.res-seat {
-		font-size: 32rpx;
+		font-size: 30rpx;
 		font-weight: 600;
 	}
 	.res-venue {
-		font-size: 26rpx;
+		font-size: 24rpx;
 		color: #55554F;
 	}
 	.res-floor {
@@ -471,11 +471,11 @@
 	.checkin-box {
 		background: var(--primary-bg);
 		border-radius: 14rpx;
-		padding: 20rpx;
+		padding: 16rpx;
 		display: flex;
 		flex-direction: column;
 		align-items: center;
-		gap: 8rpx;
+		gap: 6rpx;
 	}
 	.checkin-label {
 		font-size: 22rpx;
@@ -490,7 +490,7 @@
 	.code-input-row {
 		display: flex;
 		align-items: center;
-		gap: 12rpx;
+		gap: 10rpx;
 		margin-top: 12rpx;
 	}
 	.code-input {
@@ -498,36 +498,36 @@
 		min-width: 0;
 		background: var(--primary-bg);
 		border-radius: 12rpx;
-		padding: 14rpx 20rpx;
-		font-size: 30rpx;
+		padding: 11rpx 20rpx;
+		font-size: 28rpx;
 		letter-spacing: 6rpx;
 		text-align: center;
 	}
 	.res-time {
-		font-size: 26rpx;
+		font-size: 24rpx;
 		color: #8A8A86;
 	}
 	.res-actions {
 		display: flex;
-		gap: 16rpx;
+		gap: 13rpx;
 		margin-top: 12rpx;
 	}
 	.btn-primary.small, .btn-outline.small {
-		font-size: 26rpx;
+		font-size: 24rpx;
 		line-height: 2;
 		padding: 0 24rpx;
 		margin: 0;
 	}
 	.swap-group-title {
-		font-size: 26rpx;
+		font-size: 24rpx;
 		font-weight: 600;
 		color: #8A8A86;
-		margin: 24rpx 20rpx 12rpx;
+		margin: 19rpx 20rpx 10rpx;
 	}
 	.chips {
 		display: flex;
 		flex-wrap: wrap;
-		gap: 10rpx;
+		gap: 8rpx;
 		margin-top: 10rpx;
 	}
 	.chip {
@@ -540,13 +540,13 @@
 	.resp-title {
 		font-size: 24rpx;
 		color: #8A8A86;
-		margin: 16rpx 0 6rpx;
+		margin: 13rpx 0 6rpx;
 	}
 	.resp-row {
 		display: flex;
 		justify-content: space-between;
 		align-items: center;
-		padding: 10rpx 0;
+		padding: 8rpx 0;
 		border-top: 1rpx solid #F0EEE8;
 	}
 	.resp-info {
@@ -555,7 +555,7 @@
 		gap: 4rpx;
 	}
 	.resp-nick {
-		font-size: 26rpx;
+		font-size: 24rpx;
 		font-weight: 600;
 	}
 	.resp-loc {

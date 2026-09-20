@@ -229,7 +229,7 @@
 
 <style scoped>
 	.page {
-		padding: 24rpx;
+		padding: 19rpx;
 	}
 	.card {
 		display: flex;
@@ -238,14 +238,14 @@
 	.lb {
 		font-size: 24rpx;
 		color: #8A8A86;
-		margin: 22rpx 0 10rpx;
+		margin: 18rpx 0 8rpx;
 	}
 	.inp, .area, .pick {
 		background: #F8F7F3;
 		border: 1rpx solid #ECEAE3;
 		border-radius: 12rpx;
-		padding: 18rpx 20rpx;
-		font-size: 28rpx;
+		padding: 14rpx 20rpx;
+		font-size: 26rpx;
 		color: #33332E;
 	}
 	.area {
@@ -274,7 +274,7 @@
 		border: 1rpx dashed #DAD7CE;
 		border-radius: 14rpx;
 		color: #A5A39D;
-		font-size: 28rpx;
+		font-size: 26rpx;
 	}
 	.cover-remove {
 		position: absolute;
@@ -288,7 +288,7 @@
 	}
 	.row {
 		display: flex;
-		gap: 16rpx;
+		gap: 13rpx;
 	}
 	.row .col {
 		flex: 1;
@@ -300,7 +300,7 @@
 	}
 	.actions {
 		display: flex;
-		gap: 16rpx;
+		gap: 13rpx;
 		margin-top: 30rpx;
 	}
 	.actions button {

@@ -101,8 +101,8 @@
 		display: flex;
 		flex-direction: column;
 		align-items: center;
-		padding: 60rpx 40rpx;
-		gap: 12rpx;
+		padding: 48rpx 40rpx;
+		gap: 10rpx;
 	}
 	.hero-title {
 		font-size: 40rpx;
@@ -110,7 +110,7 @@
 		color: #FFFFFF;
 	}
 	.hero-desc {
-		font-size: 26rpx;
+		font-size: 24rpx;
 		color: #FFFFFF;
 		opacity: 0.9;
 	}
@@ -123,8 +123,8 @@
 		display: flex;
 		flex-direction: column;
 		align-items: center;
-		padding: 20rpx 0;
-		gap: 6rpx;
+		padding: 16rpx 0;
+		gap: 5rpx;
 	}
 	.stat-num {
 		font-size: 44rpx;
@@ -136,7 +136,7 @@
 		color: #8A8A86;
 	}
 	.badges-title {
-		font-size: 30rpx;
+		font-size: 28rpx;
 		font-weight: 600;
 		display: block;
 		margin-bottom: 24rpx;
@@ -149,7 +149,7 @@
 		display: flex;
 		flex-direction: column;
 		align-items: center;
-		gap: 6rpx;
+		gap: 5rpx;
 		width: 24%;
 	}
 	.badge.locked {

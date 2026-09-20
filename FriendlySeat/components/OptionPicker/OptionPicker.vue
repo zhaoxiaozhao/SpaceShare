@@ -75,11 +75,11 @@
 		display: flex;
 		align-items: center;
 		justify-content: space-between;
-		gap: 12rpx;
+		gap: 10rpx;
 		background: #F8F7F3;
 		border: 1rpx solid #ECEAE3;
 		border-radius: 12rpx;
-		padding: 18rpx 20rpx;
+		padding: 14rpx 20rpx;
 	}
 	.op-trigger.disabled {
 		opacity: 0.5;
@@ -87,7 +87,7 @@
 	.op-text {
 		flex: 1;
 		min-width: 0;
-		font-size: 28rpx;
+		font-size: 26rpx;
 		color: #33332E;
 		overflow: hidden;
 		text-overflow: ellipsis;
@@ -114,16 +114,16 @@
 		max-height: 70vh;
 		background: #fff;
 		border-radius: 24rpx 24rpx 0 0;
-		padding: 28rpx 0 12rpx;
+		padding: 22rpx 0 10rpx;
 		display: flex;
 		flex-direction: column;
 	}
 	.op-head {
-		padding: 0 32rpx 20rpx;
+		padding: 0 32rpx 16rpx;
 		text-align: center;
 	}
 	.op-title {
-		font-size: 30rpx;
+		font-size: 28rpx;
 		font-weight: 700;
 	}
 	.op-list {
@@ -133,8 +133,8 @@
 		display: flex;
 		align-items: center;
 		justify-content: space-between;
-		padding: 28rpx 32rpx;
-		font-size: 30rpx;
+		padding: 22rpx 32rpx;
+		font-size: 28rpx;
 		color: #33332E;
 	}
 	.op-item.active {
@@ -146,6 +146,6 @@
 	}
 	.op-check {
 		color: var(--primary);
-		font-size: 30rpx;
+		font-size: 28rpx;
 	}
 </style>

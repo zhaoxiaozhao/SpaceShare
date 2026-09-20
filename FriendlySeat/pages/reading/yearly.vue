@@ -123,21 +123,21 @@
 </script>
 
 <style scoped>
-	.year-switch { display: flex; gap: 16rpx; }
-	.year-btn { padding: 10rpx 30rpx; border-radius: 24rpx; font-size: 26rpx; background: #F1EFE9; color: #55554F; }
+	.year-switch { display: flex; gap: 13rpx; }
+	.year-btn { padding: 8rpx 30rpx; border-radius: 24rpx; font-size: 24rpx; background: #F1EFE9; color: #55554F; }
 	.year-btn.active { background: var(--primary); color: #FFFFFF; }
 	.report-card { background: var(--primary); }
-	.report-title { display: block; color: #FFFFFF; font-size: 32rpx; font-weight: 700; text-align: center; margin-bottom: 24rpx; }
-	.r-grid { display: flex; flex-wrap: wrap; gap: 20rpx; }
-	.r-item { flex: 1; min-width: 30%; display: flex; flex-direction: column; align-items: center; gap: 6rpx; }
+	.report-title { display: block; color: #FFFFFF; font-size: 30rpx; font-weight: 700; text-align: center; margin-bottom: 24rpx; }
+	.r-grid { display: flex; flex-wrap: wrap; gap: 16rpx; }
+	.r-item { flex: 1; min-width: 30%; display: flex; flex-direction: column; align-items: center; gap: 5rpx; }
 	.r-num { color: #FFFFFF; font-size: 40rpx; font-weight: 700; }
 	.r-label { color: rgba(255,255,255,0.85); font-size: 22rpx; }
-	.bar-chart { display: flex; align-items: flex-end; gap: 8rpx; height: 240rpx; padding: 10rpx 0; }
-	.bar-col { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 6rpx; height: 100%; justify-content: flex-end; }
+	.bar-chart { display: flex; align-items: flex-end; gap: 6rpx; height: 240rpx; padding: 8rpx 0; }
+	.bar-col { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 5rpx; height: 100%; justify-content: flex-end; }
 	.bar { width: 100%; max-width: 36rpx; background: var(--primary); border-radius: 4rpx 4rpx 0 0; }
 	.bar-label { font-size: 18rpx; color: #8A8A86; }
 	.daily-list { max-height: 400rpx; overflow: auto; }
-	.daily-item { display: flex; justify-content: space-between; padding: 10rpx 0; border-bottom: 1rpx solid #F0EFEA; }
-	.d-date { font-size: 26rpx; color: #55554F; }
-	.d-min { font-size: 26rpx; color: var(--primary); }
+	.daily-item { display: flex; justify-content: space-between; padding: 8rpx 0; border-bottom: 1rpx solid #F0EFEA; }
+	.d-date { font-size: 24rpx; color: #55554F; }
+	.d-min { font-size: 24rpx; color: var(--primary); }
 </style>

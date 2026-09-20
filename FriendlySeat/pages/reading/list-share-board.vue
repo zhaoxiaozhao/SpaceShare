@@ -142,18 +142,18 @@
 </script>
 
 <style scoped>
-	.tabs { display: flex; gap: 12rpx; margin: 20rpx; padding: 6rpx; background: #EFEEE9; border-radius: 40rpx; }
-	.tab { flex: 1; text-align: center; padding: 14rpx 0; border-radius: 34rpx; font-size: 28rpx; color: #8A8A86; }
+	.tabs { display: flex; gap: 10rpx; margin: 16rpx; padding: 6rpx; background: #EFEEE9; border-radius: 40rpx; }
+	.tab { flex: 1; text-align: center; padding: 11rpx 0; border-radius: 34rpx; font-size: 26rpx; color: #8A8A86; }
 	.tab.active { background: #FFFFFF; color: var(--primary); font-weight: 600; box-shadow: 0 2rpx 8rpx rgba(0,0,0,0.06); }
-	.list { padding: 0 0 20rpx; }
-	.board-card { display: flex; align-items: flex-start; gap: 20rpx; }
-	.rank { width: 48rpx; font-size: 32rpx; font-weight: 700; color: #C4C2BB; text-align: center; flex-shrink: 0; line-height: 1.2; }
+	.list { padding: 0 0 16rpx; }
+	.board-card { display: flex; align-items: flex-start; gap: 16rpx; }
+	.rank { width: 48rpx; font-size: 30rpx; font-weight: 700; color: #C4C2BB; text-align: center; flex-shrink: 0; line-height: 1.2; }
 	.rank.top { color: var(--primary); }
-	.mine-card { display: flex; align-items: center; gap: 16rpx; }
+	.mine-card { display: flex; align-items: center; gap: 13rpx; }
 	.info { flex: 1; min-width: 0; }
-	.title { font-size: 30rpx; font-weight: 600; display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+	.title { font-size: 28rpx; font-weight: 600; display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 	.remark { font-size: 24rpx; color: #55554F; display: block; margin-top: 6rpx; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-	.meta { display: flex; align-items: center; gap: 8rpx; font-size: 22rpx; color: #8A8A86; margin-top: 12rpx; }
+	.meta { display: flex; align-items: center; gap: 6rpx; font-size: 22rpx; color: #8A8A86; margin-top: 12rpx; }
 	.owner { color: #55554F; }
 	.fav { color: var(--primary); }
 	.dot { color: #C4C2BB; }
@@ -161,5 +161,5 @@
 	.pub-tag.on { background: var(--primary-bg); color: var(--primary); }
 	.del { width: 36rpx; height: 36rpx; flex-shrink: 0; }
 	.bottom-space { height: 140rpx; }
-	.fab { position: fixed; right: 40rpx; bottom: 60rpx; padding: 0 36rpx; height: 88rpx; line-height: 88rpx; border-radius: 44rpx; background: var(--primary); color: #FFFFFF; font-size: 28rpx; font-weight: 600; box-shadow: 0 8rpx 24rpx rgba(0,0,0,0.18); }
+	.fab { position: fixed; right: 40rpx; bottom: 60rpx; padding: 0 36rpx; height: 88rpx; line-height: 88rpx; border-radius: 44rpx; background: var(--primary); color: #FFFFFF; font-size: 26rpx; font-weight: 600; box-shadow: 0 8rpx 24rpx rgba(0,0,0,0.18); }
 </style>

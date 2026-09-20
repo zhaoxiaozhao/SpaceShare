@@ -127,7 +127,7 @@ public class SeatNoteService
     }
 
     /// <summary>审核：通过=恢复展示；驳回=删除</summary>
-    public async Task AdminReviewAsync(long id, bool approve, CancellationToken ct = default)
+    public async Task AdminReviewAsync(long id, bool approve, long operatorId, CancellationToken ct = default)
     {
         var note = await _db.SeatNotes.FirstOrDefaultAsync(n => n.Id == id, ct)
             ?? throw AppException.NotFound("便签不存在");
@@ -141,6 +141,15 @@ public class SeatNoteService
         {
             _db.SeatNotes.Remove(note);
         }
+        _db.AdminAuditLogs.Add(new AdminAuditLog
+        {
+            AdminUserId = operatorId,
+            Action = "seat_note.review",
+            EntityType = "SeatNote",
+            EntityId = id.ToString(),
+            Detail = approve ? "审核通过" : "驳回删除",
+            CreatedAt = DateTime.UtcNow
+        });
         await _db.SaveChangesAsync(ct);
     }
 

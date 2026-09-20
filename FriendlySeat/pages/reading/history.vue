@@ -44,10 +44,10 @@
 </script>
 
 <style scoped>
-	.session-item { display: flex; flex-direction: column; gap: 8rpx; }
+	.session-item { display: flex; flex-direction: column; gap: 6rpx; }
 	.s-top { display: flex; justify-content: space-between; align-items: center; }
-	.s-book { display: flex; align-items: center; gap: 8rpx; font-size: 30rpx; font-weight: 600; min-width: 0; }
+	.s-book { display: flex; align-items: center; gap: 6rpx; font-size: 28rpx; font-weight: 600; min-width: 0; }
 	.inline-icon { width: 34rpx; height: 34rpx; flex-shrink: 0; }
-	.s-time { font-size: 28rpx; color: var(--primary); font-weight: 600; }
+	.s-time { font-size: 26rpx; color: var(--primary); font-weight: 600; }
 	.s-date { font-size: 24rpx; color: #8A8A86; }
 </style>

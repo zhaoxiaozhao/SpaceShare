@@ -94,17 +94,17 @@
 
 <style scoped>
 	.page { padding-bottom: 40rpx; }
-	.label { display: block; font-size: 26rpx; color: #8A8A86; margin: 24rpx 0 12rpx; }
+	.label { display: block; font-size: 24rpx; color: #8A8A86; margin: 19rpx 0 10rpx; }
 	.label:first-child { margin-top: 0; }
 	.cats { white-space: nowrap; }
-	.cat { display: inline-block; padding: 10rpx 26rpx; margin-right: 14rpx; border-radius: 28rpx; font-size: 26rpx; background: #F1EFE9; color: #8A8A86; }
+	.cat { display: inline-block; padding: 8rpx 26rpx; margin-right: 14rpx; border-radius: 28rpx; font-size: 24rpx; background: #F1EFE9; color: #8A8A86; }
 	.cat.on { background: var(--primary); color: #FFFFFF; }
-	.input { background: #F7F5EF; border-radius: 12rpx; padding: 18rpx 22rpx; font-size: 28rpx; }
-	.textarea { width: 100%; box-sizing: border-box; height: 320rpx; background: #F7F5EF; border-radius: 12rpx; padding: 18rpx 22rpx; font-size: 28rpx; }
+	.input { background: #F7F5EF; border-radius: 12rpx; padding: 14rpx 22rpx; font-size: 26rpx; }
+	.textarea { width: 100%; box-sizing: border-box; height: 320rpx; background: #F7F5EF; border-radius: 12rpx; padding: 14rpx 22rpx; font-size: 26rpx; }
 	.count { display: block; text-align: right; font-size: 22rpx; color: #B0B0AB; margin-top: 8rpx; }
-	.venue-row { display: flex; align-items: center; gap: 12rpx; margin-top: 20rpx; }
-	.venue-label { font-size: 26rpx; color: #8A8A86; }
-	.venue-name { font-size: 28rpx; color: var(--primary); font-weight: 600; }
-	.actions { margin: 24rpx 20rpx 0; }
-	.hint { display: block; font-size: 20rpx; color: #B0B0AB; margin-top: 16rpx; line-height: 1.5; }
+	.venue-row { display: flex; align-items: center; gap: 10rpx; margin-top: 20rpx; }
+	.venue-label { font-size: 24rpx; color: #8A8A86; }
+	.venue-name { font-size: 26rpx; color: var(--primary); font-weight: 600; }
+	.actions { margin: 19rpx 20rpx 0; }
+	.hint { display: block; font-size: 20rpx; color: #B0B0AB; margin-top: 16rpx; line-height: 1.4; }
 </style>

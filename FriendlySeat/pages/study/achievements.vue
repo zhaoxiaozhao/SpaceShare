@@ -80,22 +80,22 @@
 		display: flex;
 		flex-direction: column;
 		align-items: center;
-		padding: 50rpx 30rpx;
-		gap: 8rpx;
+		padding: 40rpx 30rpx;
+		gap: 6rpx;
 	}
 	.summary-num {
 		font-size: 64rpx;
 		font-weight: 700;
 	}
 	.summary-label {
-		font-size: 26rpx;
+		font-size: 24rpx;
 		opacity: 0.9;
 	}
 	.achievement {
 		display: flex;
 		align-items: center;
-		gap: 24rpx;
-		padding: 28rpx;
+		gap: 19rpx;
+		padding: 22rpx;
 	}
 	.achievement.locked {
 		opacity: 0.55;
@@ -109,7 +109,7 @@
 		flex: 1;
 	}
 	.ach-title {
-		font-size: 30rpx;
+		font-size: 28rpx;
 		font-weight: 600;
 		display: block;
 		margin-bottom: 6rpx;

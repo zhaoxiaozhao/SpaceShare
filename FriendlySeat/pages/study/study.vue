@@ -266,14 +266,14 @@
 		display: flex;
 		flex-direction: column;
 		align-items: center;
-		padding: 50rpx 30rpx;
-		gap: 8rpx;
+		padding: 40rpx 30rpx;
+		gap: 6rpx;
 	}
 	.today-card.active {
 		background: var(--primary-gradient);
 	}
 	.today-label {
-		font-size: 26rpx;
+		font-size: 24rpx;
 		opacity: 0.9;
 	}
 	.today-time {
@@ -285,7 +285,7 @@
 		opacity: 0.85;
 	}
 	.section-label {
-		font-size: 30rpx;
+		font-size: 28rpx;
 		font-weight: 600;
 		display: block;
 		margin-bottom: 20rpx;
@@ -293,13 +293,13 @@
 	.type-grid {
 		display: flex;
 		flex-wrap: wrap;
-		gap: 20rpx;
+		gap: 16rpx;
 	}
 	.type-chip {
-		padding: 16rpx 36rpx;
+		padding: 13rpx 36rpx;
 		background: #F7F5EF;
 		border-radius: 40rpx;
-		font-size: 28rpx;
+		font-size: 26rpx;
 		color: #55554F;
 	}
 	.type-chip.active {
@@ -315,7 +315,7 @@
 		align-items: center;
 	}
 	.active-type {
-		font-size: 30rpx;
+		font-size: 28rpx;
 		font-weight: 600;
 	}
 	.active-time {
@@ -328,13 +328,13 @@
 	}
 	.goal-tabs {
 		display: flex;
-		gap: 12rpx;
-		margin: 16rpx 0 4rpx;
+		gap: 10rpx;
+		margin: 13rpx 0 4rpx;
 	}
 	.goal-tab {
 		padding: 8rpx 28rpx;
 		border-radius: 30rpx;
-		font-size: 26rpx;
+		font-size: 24rpx;
 		background: #F7F5EF;
 		color: #55554F;
 	}
@@ -348,7 +348,7 @@
 		align-items: center;
 	}
 	.goal-edit {
-		font-size: 26rpx;
+		font-size: 24rpx;
 		color: var(--primary);
 	}
 	.progress-bar {
@@ -371,23 +371,23 @@
 		margin-top: 12rpx;
 	}
 	.goal-empty {
-		font-size: 26rpx;
+		font-size: 24rpx;
 		color: #B0B0AB;
 	}
 	.quick-row {
 		display: flex;
-		margin: 20rpx;
-		gap: 20rpx;
+		margin: 16rpx;
+		gap: 16rpx;
 	}
 	.quick-btn {
 		flex: 1;
 		background: #FFFFFF;
 		border-radius: 20rpx;
-		padding: 24rpx 0;
+		padding: 19rpx 0;
 		display: flex;
 		flex-direction: column;
 		align-items: center;
-		gap: 8rpx;
+		gap: 6rpx;
 		font-size: 24rpx;
 		color: #55554F;
 		box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.04);
@@ -402,11 +402,11 @@
 		align-items: center;
 	}
 	.record-type {
-		font-size: 30rpx;
+		font-size: 28rpx;
 		font-weight: 600;
 	}
 	.record-duration {
-		font-size: 28rpx;
+		font-size: 26rpx;
 		color: var(--primary);
 		font-weight: 600;
 	}
@@ -426,11 +426,11 @@
 	.modal {
 		background: #FFFFFF;
 		border-radius: 24rpx;
-		padding: 40rpx;
+		padding: 32rpx;
 		width: 600rpx;
 	}
 	.modal-title {
-		font-size: 32rpx;
+		font-size: 30rpx;
 		font-weight: 600;
 		display: block;
 		text-align: center;
@@ -439,13 +439,13 @@
 	.goal-options {
 		display: flex;
 		flex-wrap: wrap;
-		gap: 20rpx;
+		gap: 16rpx;
 	}
 	.goal-opt {
-		padding: 16rpx 30rpx;
+		padding: 13rpx 30rpx;
 		background: #F7F5EF;
 		border-radius: 16rpx;
-		font-size: 28rpx;
+		font-size: 26rpx;
 	}
 	.goal-opt.active {
 		background: var(--primary);

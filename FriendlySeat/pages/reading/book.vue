@@ -293,14 +293,14 @@
 	/* 书籍头部（沉浸式） */
 	.book-hero {
 		display: flex;
-		gap: 28rpx;
-		padding: 30rpx;
+		gap: 22rpx;
+		padding: 24rpx;
 		background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
 	}
-	.book-main { flex: 1; display: flex; flex-direction: column; justify-content: center; gap: 10rpx; min-width: 0; }
+	.book-main { flex: 1; display: flex; flex-direction: column; justify-content: center; gap: 8rpx; min-width: 0; }
 	.title { font-size: 36rpx; font-weight: 700; color: #FFFFFF; line-height: 1.3; }
-	.author { font-size: 26rpx; color: rgba(255,255,255,0.85); }
-	.status-row { display: flex; align-items: center; gap: 16rpx; }
+	.author { font-size: 24rpx; color: rgba(255,255,255,0.85); }
+	.status-row { display: flex; align-items: center; gap: 13rpx; }
 	.status { font-size: 22rpx; padding: 4rpx 16rpx; border-radius: 8rpx; }
 	.st-WantToRead { background: rgba(255,255,255,0.25); color: #FFFFFF; }
 	.st-Reading { background: #FFFFFF; color: var(--primary); }
@@ -311,55 +311,55 @@
 	/* 进度概览 */
 	.progress-overview { margin-top: -20rpx; }
 	.po-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14rpx; }
-	.po-label { font-size: 26rpx; color: #55554F; }
-	.po-percent { font-size: 32rpx; font-weight: 700; color: var(--primary); }
+	.po-label { font-size: 24rpx; color: #55554F; }
+	.po-percent { font-size: 30rpx; font-weight: 700; color: var(--primary); }
 	.progress-bar { height: 12rpx; background: #F1EFE9; border-radius: 6rpx; overflow: hidden; }
 	.progress-fill { height: 100%; background: linear-gradient(90deg, var(--primary), var(--primary-light)); border-radius: 6rpx; }
 	.po-pages { display: block; margin-top: 12rpx; font-size: 24rpx; color: #8A8A86; }
 
 	/* 阅读操作 */
-	.action-card { display: flex; flex-direction: column; align-items: center; gap: 18rpx; }
+	.action-card { display: flex; flex-direction: column; align-items: center; gap: 14rpx; }
 	.action-card .btn-primary { width: 70%; margin: 0; }
 	.action-card .btn-outline { width: 70%; margin: 0; }
-	.reading-banner { display: flex; align-items: center; gap: 20rpx; background: var(--primary-bg); border-radius: 14rpx; padding: 22rpx; width: 100%; box-sizing: border-box; }
+	.reading-banner { display: flex; align-items: center; gap: 16rpx; background: var(--primary-bg); border-radius: 14rpx; padding: 18rpx; width: 100%; box-sizing: border-box; }
 	.banner-icon { width: 56rpx; height: 56rpx; flex-shrink: 0; }
 	.banner-info { flex: 1; display: flex; flex-direction: column; gap: 4rpx; }
-	.banner-title { font-size: 30rpx; font-weight: 600; color: var(--primary); }
+	.banner-title { font-size: 28rpx; font-weight: 600; color: var(--primary); }
 	.banner-sub { font-size: 22rpx; color: #8A8A86; }
 
 	/* 通用卡片标题 */
-	.card-title { font-size: 30rpx; font-weight: 700; color: #2B2B27; display: block; margin-bottom: 20rpx; }
+	.card-title { font-size: 28rpx; font-weight: 700; color: #2B2B27; display: block; margin-bottom: 20rpx; }
 
 	/* 记录进度 */
-	.field-row { display: flex; align-items: center; gap: 14rpx; margin-bottom: 18rpx; }
-	.field-label { font-size: 26rpx; color: #55554F; white-space: nowrap; }
-	.field-input { flex: 1; min-width: 0; background: #F7F5EF; border-radius: 12rpx; padding: 18rpx 22rpx; font-size: 28rpx; }
+	.field-row { display: flex; align-items: center; gap: 11rpx; margin-bottom: 18rpx; }
+	.field-label { font-size: 24rpx; color: #55554F; white-space: nowrap; }
+	.field-input { flex: 1; min-width: 0; background: #F7F5EF; border-radius: 12rpx; padding: 14rpx 22rpx; font-size: 26rpx; }
 	.field-input.number { max-width: 150rpx; }
-	.field-unit { font-size: 26rpx; color: #8A8A86; white-space: nowrap; }
+	.field-unit { font-size: 24rpx; color: #8A8A86; white-space: nowrap; }
 	.save { width: 70%; margin: 0 auto; display: block; }
 
 	/* 摘抄与笔记 */
 	.seg-tabs { display: inline-flex; background: #F1EFE9; border-radius: 24rpx; padding: 4rpx; margin-bottom: 18rpx; }
-	.seg-tab { font-size: 26rpx; color: #8A8A86; padding: 10rpx 36rpx; border-radius: 20rpx; }
+	.seg-tab { font-size: 24rpx; color: #8A8A86; padding: 8rpx 36rpx; border-radius: 20rpx; }
 	.seg-tab.active { background: var(--primary); color: #FFFFFF; font-weight: 600; }
-	.note-textarea { width: 100%; min-height: 220rpx; box-sizing: border-box; background: #F7F5EF; border-radius: 14rpx; padding: 22rpx; font-size: 28rpx; line-height: 1.7; margin-bottom: 16rpx; }
-	.note-actions { display: flex; align-items: center; gap: 14rpx; }
-	.note-pos-input { flex: 1; min-width: 0; background: #F7F5EF; border-radius: 12rpx; padding: 16rpx 20rpx; font-size: 26rpx; }
+	.note-textarea { width: 100%; min-height: 220rpx; box-sizing: border-box; background: #F7F5EF; border-radius: 14rpx; padding: 18rpx; font-size: 26rpx; line-height: 1.4; margin-bottom: 16rpx; }
+	.note-actions { display: flex; align-items: center; gap: 11rpx; }
+	.note-pos-input { flex: 1; min-width: 0; background: #F7F5EF; border-radius: 12rpx; padding: 13rpx 20rpx; font-size: 24rpx; }
 	.note-actions .btn-primary.small { margin: 0; width: 150rpx; flex-shrink: 0; }
 
 	/* 笔记列表 */
-	.list-tabs { display: flex; gap: 12rpx; margin-bottom: 16rpx; }
+	.list-tabs { display: flex; gap: 10rpx; margin-bottom: 16rpx; }
 	.list-tab { font-size: 24rpx; color: #8A8A86; padding: 8rpx 26rpx; border-radius: 20rpx; background: #F1EFE9; }
 	.list-tab.active { background: var(--primary); color: #FFFFFF; }
-	.note-item { padding: 22rpx 0; border-bottom: 1rpx solid #F0EFEA; }
+	.note-item { padding: 18rpx 0; border-bottom: 1rpx solid #F0EFEA; }
 	.note-item:last-child { border-bottom: none; }
-	.note-item-head { display: flex; align-items: center; gap: 16rpx; margin-bottom: 10rpx; }
+	.note-item-head { display: flex; align-items: center; gap: 13rpx; margin-bottom: 10rpx; }
 	.note-tag { font-size: 20rpx; padding: 4rpx 14rpx; border-radius: 6rpx; }
 	.nt-highlight { background: #FFF4E0; color: #B8860B; }
 	.nt-note { background: var(--primary-bg); color: var(--primary); }
 	.note-time { flex: 1; font-size: 22rpx; color: #B0B0AB; }
 	.note-del { font-size: 24rpx; color: #B85450; }
-	.note-content { display: block; font-size: 28rpx; line-height: 1.7; color: #33332E; }
+	.note-content { display: block; font-size: 26rpx; line-height: 1.4; color: #33332E; }
 	.note-content.is-highlight { border-left: 4rpx solid #E6C36A; padding-left: 20rpx; color: #5A5A52; }
 	.note-pos { display: block; font-size: 22rpx; color: #B0B0AB; margin-top: 8rpx; }
 </style>

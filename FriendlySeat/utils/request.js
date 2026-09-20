@@ -134,6 +134,8 @@ export const api = {
 	createSwap: (data) => request('/swaps', { method: 'POST', data }),
 	getSwaps: (venueId) => request(`/swaps?venueId=${venueId}`),
 	getRecentSwaps: (take) => request(`/swaps/recent?take=${take || 20}`),
+	getSwapFeed: (take) => request(`/swaps/feed?take=${take || 20}`, { auth: false }),
+	getVenueSwaps: (id) => request(`/venues/${id}/swaps`, { auth: false }),
 	getSwapBySeat: (seatId) => request(`/swaps/seat/${seatId}`),
 	getMySwaps: () => request('/swaps/mine'),
 	getRespondedSwaps: () => request('/swaps/responded'),
@@ -222,7 +224,7 @@ export const api = {
 	getVenuePost: (id) => request(`/venue-posts/${id}`, { auth: false }),
 	createVenuePost: (data) => request('/venue-posts', { method: 'POST', data }),
 	likeVenuePost: (id) => request(`/venue-posts/${id}/like`, { method: 'POST' }),
-	commentVenuePost: (id, content) => request(`/venue-posts/${id}/comments`, { method: 'POST', data: { content } }),
+	commentVenuePost: (id, content, parentCommentId) => request(`/venue-posts/${id}/comments`, { method: 'POST', data: { content, parentCommentId: parentCommentId || null } }),
 	deleteVenuePost: (id) => request(`/venue-posts/${id}`, { method: 'DELETE' }),
 	deleteVenuePostComment: (id) => request(`/venue-posts/comments/${id}`, { method: 'DELETE' })
 }

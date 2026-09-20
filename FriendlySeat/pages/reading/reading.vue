@@ -332,44 +332,44 @@
 <style scoped>
 	/* 今日阅读卡片 */
 	.today-card { background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%); color: #FFFFFF; }
-	.today-label { font-size: 26rpx; opacity: 0.9; display: block; }
+	.today-label { font-size: 24rpx; opacity: 0.9; display: block; }
 	.today-time { font-size: 64rpx; font-weight: 700; margin: 8rpx 0; display: block; }
 	.today-sub { font-size: 24rpx; opacity: 0.9; display: block; }
-	.today-book { display: flex; align-items: center; gap: 8rpx; margin-top: 12rpx; font-size: 26rpx; font-weight: 500; }
+	.today-book { display: flex; align-items: center; gap: 6rpx; margin-top: 12rpx; font-size: 24rpx; font-weight: 500; }
 	.inline-icon { width: 34rpx; height: 34rpx; flex-shrink: 0; }
 
 	/* 正在阅读（计时中） */
 	.active-info { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20rpx; }
-	.active-book { display: flex; align-items: center; gap: 8rpx; font-size: 30rpx; font-weight: 600; min-width: 0; }
-	.active-time { font-size: 32rpx; font-weight: 700; color: var(--primary); }
+	.active-book { display: flex; align-items: center; gap: 6rpx; font-size: 28rpx; font-weight: 600; min-width: 0; }
+	.active-time { font-size: 30rpx; font-weight: 700; color: var(--primary); }
 	.end-btn { margin-top: 10rpx; }
 
 	/* 统计概览（无背景卡片，紧凑三列） */
-	.stat-row { display: flex; background: #FFFFFF; border-radius: 20rpx; margin: 20rpx; padding: 24rpx 0; box-shadow: 0 4rpx 16rpx rgba(0,0,0,0.04); }
+	.stat-row { display: flex; background: #FFFFFF; border-radius: 20rpx; margin: 16rpx; padding: 19rpx 0; box-shadow: 0 4rpx 16rpx rgba(0,0,0,0.04); }
 	.stat { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4rpx; }
 	.stat-num { font-size: 40rpx; font-weight: 700; color: var(--primary); }
 	.stat-label { font-size: 24rpx; color: #8A8A86; }
 
 	/* 快捷入口 */
-	.quick-row { display: flex; gap: 16rpx; margin: 0 20rpx; }
-	.quick-btn { flex: 1; background: #FFFFFF; border-radius: 16rpx; padding: 24rpx 0; display: flex; flex-direction: column; align-items: center; gap: 10rpx; font-size: 26rpx; color: #55554F; box-shadow: 0 4rpx 16rpx rgba(0,0,0,0.04); }
+	.quick-row { display: flex; gap: 13rpx; margin: 0 20rpx; }
+	.quick-btn { flex: 1; background: #FFFFFF; border-radius: 16rpx; padding: 19rpx 0; display: flex; flex-direction: column; align-items: center; gap: 8rpx; font-size: 24rpx; color: #55554F; box-shadow: 0 4rpx 16rpx rgba(0,0,0,0.04); }
 	.quick-icon { width: 44rpx; height: 44rpx; }
 
 	/* 书籍列表标题 + 添加 */
-	.section-head { display: flex; align-items: center; justify-content: space-between; margin: 30rpx 20rpx 6rpx; }
-	.section-title { font-size: 32rpx; font-weight: 700; color: #2B2B27; }
-	.add-btn { font-size: 26rpx; color: var(--primary); font-weight: 500; }
+	.section-head { display: flex; align-items: center; justify-content: space-between; margin: 24rpx 20rpx 6rpx; }
+	.section-title { font-size: 30rpx; font-weight: 700; color: #2B2B27; }
+	.add-btn { font-size: 24rpx; color: var(--primary); font-weight: 500; }
 
 	/* 状态筛选 */
-	.filter-row { display: flex; align-items: center; gap: 12rpx; margin: 10rpx 20rpx 0; }
-	.filter-tab { font-size: 26rpx; color: #8A8A86; padding: 10rpx 24rpx; border-radius: 24rpx; background: #F1EFE9; }
+	.filter-row { display: flex; align-items: center; gap: 10rpx; margin: 8rpx 20rpx 0; }
+	.filter-tab { font-size: 24rpx; color: #8A8A86; padding: 8rpx 24rpx; border-radius: 24rpx; background: #F1EFE9; }
 	.filter-tab.active { background: var(--primary); color: #FFFFFF; }
 
 	/* 书籍卡片 */
-	.book-card { display: flex; gap: 24rpx; align-items: stretch; }
-	.book-info { flex: 1; display: flex; flex-direction: column; justify-content: center; gap: 8rpx; min-width: 0; }
-	.book-top { display: flex; align-items: center; justify-content: space-between; gap: 12rpx; }
-	.book-title { font-size: 30rpx; font-weight: 600; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+	.book-card { display: flex; gap: 19rpx; align-items: stretch; }
+	.book-info { flex: 1; display: flex; flex-direction: column; justify-content: center; gap: 6rpx; min-width: 0; }
+	.book-top { display: flex; align-items: center; justify-content: space-between; gap: 10rpx; }
+	.book-title { font-size: 28rpx; font-weight: 600; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 	.book-author { font-size: 24rpx; color: #8A8A86; }
 	.book-status { font-size: 20rpx; flex-shrink: 0; padding: 4rpx 16rpx; border-radius: 8rpx; }
 	.book-edit { font-size: 22rpx; color: var(--primary); flex-shrink: 0; }
@@ -386,22 +386,22 @@
 
 	/* 弹窗 */
 	.modal-mask { position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 999; display: flex; align-items: center; justify-content: center; }
-	.modal { width: 640rpx; background: #FFFFFF; border-radius: 20rpx; padding: 30rpx; }
-	.modal-title { font-size: 32rpx; font-weight: 700; margin-bottom: 20rpx; display: block; }
-	.modal-input { background: #F7F5EF; border-radius: 12rpx; padding: 16rpx 20rpx; font-size: 28rpx; margin-bottom: 16rpx; }
-	.cover-row { display: flex; align-items: center; gap: 20rpx; margin-bottom: 16rpx; }
-	.cover-btn { font-size: 26rpx; color: var(--primary); }
-	.status-row { display: flex; gap: 12rpx; margin-bottom: 16rpx; }
+	.modal { width: 640rpx; background: #FFFFFF; border-radius: 20rpx; padding: 24rpx; }
+	.modal-title { font-size: 30rpx; font-weight: 700; margin-bottom: 20rpx; display: block; }
+	.modal-input { background: #F7F5EF; border-radius: 12rpx; padding: 13rpx 20rpx; font-size: 26rpx; margin-bottom: 16rpx; }
+	.cover-row { display: flex; align-items: center; gap: 16rpx; margin-bottom: 16rpx; }
+	.cover-btn { font-size: 24rpx; color: var(--primary); }
+	.status-row { display: flex; gap: 10rpx; margin-bottom: 16rpx; }
 	.status-chip { padding: 8rpx 20rpx; border-radius: 20rpx; font-size: 24rpx; background: #F1EFE9; color: #8A8A86; }
 	.status-chip.active { background: var(--primary); color: #FFFFFF; }
-	.num-row { display: flex; align-items: center; gap: 12rpx; margin-bottom: 16rpx; }
+	.num-row { display: flex; align-items: center; gap: 10rpx; margin-bottom: 16rpx; }
 	.num-label { font-size: 24rpx; color: #8A8A86; }
-	.num-input { width: 110rpx; background: #F7F5EF; border-radius: 8rpx; padding: 10rpx; text-align: center; font-size: 26rpx; }
-	.modal-actions { display: flex; gap: 16rpx; justify-content: flex-end; margin-top: 10rpx; }
-	.venue-picker-row { display: flex; align-items: center; gap: 12rpx; margin-bottom: 16rpx; }
-	.venue-picker-box { background: #F7F5EF; border-radius: 12rpx; padding: 16rpx 20rpx; display: flex; align-items: center; gap: 12rpx; }
-	.venue-picker-label { font-size: 26rpx; color: #55554F; }
-	.venue-picker-value { flex: 1; font-size: 26rpx; color: var(--primary); text-align: right; }
+	.num-input { width: 110rpx; background: #F7F5EF; border-radius: 8rpx; padding: 8rpx; text-align: center; font-size: 24rpx; }
+	.modal-actions { display: flex; gap: 13rpx; justify-content: flex-end; margin-top: 10rpx; }
+	.venue-picker-row { display: flex; align-items: center; gap: 10rpx; margin-bottom: 16rpx; }
+	.venue-picker-box { background: #F7F5EF; border-radius: 12rpx; padding: 13rpx 20rpx; display: flex; align-items: center; gap: 10rpx; }
+	.venue-picker-label { font-size: 24rpx; color: #55554F; }
+	.venue-picker-value { flex: 1; font-size: 24rpx; color: var(--primary); text-align: right; }
 	.venue-picker-value.none { color: #B0B0AB; }
 	.venue-picker-clear { font-size: 22rpx; color: #B85450; }
 </style>

@@ -30,40 +30,21 @@
 		<!-- 场馆交流板 -->
 		<VenueFeed ref="feed" :venue-id="currentVenueId" />
 
-		<view v-if="shares.length" class="section">
-			<view class="sec-head">
-				<text class="section-title">最近分享的座位</text>
-				<text class="sec-more" @click="goSharesList">更多</text>
+		<!-- 分享 / 换座 发现入口（详情与完整列表在场馆页 / 独立列表页） -->
+		<view class="card discover-card">
+			<view class="discover-row" @click="goSharesList">
+				<view class="dr-left">
+					<text class="dr-title">座位分享</text>
+					<text class="dr-sub">{{shareCount > 0 ? `附近 ${shareCount} 个座位正在分享` : '暂无进行中的分享'}}</text>
+				</view>
+				<text class="dr-arrow">›</text>
 			</view>
-			<view class="card share-card" v-for="s in shares" :key="s.id" @click="goSeat(s.seatId)">
-				<view class="share-top">
-					<text class="share-seat">{{s.displayCode || s.seatCode}}</text>
-					<text class="tag" :class="shareTagClass(s.status)">{{statusText(s.status)}}</text>
+			<view class="discover-row" @click="goSwapList">
+				<view class="dr-left">
+					<text class="dr-title">换座</text>
+					<text class="dr-sub">{{swapCount > 0 ? `附近 ${swapCount} 个换座需求待响应` : '暂无换座需求'}}</text>
 				</view>
-				<text class="share-venue">{{s.venueName}}<text v-if="s.floorName" class="share-floor"> · {{s.floorName}}</text><text v-if="s.areaName" class="share-floor"> · {{s.areaName}}</text></text>
-				<view class="share-time">预计释放：{{formatTime(s.endAt)}}</view>
-				<view class="share-note" v-if="s.note">{{s.note}}</view>
-			</view>
-		</view>
-
-		<view v-if="swaps.length" class="section">
-			<view class="sec-head">
-				<text class="section-title">最近换座</text>
-				<text class="sec-more" @click="goSwapList">更多</text>
-			</view>
-			<view class="card swap-card" v-for="s in swaps.slice(0, 3)" :key="s.id" @click="goSwapSeat(s)">
-				<view class="swap-head">
-					<text class="swap-title">{{s.venueName}}</text>
-					<text class="remain">剩{{remainMinutes(s.expireAt)}}分钟</text>
-				</view>
-				<view class="swap-route">
-					<text class="route-seat">{{s.seatCode}}</text>
-					<text class="route-arrow">→</text>
-					<text class="route-want">{{wantText(s)}}</text>
-				</view>
-				<view class="reasons" v-if="s.reasons && s.reasons.length">
-					<text class="chip" v-for="r in s.reasons" :key="r">{{reasonLabel(r)}}</text>
-				</view>
+				<text class="dr-arrow">›</text>
 			</view>
 		</view>
 
@@ -83,7 +64,7 @@
 			</view>
 		</view>
 
-		<view v-if="!nearby.length && !shares.length" class="empty">
+		<view v-if="!nearby.length" class="empty">
 			<text>正在加载附近的场馆与共享座位…</text>
 		</view>
 
@@ -123,12 +104,10 @@
 				currentVenueId: null,
 				currentVenueName: '',
 				showVenuePicker: false,
-				shares: [],
-				venueShares: [],
-				sharesVenueId: null,
 				season: getSeasonKey(),
-				swaps: [],
-				activities: []
+				activities: [],
+				shareCount: 0,
+				swapCount: 0
 			}
 		},
 		computed: {
@@ -162,8 +141,8 @@
 				return map[status] || 'status-completed'
 			},
 			async loadData() {
-				this.loadSwaps()
 				this.loadActivities()
+				this.loadDiscover()
 				try {
 					const location = await this.getAuthorizedLocation()
 					this.nearby = location
@@ -176,7 +155,6 @@
 						this.currentVenueId = this.nearby[0].id
 						this.currentVenueName = this.nearby[0].name
 					}
-					await this.loadSharesForCurrent()
 				} catch (e) {
 					try {
 						this.nearby = await api.getVenues({})
@@ -223,18 +201,12 @@
 				uni.navigateTo({ url: '/pages/venues/venues' })
 			},
 			async loadSharesForCurrent() {
-				if (!this.currentVenueId) return
-				try {
-					this.venueShares = await api.getVenueShares(this.currentVenueId)
-					this.shares = this.venueShares.slice(0, 3)
-					this.sharesVenueId = this.currentVenueId
-				} catch (e) {}
+				// 座位分享已收敛到场馆详情页，首页不再展示
 			},
 			pickVenue(v) {
 				this.currentVenueId = v.id
 				this.currentVenueName = v.name
 				this.showVenuePicker = false
-				this.loadSharesForCurrent()
 			},
 			goCreatePost() {
 				if (!uni.getStorageSync('token')) {
@@ -277,14 +249,11 @@
 				uni.navigateTo({ url: `/pages/venue/venue?id=${id}` })
 			},
 			goSeat(id) {
-				const vid = this.sharesVenueId ? `&venueId=${this.sharesVenueId}` : ''
+				const vid = this.currentVenueId ? `&venueId=${this.currentVenueId}` : ''
 				uni.navigateTo({ url: `/pages/seat/seat?id=${id}${vid}` })
 			},
 			async loadSwaps() {
-				if (!uni.getStorageSync('token')) return
-				try {
-					this.swaps = await api.getRecentSwaps(20)
-				} catch (e) {}
+				// 换座已收敛到场馆详情页，首页不再展示
 			},
 			wantText(s) {
 				const parts = [s.wantFloorName, s.wantAreaName, s.wantZoneName].filter(Boolean)
@@ -299,6 +268,16 @@
 			},
 			goSwapSeat(s) {
 				uni.navigateTo({ url: `/pages/seat/seat?id=${s.seatId}&venueId=${s.venueId}` })
+			},
+			async loadDiscover() {
+				try {
+					const shares = await api.getRecentShares(100)
+					this.shareCount = (shares || []).length
+				} catch (e) {}
+				try {
+					const swaps = await api.getSwapFeed(100)
+					this.swapCount = (swaps || []).length
+				} catch (e) {}
 			},
 			async loadActivities() {
 				if (!uni.getStorageSync('token')) return
@@ -332,10 +311,10 @@
 <style scoped>
 	.quick-actions {
 		display: flex;
-		margin: 20rpx;
+		margin: 16rpx;
 		background: #FFFFFF;
 		border-radius: 20rpx;
-		padding: 24rpx 0;
+		padding: 19rpx 0;
 		box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.06);
 		position: relative;
 		z-index: 1;
@@ -345,9 +324,9 @@
 		display: flex;
 		flex-direction: column;
 		align-items: center;
-		gap: 8rpx;
+		gap: 6rpx;
 		color: #33332E;
-		font-size: 26rpx;
+		font-size: 24rpx;
 	}
 	.action-icon {
 		width: 56rpx;
@@ -360,12 +339,12 @@
 		z-index: 99;
 		display: flex;
 		align-items: center;
-		gap: 12rpx;
-		padding: 20rpx 32rpx;
+		gap: 10rpx;
+		padding: 16rpx 32rpx;
 		border-radius: 44rpx;
 		background: var(--primary-gradient, linear-gradient(135deg, #C98A3D, #DBA968));
 		color: #FFFFFF;
-		font-size: 26rpx;
+		font-size: 24rpx;
 		font-weight: 600;
 		box-shadow: 0 8rpx 24rpx rgba(0, 0, 0, 0.18);
 	}
@@ -379,35 +358,35 @@
 		margin-top: 14rpx;
 	}
 	.section-title {
-		font-size: 30rpx;
+		font-size: 28rpx;
 		font-weight: 500;
 		margin: 0;
 		color: #2B2B27;
 	}
 	.card {
-		margin: 14rpx 20rpx;
+		margin: 11rpx 20rpx;
 	}
 	.venue-card {
 		display: flex;
 		flex-direction: column;
-		gap: 8rpx;
+		gap: 6rpx;
 	}
 	.venue-name-row {
 		display: flex;
 		align-items: center;
 		justify-content: space-between;
-		gap: 12rpx;
+		gap: 10rpx;
 	}
 	.venue-main {
 		flex: 1;
 		display: flex;
 		flex-direction: column;
-		gap: 8rpx;
+		gap: 6rpx;
 	}
 	.venue-name {
 		flex: 1;
 		min-width: 0;
-		font-size: 30rpx;
+		font-size: 28rpx;
 		font-weight: 600;
 		overflow: hidden;
 		text-overflow: ellipsis;
@@ -420,7 +399,7 @@
 	.venue-addr-row {
 		display: flex;
 		align-items: center;
-		gap: 12rpx;
+		gap: 10rpx;
 	}
 	.venue-distance {
 		font-size: 22rpx;
@@ -431,7 +410,7 @@
 		display: flex;
 		flex-direction: row;
 		align-items: center;
-		gap: 12rpx;
+		gap: 10rpx;
 		flex-shrink: 0;
 	}
 	.venue-available {
@@ -453,7 +432,7 @@
 	.share-card {
 		display: flex;
 		flex-direction: column;
-		gap: 10rpx;
+		gap: 8rpx;
 	}
 	.share-top {
 		display: flex;
@@ -461,7 +440,7 @@
 		align-items: center;
 	}
 	.share-seat {
-		font-size: 30rpx;
+		font-size: 28rpx;
 		font-weight: 600;
 		color: var(--primary);
 	}
@@ -473,7 +452,7 @@
 		color: var(--primary);
 	}
 	.share-time {
-		font-size: 26rpx;
+		font-size: 24rpx;
 		color: #55554F;
 	}
 	.share-note {
@@ -483,7 +462,7 @@
 	.sec-head {
 		display: flex;
 		align-items: baseline;
-		gap: 8rpx;
+		gap: 6rpx;
 		margin: 4rpx 20rpx 0;
 	}
 	.sec-more {
@@ -519,7 +498,7 @@
 	}
 	.act-title {
 		display: block;
-		font-size: 30rpx;
+		font-size: 28rpx;
 		font-weight: 600;
 	}
 	.act-meta {
@@ -535,12 +514,12 @@
 		display: flex;
 		justify-content: space-between;
 		align-items: center;
-		gap: 16rpx;
+		gap: 13rpx;
 	}
 	.swap-title {
 		flex: 1;
 		min-width: 0;
-		font-size: 28rpx;
+		font-size: 26rpx;
 		font-weight: 600;
 		overflow: hidden;
 		text-overflow: ellipsis;
@@ -557,25 +536,25 @@
 	.swap-route {
 		display: flex;
 		align-items: center;
-		gap: 12rpx;
+		gap: 10rpx;
 		margin-top: 16rpx;
 	}
 	.route-seat {
 		flex-shrink: 0;
-		font-size: 30rpx;
+		font-size: 28rpx;
 		font-weight: 700;
 		color: #33332E;
 	}
 	.route-arrow {
 		flex-shrink: 0;
-		font-size: 26rpx;
+		font-size: 24rpx;
 		font-weight: 700;
 		color: var(--primary);
 	}
 	.route-want {
 		flex: 1;
 		min-width: 0;
-		font-size: 26rpx;
+		font-size: 24rpx;
 		color: #55554F;
 		overflow: hidden;
 		text-overflow: ellipsis;
@@ -584,7 +563,7 @@
 	.reasons {
 		display: flex;
 		flex-wrap: wrap;
-		gap: 12rpx;
+		gap: 10rpx;
 		margin-top: 12rpx;
 	}
 	.chip {
@@ -596,18 +575,26 @@
 	}
 
 	/* 当前图书馆栏 */
-	.venue-bar { display: flex; align-items: center; justify-content: space-between; margin: 20rpx; padding: 22rpx 26rpx; background: #FFFFFF; border-radius: 20rpx; box-shadow: 0 4rpx 16rpx rgba(0,0,0,0.04); }
-	.vb-left { display: flex; align-items: baseline; gap: 14rpx; min-width: 0; }
+	.venue-bar { display: flex; align-items: center; justify-content: space-between; margin: 16rpx; padding: 18rpx 26rpx; background: #FFFFFF; border-radius: 20rpx; box-shadow: 0 4rpx 16rpx rgba(0,0,0,0.04); }
+	.vb-left { display: flex; align-items: baseline; gap: 11rpx; min-width: 0; }
 	.vb-label { font-size: 22rpx; color: #B0B0AB; }
-	.vb-name { font-size: 32rpx; font-weight: 700; color: #2B2B27; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 320rpx; }
+	.vb-name { font-size: 30rpx; font-weight: 700; color: #2B2B27; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 320rpx; }
 	.vb-switch { font-size: 24rpx; color: var(--primary); }
-	.vb-post { font-size: 26rpx; color: var(--primary); flex-shrink: 0; }
+	.vb-post { font-size: 24rpx; color: var(--primary); flex-shrink: 0; }
+	/* 分享 / 换座 发现入口 */
+	.discover-card { margin: 16rpx; padding: 4rpx 26rpx; background: #FFFFFF; border-radius: 20rpx; box-shadow: 0 4rpx 16rpx rgba(0,0,0,0.04); }
+	.discover-row { display: flex; align-items: center; justify-content: space-between; padding: 16rpx 0; border-bottom: 1rpx solid #F0EFEA; }
+	.discover-row:last-child { border-bottom: none; }
+	.dr-left { display: flex; flex-direction: column; gap: 5rpx; min-width: 0; }
+	.dr-title { font-size: 26rpx; font-weight: 600; color: #2B2B27; }
+	.dr-sub { font-size: 22rpx; color: #B0B0AB; }
+	.dr-arrow { font-size: 34rpx; color: #C4C2BB; }
 	.vk-mask { position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 999; display: flex; align-items: flex-end; }
-	.vk-sheet { width: 100%; background: #FFFFFF; border-radius: 24rpx 24rpx 0 0; padding: 30rpx; }
-	.vk-title { display: block; font-size: 32rpx; font-weight: 700; margin-bottom: 20rpx; }
+	.vk-sheet { width: 100%; background: #FFFFFF; border-radius: 24rpx 24rpx 0 0; padding: 24rpx; }
+	.vk-title { display: block; font-size: 30rpx; font-weight: 700; margin-bottom: 20rpx; }
 	.vk-list { max-height: 60vh; }
-	.vk-item { padding: 22rpx 0; border-bottom: 1rpx solid #F0EFEA; }
+	.vk-item { padding: 18rpx 0; border-bottom: 1rpx solid #F0EFEA; }
 	.vk-item.on .vk-name { color: var(--primary); }
-	.vk-name { display: block; font-size: 30rpx; font-weight: 600; }
+	.vk-name { display: block; font-size: 28rpx; font-weight: 600; }
 	.vk-meta { display: block; font-size: 22rpx; color: #8A8A86; margin-top: 4rpx; }
 </style>

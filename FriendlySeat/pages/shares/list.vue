@@ -22,9 +22,16 @@
 
 	export default {
 		data() {
-			return { list: [] }
+			return { list: [], venueId: null, venueName: '' }
 		},
-		onLoad() {
+		onLoad(options) {
+			this.venueId = options && options.venueId ? Number(options.venueId) : null
+			this.venueName = options && options.venueName ? decodeURIComponent(options.venueName) : ''
+			if (this.venueName) {
+				uni.setNavigationBarTitle({ title: `${this.venueName} · 座位分享` })
+			} else {
+				uni.setNavigationBarTitle({ title: '座位分享' })
+			}
 			this.load()
 		},
 		onPullDownRefresh() {
@@ -35,7 +42,9 @@
 			statusText,
 			async load() {
 				try {
-					this.list = await api.getRecentShares(50)
+					this.list = this.venueId
+						? await api.getVenueShares(this.venueId)
+						: await api.getRecentShares(50)
 				} catch (e) {}
 			},
 			shareTagClass(status) {
@@ -48,7 +57,8 @@
 				return map[status] || 'status-completed'
 			},
 			goSeat(id) {
-				uni.navigateTo({ url: `/pages/seat/seat?id=${id}` })
+				const vid = this.venueId ? `&venueId=${this.venueId}` : ''
+				uni.navigateTo({ url: `/pages/seat/seat?id=${id}${vid}` })
 			}
 		}
 	}
@@ -56,7 +66,7 @@
 
 <style scoped>
 	.page {
-		padding: 24rpx;
+		padding: 19rpx;
 	}
 	.share-card {
 		margin-bottom: 20rpx;
@@ -67,7 +77,7 @@
 		align-items: center;
 	}
 	.share-seat {
-		font-size: 32rpx;
+		font-size: 30rpx;
 		font-weight: 700;
 	}
 	.share-venue {
@@ -103,7 +113,7 @@
 	.empty {
 		text-align: center;
 		color: #B0AEA8;
-		font-size: 26rpx;
-		padding: 120rpx 0;
+		font-size: 24rpx;
+		padding: 96rpx 0;
 	}
 </style>

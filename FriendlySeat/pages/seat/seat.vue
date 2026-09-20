@@ -651,7 +651,7 @@
 	.seat-header {
 		display: flex;
 		flex-direction: column;
-		gap: 12rpx;
+		gap: 10rpx;
 	}
 	.seat-top {
 		display: flex;
@@ -665,7 +665,7 @@
 	.seat-features {
 		display: flex;
 		flex-wrap: wrap;
-		gap: 12rpx;
+		gap: 10rpx;
 	}
 	.feature {
 		font-size: 24rpx;
@@ -678,7 +678,7 @@
 	.seat-loc {
 		display: flex;
 		align-items: center;
-		gap: 12rpx;
+		gap: 10rpx;
 	}
 	.loc-floor {
 		font-size: 24rpx;
@@ -696,22 +696,22 @@
 		color: #8A8A86;
 	}
 	.share-card {
-		padding: 24rpx;
+		padding: 19rpx;
 	}
 	.share-row {
 		display: flex;
 		justify-content: space-between;
 		align-items: center;
-		gap: 16rpx;
+		gap: 13rpx;
 	}
 	.share-info {
 		flex: 1;
 		display: flex;
 		flex-direction: column;
-		gap: 8rpx;
+		gap: 6rpx;
 	}
 	.share-time {
-		font-size: 28rpx;
+		font-size: 26rpx;
 		font-weight: 500;
 	}
 	.share-owner, .share-note {
@@ -721,17 +721,17 @@
 	.share-actions {
 		display: flex;
 		flex-direction: column;
-		gap: 12rpx;
+		gap: 10rpx;
 	}
 	.btn-primary.small, .btn-outline.small {
-		font-size: 26rpx;
+		font-size: 24rpx;
 		line-height: 2;
 		padding: 0 24rpx;
 		margin: 0;
 	}
 	.swap-btns {
 		display: flex;
-		gap: 16rpx;
+		gap: 13rpx;
 		margin-top: 20rpx;
 	}
 	.swap-mask {
@@ -746,12 +746,12 @@
 		width: 100%;
 		background: #fff;
 		border-radius: 24rpx 24rpx 0 0;
-		padding: 32rpx;
+		padding: 26rpx;
 		max-height: 80vh;
 		overflow-y: auto;
 	}
 	.swap-pop-title {
-		font-size: 32rpx;
+		font-size: 30rpx;
 		font-weight: 700;
 		display: block;
 		margin-bottom: 12rpx;
@@ -768,7 +768,7 @@
 		justify-content: space-between;
 		background: var(--primary-bg, #EAF3F1);
 		border-radius: 14rpx;
-		padding: 18rpx 22rpx;
+		padding: 14rpx 22rpx;
 		margin-top: 8rpx;
 	}
 	.swap-mine-label {
@@ -776,7 +776,7 @@
 		color: var(--primary);
 	}
 	.swap-mine-value {
-		font-size: 28rpx;
+		font-size: 26rpx;
 		font-weight: 700;
 		color: var(--primary);
 	}
@@ -784,11 +784,11 @@
 		display: block;
 		font-size: 24rpx;
 		color: #8A8A86;
-		margin: 24rpx 0 12rpx;
+		margin: 19rpx 0 10rpx;
 	}
 	.swap-loc-row {
 		display: flex;
-		gap: 14rpx;
+		gap: 11rpx;
 	}
 	.swap-pick {
 		flex: 1;
@@ -796,7 +796,7 @@
 		background: #F8F7F3;
 		border: 1rpx solid #ECEAE3;
 		border-radius: 12rpx;
-		padding: 16rpx 12rpx;
+		padding: 13rpx 12rpx;
 		font-size: 24rpx;
 		text-align: center;
 		color: #4A4945;
@@ -807,7 +807,7 @@
 	.swap-reasons {
 		display: flex;
 		flex-wrap: wrap;
-		gap: 12rpx;
+		gap: 10rpx;
 	}
 	.swap-chip {
 		font-size: 22rpx;
@@ -824,18 +824,18 @@
 		display: flex;
 		justify-content: space-between;
 		align-items: center;
-		gap: 16rpx;
-		padding: 18rpx 0;
+		gap: 13rpx;
+		padding: 14rpx 0;
 		border-top: 1rpx solid #F0EEE8;
 	}
 	.swap-req-info {
 		flex: 1;
 		display: flex;
 		flex-direction: column;
-		gap: 6rpx;
+		gap: 5rpx;
 	}
 	.swap-req-seat {
-		font-size: 26rpx;
+		font-size: 24rpx;
 		font-weight: 600;
 	}
 	.swap-req-want {
@@ -845,38 +845,38 @@
 	.swap-empty {
 		text-align: center;
 		color: #B0AEA8;
-		font-size: 26rpx;
-		padding: 40rpx 0;
+		font-size: 24rpx;
+		padding: 32rpx 0;
 	}
 	.swap-pop-actions {
 		display: flex;
-		gap: 16rpx;
+		gap: 13rpx;
 		margin-top: 36rpx;
 	}
 	.action-btn {
 		flex: 1;
 		margin: 0;
-		font-size: 28rpx;
+		font-size: 26rpx;
 		line-height: 2.4;
 		padding: 0;
 	}
 
 	/* 座位便签 */
-	.note-head { display: flex; align-items: center; justify-content: space-between; margin: 0 20rpx 12rpx; }
+	.note-head { display: flex; align-items: center; justify-content: space-between; margin: 0 20rpx 10rpx; }
 	.note-head .section-title { margin: 0; }
-	.note-add { font-size: 26rpx; color: var(--primary); }
+	.note-add { font-size: 24rpx; color: var(--primary); }
 	.note-list { display: flex; flex-direction: column; padding: 0 20rpx; }
-	.note { position: relative; padding: 30rpx 24rpx 18rpx; border-radius: 6rpx; box-shadow: 0 6rpx 18rpx rgba(0,0,0,0.08); margin-top: 24rpx; }
+	.note { position: relative; padding: 24rpx 24rpx 14rpx; border-radius: 6rpx; box-shadow: 0 6rpx 18rpx rgba(0,0,0,0.08); margin-top: 24rpx; }
 	.note-0 { background: #FFF7D6; transform: rotate(-1.2deg); }
 	.note-1 { background: #E8F5E9; transform: rotate(0.9deg); }
 	.note-2 { background: #E3F2FD; transform: rotate(-0.7deg); }
 	.note-3 { background: #FCE4EC; transform: rotate(1.1deg); }
 	.note-tape { position: absolute; top: -12rpx; left: 50%; width: 120rpx; height: 26rpx; margin-left: -60rpx; background: rgba(255,255,255,0.6); border: 1rpx solid rgba(0,0,0,0.05); transform: rotate(-2deg); }
-	.note-content { display: block; font-size: 30rpx; color: #4A4A42; line-height: 1.6; }
+	.note-content { display: block; font-size: 28rpx; color: #4A4A42; line-height: 1.4; }
 	.note-foot { display: flex; align-items: center; justify-content: space-between; margin-top: 16rpx; }
 	.note-meta { font-size: 22rpx; color: #9A9A8C; }
-	.note-actions { display: flex; gap: 22rpx; }
+	.note-actions { display: flex; gap: 18rpx; }
 	.note-icon { width: 36rpx; height: 36rpx; }
-	.note-input { width: 100%; box-sizing: border-box; height: 190rpx; background: #FFFDF3; border-radius: 12rpx; padding: 20rpx; font-size: 28rpx; margin-top: 8rpx; }
+	.note-input { width: 100%; box-sizing: border-box; height: 190rpx; background: #FFFDF3; border-radius: 12rpx; padding: 16rpx; font-size: 26rpx; margin-top: 8rpx; }
 	.note-count { display: block; text-align: right; font-size: 22rpx; color: #B0B0AB; margin-top: 8rpx; }
 </style>

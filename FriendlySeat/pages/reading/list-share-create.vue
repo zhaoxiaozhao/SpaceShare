@@ -456,29 +456,29 @@
 
 <style scoped>
 	.sec-head { display: flex; align-items: center; justify-content: space-between; }
-	.head-actions { display: flex; gap: 24rpx; }
-	.link { font-size: 26rpx; color: var(--primary); }
-	.section-label { font-size: 30rpx; font-weight: 600; }
-	.tip { display: block; font-size: 22rpx; color: #B0B0AB; margin: 10rpx 0 16rpx; }
+	.head-actions { display: flex; gap: 19rpx; }
+	.link { font-size: 24rpx; color: var(--primary); }
+	.section-label { font-size: 28rpx; font-weight: 600; }
+	.tip { display: block; font-size: 22rpx; color: #B0B0AB; margin: 8rpx 0 13rpx; }
 	.book-list { display: flex; flex-direction: column; }
-	.book-row { display: flex; align-items: center; gap: 20rpx; padding: 14rpx 0; border-bottom: 1rpx solid #F0EFEA; }
+	.book-row { display: flex; align-items: center; gap: 16rpx; padding: 11rpx 0; border-bottom: 1rpx solid #F0EFEA; }
 	.book-row:last-child { border-bottom: none; }
 	.book-info { flex: 1; min-width: 0; }
-	.book-title { font-size: 28rpx; font-weight: 600; display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+	.book-title { font-size: 26rpx; font-weight: 600; display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 	.book-author { font-size: 22rpx; color: #8A8A86; }
 	.check { width: 40rpx; height: 40rpx; border-radius: 50%; border: 2rpx solid #D5D3CC; flex-shrink: 0; }
 	.check.on { background: var(--primary); border-color: var(--primary); }
-	.input { background: #F7F5EF; border-radius: 12rpx; padding: 16rpx 20rpx; font-size: 28rpx; margin-bottom: 16rpx; }
-	.textarea { width: 100%; box-sizing: border-box; background: #F7F5EF; border-radius: 12rpx; padding: 16rpx 20rpx; font-size: 28rpx; height: 140rpx; }
+	.input { background: #F7F5EF; border-radius: 12rpx; padding: 13rpx 20rpx; font-size: 26rpx; margin-bottom: 16rpx; }
+	.textarea { width: 100%; box-sizing: border-box; background: #F7F5EF; border-radius: 12rpx; padding: 13rpx 20rpx; font-size: 26rpx; height: 140rpx; }
 	.count { display: block; text-align: right; font-size: 22rpx; color: #B0B0AB; margin-top: 8rpx; }
-	.switch-row { display: flex; align-items: center; justify-content: space-between; gap: 20rpx; margin-top: 20rpx; }
+	.switch-row { display: flex; align-items: center; justify-content: space-between; gap: 16rpx; margin-top: 20rpx; }
 	.switch-info { flex: 1; min-width: 0; }
-	.switch-label { display: block; font-size: 28rpx; color: #55554F; }
+	.switch-label { display: block; font-size: 26rpx; color: #55554F; }
 	.switch-tip { display: block; font-size: 21rpx; color: #B0B0AB; line-height: 1.4; margin-top: 4rpx; }
-	.actions { margin: 20rpx; }
+	.actions { margin: 16rpx; }
 	.modal-mask { position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 999; display: flex; align-items: center; justify-content: center; }
-	.preview-modal { width: 600rpx; max-height: 84vh; background: #FFFFFF; border-radius: 24rpx; padding: 30rpx; display: flex; flex-direction: column; align-items: center; }
-	.modal-title { font-size: 32rpx; font-weight: 600; margin-bottom: 20rpx; }
+	.preview-modal { width: 600rpx; max-height: 84vh; background: #FFFFFF; border-radius: 24rpx; padding: 24rpx; display: flex; flex-direction: column; align-items: center; }
+	.modal-title { font-size: 30rpx; font-weight: 600; margin-bottom: 20rpx; }
 	.share-image { width: 460rpx; height: 600rpx; border-radius: 12rpx; background: #F7F5EF; }
 	.modal-btn { margin-top: 20rpx; width: 100%; }
 </style>

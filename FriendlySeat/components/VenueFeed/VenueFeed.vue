@@ -116,23 +116,23 @@
 </script>
 
 <style scoped>
-	.feed-tabs { white-space: nowrap; margin: 20rpx 20rpx 0; }
-	.ft { display: inline-block; padding: 10rpx 26rpx; margin-right: 14rpx; border-radius: 28rpx; font-size: 26rpx; background: #F1EFE9; color: #8A8A86; }
+	.feed-tabs { white-space: nowrap; margin: 16rpx 20rpx 0; }
+	.ft { display: inline-block; padding: 8rpx 26rpx; margin-right: 14rpx; border-radius: 28rpx; font-size: 24rpx; background: #F1EFE9; color: #8A8A86; }
 	.ft.on { background: var(--primary); color: #FFFFFF; }
-	.feed-sort { display: flex; gap: 32rpx; margin: 18rpx 24rpx 6rpx; }
-	.fs { font-size: 26rpx; color: #8A8A86; }
+	.feed-sort { display: flex; gap: 26rpx; margin: 14rpx 24rpx 6rpx; }
+	.fs { font-size: 24rpx; color: #8A8A86; }
 	.fs.on { color: var(--primary); font-weight: 600; }
 	.post { display: flex; flex-direction: column; }
-	.p-top { display: flex; align-items: center; gap: 12rpx; }
+	.p-top { display: flex; align-items: center; gap: 10rpx; }
 	.p-cat { font-size: 20rpx; color: var(--primary); background: var(--primary-bg); border-radius: 8rpx; padding: 4rpx 14rpx; }
 	.p-pin { font-size: 20rpx; color: #B85450; background: #FBEDEC; border-radius: 8rpx; padding: 4rpx 14rpx; }
 	.p-time { font-size: 20rpx; color: #B0B0AB; margin-left: auto; }
-	.p-title { display: block; font-size: 30rpx; font-weight: 600; margin-top: 14rpx; }
-	.p-excerpt { display: block; font-size: 26rpx; color: #55554F; line-height: 1.6; margin-top: 8rpx; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
-	.p-foot { display: flex; align-items: center; gap: 12rpx; margin-top: 16rpx; }
+	.p-title { display: block; font-size: 28rpx; font-weight: 600; margin-top: 14rpx; }
+	.p-excerpt { display: block; font-size: 24rpx; color: #55554F; line-height: 1.4; margin-top: 8rpx; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+	.p-foot { display: flex; align-items: center; gap: 10rpx; margin-top: 16rpx; }
 	.p-owner { font-size: 24rpx; color: #8A8A86; }
-	.p-stats { margin-left: auto; display: flex; gap: 26rpx; }
+	.p-stats { margin-left: auto; display: flex; gap: 21rpx; }
 	.p-stat { font-size: 24rpx; color: #8A8A86; }
 	.p-stat.on { color: var(--primary); }
-	.empty { display: flex; align-items: center; justify-content: center; padding: 80rpx 0; color: #B0B0AB; font-size: 26rpx; }
+	.empty { display: flex; align-items: center; justify-content: center; padding: 64rpx 0; color: #B0B0AB; font-size: 24rpx; }
 </style>

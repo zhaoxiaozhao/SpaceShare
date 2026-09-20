@@ -116,17 +116,17 @@
 
 <style scoped>
 	.stat-summary { display: flex; }
-	.s-item { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 6rpx; }
+	.s-item { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 5rpx; }
 	.s-num { font-size: 44rpx; font-weight: 700; color: var(--primary); }
 	.s-label { font-size: 22rpx; color: #8A8A86; }
-	.heatmap { display: flex; flex-wrap: wrap; gap: 6rpx; margin: 20rpx 0; }
+	.heatmap { display: flex; flex-wrap: wrap; gap: 5rpx; margin: 16rpx 0; }
 	.hm-cell { width: 30rpx; height: 30rpx; border-radius: 4rpx; display: flex; align-items: center; justify-content: center; font-size: 16rpx; color: #FFFFFF; }
 	.hm-date { font-size: 14rpx; }
-	.heat-legend { display: flex; align-items: center; gap: 8rpx; margin-bottom: 10rpx; }
+	.heat-legend { display: flex; align-items: center; gap: 6rpx; margin-bottom: 10rpx; }
 	.hl-item { font-size: 20rpx; color: #B0B0AB; }
 	.hl-box { width: 24rpx; height: 24rpx; border-radius: 4rpx; }
 	.heat-note { display: block; font-size: 22rpx; color: #8A8A86; }
-	.year-row { display: flex; gap: 16rpx; }
-	.year-btn { padding: 10rpx 30rpx; border-radius: 24rpx; font-size: 26rpx; background: #F1EFE9; color: #55554F; }
+	.year-row { display: flex; gap: 13rpx; }
+	.year-btn { padding: 8rpx 30rpx; border-radius: 24rpx; font-size: 24rpx; background: #F1EFE9; color: #55554F; }
 	.year-btn.active { background: var(--primary); color: #FFFFFF; }
 </style>

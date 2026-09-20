@@ -61,7 +61,8 @@ public static class DbSeeder
                 new SystemConfig { Category = ConfigCategory.NotificationTemplates, ConfigKey = "activity_starting", Value = "", Description = "活动开始前提醒 模板ID" },
                 new SystemConfig { Category = ConfigCategory.ActivityCategories, ConfigKey = "list", Value = ConfigOptionsService.DefaultActivityCategories, Description = "活动分类（JSON 数组）" },
                 new SystemConfig { Category = ConfigCategory.SwapReasons, ConfigKey = "list", Value = ConfigOptionsService.DefaultSwapReasons, Description = "换座原因（JSON 数组）" },
-                new SystemConfig { Category = ConfigCategory.SeatTags, ConfigKey = "list", Value = ConfigOptionsService.DefaultSeatTags, Description = "座位标签（JSON 数组）" }
+                new SystemConfig { Category = ConfigCategory.SeatTags, ConfigKey = "list", Value = ConfigOptionsService.DefaultSeatTags, Description = "座位标签（JSON 数组）" },
+                new SystemConfig { Category = ConfigCategory.VenuePostCategories, ConfigKey = "list", Value = ConfigOptionsService.DefaultVenuePostCategories, Description = "交流板板块（JSON 数组）" }
             });
             await db.SaveChangesAsync();
         }
@@ -160,6 +161,7 @@ public static class DbSeeder
         await EnsureConfigRowAsync(db, ConfigCategory.ActivityCategories, ConfigOptionsService.DefaultActivityCategories, "活动分类（JSON 数组）");
         await EnsureConfigRowAsync(db, ConfigCategory.SwapReasons, ConfigOptionsService.DefaultSwapReasons, "换座原因（JSON 数组）");
         await EnsureConfigRowAsync(db, ConfigCategory.SeatTags, ConfigOptionsService.DefaultSeatTags, "座位标签（JSON 数组）");
+            await EnsureConfigRowAsync(db, ConfigCategory.VenuePostCategories, ConfigOptionsService.DefaultVenuePostCategories, "交流板板块（JSON 数组）");
 
         // 通知模板配置键：确保全部存在（供后台配置模板ID；历史库会自动补齐缺失项）
         var notificationTemplateKeys = new (string Key, string Desc)[]
@@ -428,9 +430,12 @@ CREATE TABLE `VenuePostComments` (
   `Content` longtext NOT NULL,
   `Status` int NOT NULL,
   `CreatedAt` datetime(6) NOT NULL,
+  `ParentCommentId` bigint NULL,
+  `ReplyToUserId` bigint NULL,
   PRIMARY KEY (`Id`),
   KEY `IX_VenuePostComments_PostId_Status` (`PostId`, `Status`),
   KEY `IX_VenuePostComments_UserId` (`UserId`),
+  KEY `IX_VenuePostComments_ParentCommentId` (`ParentCommentId`),
   CONSTRAINT `FK_VenuePostComments_VenuePosts_PostId` FOREIGN KEY (`PostId`) REFERENCES `VenuePosts` (`Id`) ON DELETE CASCADE,
   CONSTRAINT `FK_VenuePostComments_Users_UserId` FOREIGN KEY (`UserId`) REFERENCES `Users` (`Id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
@@ -447,6 +452,15 @@ CREATE TABLE `VenuePostLikes` (
   CONSTRAINT `FK_VenuePostLikes_VenuePosts_PostId` FOREIGN KEY (`PostId`) REFERENCES `VenuePosts` (`Id`) ON DELETE CASCADE,
   CONSTRAINT `FK_VenuePostLikes_Users_UserId` FOREIGN KEY (`UserId`) REFERENCES `Users` (`Id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
+        }
+
+        // VenuePostComments 楼中楼列（ParentCommentId / ReplyToUserId）：已有表补列
+        if (await tableExists("VenuePostComments") && !await ColumnExistsAsync(db, "VenuePostComments", "ParentCommentId"))
+        {
+            logger.LogInformation("MySQL 补充 VenuePostComments.ParentCommentId/ReplyToUserId 列（楼中楼回复）");
+            await db.Database.ExecuteSqlRawAsync("ALTER TABLE `VenuePostComments` ADD COLUMN `ParentCommentId` bigint NULL;");
+            await db.Database.ExecuteSqlRawAsync("ALTER TABLE `VenuePostComments` ADD COLUMN `ReplyToUserId` bigint NULL;");
+            await db.Database.ExecuteSqlRawAsync("ALTER TABLE `VenuePostComments` ADD KEY `IX_VenuePostComments_ParentCommentId` (`ParentCommentId`);");
         }
 
         // PersonaProfiles.Focus / Motive 列（画像扩展维度）：已有表补列

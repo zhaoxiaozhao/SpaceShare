@@ -162,7 +162,7 @@
 
 <style scoped>
 	.form-label {
-		font-size: 28rpx;
+		font-size: 26rpx;
 		font-weight: 600;
 		display: block;
 		margin-bottom: 16rpx;
@@ -170,19 +170,19 @@
 	.radio-row {
 		display: flex;
 		align-items: center;
-		padding: 14rpx 0;
-		gap: 12rpx;
+		padding: 11rpx 0;
+		gap: 10rpx;
 	}
 	.radio-text {
-		font-size: 28rpx;
+		font-size: 26rpx;
 	}
 	.form-textarea {
 		width: 100%;
 		height: 200rpx;
 		background: #F7F5EF;
 		border-radius: 12rpx;
-		padding: 20rpx;
-		font-size: 28rpx;
+		padding: 16rpx;
+		font-size: 26rpx;
 		box-sizing: border-box;
 	}
 	.evidence-box {
@@ -205,7 +205,7 @@
 		border: 1rpx dashed #DAD7CE;
 		border-radius: 12rpx;
 		color: #A5A39D;
-		font-size: 28rpx;
+		font-size: 26rpx;
 	}
 	.evidence-remove {
 		position: absolute;
@@ -220,10 +220,10 @@
 	.target-box {
 		background: #F7F5EF;
 		border-radius: 12rpx;
-		padding: 20rpx 24rpx;
+		padding: 16rpx 24rpx;
 	}
 	.target-name {
-		font-size: 30rpx;
+		font-size: 28rpx;
 		font-weight: 600;
 		color: #33332E;
 	}
@@ -233,14 +233,14 @@
 		align-items: center;
 	}
 	.rep-reason {
-		font-size: 30rpx;
+		font-size: 28rpx;
 		font-weight: 600;
 	}
 	.rep-desc {
 		display: block;
-		font-size: 26rpx;
+		font-size: 24rpx;
 		color: #55554F;
-		margin: 10rpx 0;
+		margin: 8rpx 0;
 	}
 	.rep-time {
 		font-size: 22rpx;

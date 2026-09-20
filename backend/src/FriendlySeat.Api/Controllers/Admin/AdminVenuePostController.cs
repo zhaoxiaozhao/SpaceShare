@@ -1,3 +1,4 @@
+using FriendlySeat.Application.Common;
 using FriendlySeat.Application.Dtos;
 using FriendlySeat.Application.Services;
 using Microsoft.AspNetCore.Mvc;
@@ -7,10 +8,12 @@ namespace FriendlySeat.Api.Controllers.Admin;
 public class AdminVenuePostController : AdminControllerBase
 {
     private readonly VenuePostService _posts;
+    private readonly ICurrentAdmin _currentAdmin;
 
-    public AdminVenuePostController(VenuePostService posts)
+    public AdminVenuePostController(VenuePostService posts, ICurrentAdmin currentAdmin)
     {
         _posts = posts;
+        _currentAdmin = currentAdmin;
     }
 
     [HttpGet("venue-posts")]
@@ -21,7 +24,7 @@ public class AdminVenuePostController : AdminControllerBase
     [HttpPost("venue-posts/{id:long}/review")]
     public async Task<IActionResult> Review(long id, AdminVenuePostReviewRequest request, CancellationToken ct)
     {
-        await _posts.AdminReviewAsync(id, request.Approve, ct);
+        await _posts.AdminReviewAsync(id, request.Approve, _currentAdmin.AdminId!.Value, ct);
         return Ok();
     }
 
@@ -29,7 +32,7 @@ public class AdminVenuePostController : AdminControllerBase
     [HttpPost("venue-posts/{id:long}/pin")]
     public async Task<IActionResult> Pin(long id, AdminVenuePostPinRequest request, CancellationToken ct)
     {
-        await _posts.AdminPinAsync(id, request.Pinned, ct);
+        await _posts.AdminPinAsync(id, request.Pinned, _currentAdmin.AdminId!.Value, ct);
         return Ok();
     }
 
@@ -40,7 +43,7 @@ public class AdminVenuePostController : AdminControllerBase
     [HttpPost("venue-post-comments/{id:long}/review")]
     public async Task<IActionResult> CommentReview(long id, AdminVenuePostReviewRequest request, CancellationToken ct)
     {
-        await _posts.AdminCommentReviewAsync(id, request.Approve, ct);
+        await _posts.AdminCommentReviewAsync(id, request.Approve, _currentAdmin.AdminId!.Value, ct);
         return Ok();
     }
 }

@@ -40,8 +40,8 @@
 </script>
 
 <style scoped>
-	.head { display: flex; align-items: center; justify-content: space-between; margin: 20rpx 20rpx 0; }
+	.head { display: flex; align-items: center; justify-content: space-between; margin: 16rpx 20rpx 0; }
 	.head-title { font-size: 34rpx; font-weight: 700; color: #2B2B27; }
-	.head-post { font-size: 26rpx; color: var(--primary); }
+	.head-post { font-size: 24rpx; color: var(--primary); }
 	.bottom-space { height: 60rpx; }
 </style>

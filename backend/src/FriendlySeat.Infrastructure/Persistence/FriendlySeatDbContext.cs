@@ -308,6 +308,9 @@ public class FriendlySeatDbContext : DbContext, IAppDbContext
             .HasIndex(c => new { c.PostId, c.Status });
 
         modelBuilder.Entity<VenuePostComment>()
+            .HasIndex(c => c.ParentCommentId);
+
+        modelBuilder.Entity<VenuePostComment>()
             .HasOne(c => c.Post)
             .WithMany(p => p.Comments)
             .HasForeignKey(c => c.PostId)

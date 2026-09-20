@@ -168,44 +168,44 @@
 </script>
 
 <style scoped>
-	.hero { margin: 20rpx; border-radius: 28rpx; background: linear-gradient(160deg, var(--primary), var(--primary-light)); color: #FFFFFF; padding: 36rpx 32rpx; box-shadow: 0 10rpx 30rpx rgba(0,0,0,0.08); overflow: hidden; }
-	.hero-top { display: flex; align-items: center; gap: 20rpx; }
+	.hero { margin: 16rpx; border-radius: 28rpx; background: linear-gradient(160deg, var(--primary), var(--primary-light)); color: #FFFFFF; padding: 29rpx 32rpx; box-shadow: 0 10rpx 30rpx rgba(0,0,0,0.08); overflow: hidden; }
+	.hero-top { display: flex; align-items: center; gap: 16rpx; }
 	.avatar { width: 72rpx; height: 72rpx; border-radius: 50%; background: rgba(255,255,255,0.3); flex-shrink: 0; }
 	.owner { display: flex; flex-direction: column; }
-	.owner-name { font-size: 30rpx; font-weight: 600; }
+	.owner-name { font-size: 28rpx; font-weight: 600; }
 	.owner-sub { font-size: 22rpx; opacity: 0.85; }
 	.hero-title { display: block; font-size: 44rpx; font-weight: 700; margin-top: 30rpx; }
-	.hero-remark { display: block; font-size: 26rpx; line-height: 1.6; opacity: 0.92; margin-top: 16rpx; }
+	.hero-remark { display: block; font-size: 24rpx; line-height: 1.4; opacity: 0.92; margin-top: 16rpx; }
 	.hero-foot { display: flex; justify-content: space-between; font-size: 22rpx; opacity: 0.75; margin-top: 30rpx; }
 	.section { padding: 0; }
-	.book-card { display: flex; align-items: center; gap: 20rpx; }
-	.index { width: 40rpx; font-size: 28rpx; font-weight: 700; color: var(--primary); text-align: center; flex-shrink: 0; }
+	.book-card { display: flex; align-items: center; gap: 16rpx; }
+	.index { width: 40rpx; font-size: 26rpx; font-weight: 700; color: var(--primary); text-align: center; flex-shrink: 0; }
 	.book-info { flex: 1; min-width: 0; }
-	.book-title { font-size: 30rpx; font-weight: 600; display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+	.book-title { font-size: 28rpx; font-weight: 600; display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 	.book-author { font-size: 24rpx; color: #8A8A86; }
-	.book-meta { display: flex; align-items: center; gap: 16rpx; margin-top: 8rpx; }
+	.book-meta { display: flex; align-items: center; gap: 13rpx; margin-top: 8rpx; }
 	.status { font-size: 20rpx; padding: 4rpx 14rpx; border-radius: 8rpx; }
 	.st-WantToRead { background: #F1EFE9; color: #8A8A86; }
 	.st-Reading { background: var(--primary-bg); color: var(--primary); }
 	.st-Finished { background: #E8F1E8; color: #4A7A4A; }
 	.minutes { font-size: 22rpx; color: var(--primary); }
-	.owner-card { display: flex; align-items: center; justify-content: space-between; gap: 20rpx; }
+	.owner-card { display: flex; align-items: center; justify-content: space-between; gap: 16rpx; }
 	.owner-info { flex: 1; min-width: 0; }
-	.owner-label { display: block; font-size: 28rpx; color: #33332E; font-weight: 600; }
+	.owner-label { display: block; font-size: 26rpx; color: #33332E; font-weight: 600; }
 	.owner-tip { display: block; font-size: 21rpx; color: #B0B0AB; margin-top: 4rpx; }
-	.actions { margin: 0 20rpx; display: flex; flex-direction: column; gap: 18rpx; padding: 4rpx 0 10rpx; }
-	.act-row { display: flex; gap: 18rpx; }
-	.act-btn { flex: 1; height: 84rpx; display: flex; align-items: center; justify-content: center; gap: 10rpx; border-radius: 42rpx; font-size: 28rpx; line-height: 1; padding: 0; margin: 0; }
+	.actions { margin: 0 20rpx; display: flex; flex-direction: column; gap: 14rpx; padding: 4rpx 0 8rpx; }
+	.act-row { display: flex; gap: 14rpx; }
+	.act-btn { flex: 1; height: 84rpx; display: flex; align-items: center; justify-content: center; gap: 8rpx; border-radius: 42rpx; font-size: 26rpx; line-height: 1; padding: 0; margin: 0; }
 	.act-btn::after { border: none; }
 	.act-btn.outline { background: #FFFFFF; color: var(--primary); border: 2rpx solid var(--primary); }
 	.act-btn.outline.on { background: var(--primary-bg); }
 	.act-btn.solid { background: var(--primary); color: #FFFFFF; }
 	.act-icon { width: 34rpx; height: 34rpx; }
 	.make-btn { margin: 0; }
-	.links { display: flex; align-items: center; justify-content: center; gap: 48rpx; padding: 4rpx 0 10rpx; }
-	.link { font-size: 26rpx; color: var(--primary); }
-	.link-report { display: flex; align-items: center; gap: 6rpx; font-size: 26rpx; color: #B85450; }
+	.links { display: flex; align-items: center; justify-content: center; gap: 38rpx; padding: 4rpx 0 8rpx; }
+	.link { font-size: 24rpx; color: var(--primary); }
+	.link-report { display: flex; align-items: center; gap: 5rpx; font-size: 24rpx; color: #B85450; }
 	.link-icon { width: 26rpx; height: 26rpx; }
-	.footer { display: block; text-align: center; font-size: 22rpx; color: #B0B0AB; padding: 30rpx 0 40rpx; }
-	.empty-state { display: flex; align-items: center; justify-content: center; min-height: 60vh; color: #B0B0AB; font-size: 26rpx; }
+	.footer { display: block; text-align: center; font-size: 22rpx; color: #B0B0AB; padding: 24rpx 0 32rpx; }
+	.empty-state { display: flex; align-items: center; justify-content: center; min-height: 60vh; color: #B0B0AB; font-size: 24rpx; }
 </style>

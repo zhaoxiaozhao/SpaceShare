@@ -1,3 +1,4 @@
+using FriendlySeat.Application.Common;
 using FriendlySeat.Application.Dtos;
 using FriendlySeat.Application.Services;
 using Microsoft.AspNetCore.Mvc;
@@ -7,10 +8,12 @@ namespace FriendlySeat.Api.Controllers.Admin;
 public class AdminSeatNoteController : AdminControllerBase
 {
     private readonly SeatNoteService _notes;
+    private readonly ICurrentAdmin _currentAdmin;
 
-    public AdminSeatNoteController(SeatNoteService notes)
+    public AdminSeatNoteController(SeatNoteService notes, ICurrentAdmin currentAdmin)
     {
         _notes = notes;
+        _currentAdmin = currentAdmin;
     }
 
     [HttpGet("seat-notes")]
@@ -21,7 +24,7 @@ public class AdminSeatNoteController : AdminControllerBase
     [HttpPost("seat-notes/{id:long}/review")]
     public async Task<IActionResult> Review(long id, AdminSeatNoteReviewRequest request, CancellationToken ct)
     {
-        await _notes.AdminReviewAsync(id, request.Approve, ct);
+        await _notes.AdminReviewAsync(id, request.Approve, _currentAdmin.AdminId!.Value, ct);
         return Ok();
     }
 }

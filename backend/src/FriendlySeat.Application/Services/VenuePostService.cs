@@ -63,11 +63,29 @@ public class VenuePostService
         if (post is null || (post.Status != CommentStatus.Visible && post.UserId != viewerId))
             return null;
 
-        var comments = await _db.VenuePostComments.Include(c => c.User)
-            .Where(c => c.PostId == id && c.Status == CommentStatus.Visible)
+        var tops = await _db.VenuePostComments.Include(c => c.User)
+            .Where(c => c.PostId == id && c.Status == CommentStatus.Visible && c.ParentCommentId == null)
             .OrderBy(c => c.Id)
             .Take(200)
             .ToListAsync(ct);
+
+        var topIds = tops.Select(t => t.Id).ToList();
+        var replies = await _db.VenuePostComments.Include(c => c.User)
+            .Where(c => c.PostId == id && c.Status == CommentStatus.Visible
+                && c.ParentCommentId != null && topIds.Contains(c.ParentCommentId.Value))
+            .OrderBy(c => c.Id)
+            .Take(800)
+            .ToListAsync(ct);
+
+        var replyToIds = replies.Where(c => c.ReplyToUserId.HasValue).Select(c => c.ReplyToUserId!.Value).Distinct().ToList();
+        var nameMap = replyToIds.Count == 0
+            ? new Dictionary<long, string>()
+            : await _db.Users.Where(u => replyToIds.Contains(u.Id))
+                .Select(u => new { u.Id, u.Nickname })
+                .ToDictionaryAsync(x => x.Id, x => string.IsNullOrWhiteSpace(x.Nickname) ? "友邻" : x.Nickname!, ct);
+
+        var repliesByParent = replies.GroupBy(r => r.ParentCommentId!.Value)
+            .ToDictionary(g => g.Key, g => g.OrderBy(x => x.Id).ToList());
 
         var labels = await CategoryLabelsAsync(ct);
         var liked = viewerId.HasValue
@@ -76,7 +94,14 @@ public class VenuePostService
         return new VenuePostDetailDto
         {
             Post = ToDto(post, viewerId, labels, liked),
-            Comments = comments.Select(c => ToCommentDto(c, viewerId)).ToList()
+            Comments = tops.Select(t =>
+            {
+                var dto = ToCommentDto(t, viewerId, nameMap);
+                dto.Replies = repliesByParent.TryGetValue(t.Id, out var rs)
+                    ? rs.Select(r => ToCommentDto(r, viewerId, nameMap)).ToList()
+                    : new List<VenuePostCommentDto>();
+                return dto;
+            }).ToList()
         };
     }
 
@@ -161,11 +186,26 @@ public class VenuePostService
 
         await EnsureContentSafeAsync(userId, new[] { content }, ct);
 
+        // 回复：ParentCommentId 指向一级评论（回复"回复"时归并到同一楼）
+        long? rootId = null;
+        long? replyToUserId = null;
+        if (request.ParentCommentId is long parentId && parentId > 0)
+        {
+            var parent = await _db.VenuePostComments.FirstOrDefaultAsync(c => c.Id == parentId, ct)
+                ?? throw AppException.NotFound("评论不存在");
+            if (parent.PostId != postId)
+                throw AppException.BadRequest("parent_mismatch", "回复的评论不属于该帖子");
+            rootId = parent.ParentCommentId ?? parent.Id;
+            replyToUserId = parent.UserId;
+        }
+
         var comment = new VenuePostComment
         {
             PostId = postId,
             UserId = userId,
             Content = content,
+            ParentCommentId = rootId,
+            ReplyToUserId = replyToUserId,
             Status = CommentStatus.Visible,
             CreatedAt = DateTime.UtcNow
         };
@@ -174,7 +214,13 @@ public class VenuePostService
         await _db.SaveChangesAsync(ct);
 
         var saved = await _db.VenuePostComments.Include(c => c.User).FirstAsync(c => c.Id == comment.Id, ct);
-        return ToCommentDto(saved, userId);
+        Dictionary<long, string>? nameMap = null;
+        if (saved.ReplyToUserId.HasValue)
+        {
+            var name = await _db.Users.Where(u => u.Id == saved.ReplyToUserId.Value).Select(u => u.Nickname).FirstOrDefaultAsync(ct);
+            nameMap = new Dictionary<long, string> { [saved.ReplyToUserId.Value] = string.IsNullOrWhiteSpace(name) ? "友邻" : name };
+        }
+        return ToCommentDto(saved, userId, nameMap);
     }
 
     public async Task DeletePostAsync(long userId, long postId, CancellationToken ct = default)
@@ -196,7 +242,16 @@ public class VenuePostService
             throw AppException.Forbidden("只能删除自己的评论");
 
         var post = await _db.VenuePosts.FirstOrDefaultAsync(p => p.Id == comment.PostId, ct);
-        if (post is not null) post.CommentCount = Math.Max(0, post.CommentCount - 1);
+
+        // 删一级评论：级联删除其下回复
+        var removed = 1;
+        if (comment.ParentCommentId == null)
+        {
+            var replies = await _db.VenuePostComments.Where(c => c.ParentCommentId == comment.Id).ToListAsync(ct);
+            removed += replies.Count;
+            _db.VenuePostComments.RemoveRange(replies);
+        }
+        if (post is not null) post.CommentCount = Math.Max(0, post.CommentCount - removed);
 
         _db.VenuePostComments.Remove(comment);
         await _db.SaveChangesAsync(ct);
@@ -212,11 +267,19 @@ public class VenuePostService
         await _db.SaveChangesAsync(ct);
     }
 
-    /// <summary>评论被举报：自动隐藏</summary>
+    /// <summary>评论被举报：自动隐藏（一级评论连同其回复一起隐藏）</summary>
     public async Task HideCommentByReportAsync(long commentId, CancellationToken ct = default)
     {
         var comment = await _db.VenuePostComments.FirstOrDefaultAsync(c => c.Id == commentId, ct);
         if (comment is null || comment.Status == CommentStatus.Hidden) return;
+
+        if (comment.ParentCommentId == null)
+        {
+            var replies = await _db.VenuePostComments
+                .Where(c => c.ParentCommentId == comment.Id && c.Status != CommentStatus.Hidden)
+                .ToListAsync(ct);
+            foreach (var r in replies) r.Status = CommentStatus.Hidden;
+        }
         comment.Status = CommentStatus.Hidden;
         await _db.SaveChangesAsync(ct);
     }
@@ -236,7 +299,7 @@ public class VenuePostService
         return list.Select(p => ToDto(p, null, labels, false)).ToList();
     }
 
-    public async Task AdminReviewAsync(long id, bool approve, CancellationToken ct = default)
+    public async Task AdminReviewAsync(long id, bool approve, long operatorId, CancellationToken ct = default)
     {
         var post = await _db.VenuePosts.FirstOrDefaultAsync(p => p.Id == id, ct)
             ?? throw AppException.NotFound("帖子不存在");
@@ -249,15 +312,17 @@ public class VenuePostService
         {
             _db.VenuePosts.Remove(post);
         }
+        Audit(operatorId, "venue_post.review", "VenuePost", id, approve ? "审核通过" : "驳回删除");
         await _db.SaveChangesAsync(ct);
     }
 
-    public async Task AdminPinAsync(long id, bool pinned, CancellationToken ct = default)
+    public async Task AdminPinAsync(long id, bool pinned, long operatorId, CancellationToken ct = default)
     {
         var post = await _db.VenuePosts.FirstOrDefaultAsync(p => p.Id == id, ct)
             ?? throw AppException.NotFound("帖子不存在");
         post.IsPinned = pinned;
         post.UpdatedAt = DateTime.UtcNow;
+        Audit(operatorId, "venue_post.pin", "VenuePost", id, pinned ? "置顶" : "取消置顶");
         await _db.SaveChangesAsync(ct);
     }
 
@@ -269,24 +334,63 @@ public class VenuePostService
             query = query.Where(c => c.Status == st);
         }
         var list = await query.OrderByDescending(c => c.Id).Take(200).ToListAsync(ct);
-        return list.Select(c => ToCommentDto(c, null)).ToList();
+
+        var replyToIds = list.Where(c => c.ReplyToUserId.HasValue).Select(c => c.ReplyToUserId!.Value).Distinct().ToList();
+        var nameMap = replyToIds.Count == 0
+            ? new Dictionary<long, string>()
+            : await _db.Users.Where(u => replyToIds.Contains(u.Id))
+                .Select(u => new { u.Id, u.Nickname })
+                .ToDictionaryAsync(x => x.Id, x => string.IsNullOrWhiteSpace(x.Nickname) ? "友邻" : x.Nickname!, ct);
+
+        return list.Select(c => ToCommentDto(c, null, nameMap)).ToList();
     }
 
-    public async Task AdminCommentReviewAsync(long id, bool approve, CancellationToken ct = default)
+    public async Task AdminCommentReviewAsync(long id, bool approve, long operatorId, CancellationToken ct = default)
     {
         var comment = await _db.VenuePostComments.FirstOrDefaultAsync(c => c.Id == id, ct)
             ?? throw AppException.NotFound("评论不存在");
+
+        var post = await _db.VenuePosts.FirstOrDefaultAsync(p => p.Id == comment.PostId, ct);
+
         if (approve)
         {
             comment.Status = CommentStatus.Visible;
+            // 一级评论通过时，恢复因举报被连带隐藏的回复
+            if (comment.ParentCommentId == null)
+            {
+                var replies = await _db.VenuePostComments
+                    .Where(c => c.ParentCommentId == comment.Id && c.Status != CommentStatus.Visible)
+                    .ToListAsync(ct);
+                foreach (var r in replies) r.Status = CommentStatus.Visible;
+            }
         }
         else
         {
-            var post = await _db.VenuePosts.FirstOrDefaultAsync(p => p.Id == comment.PostId, ct);
-            if (post is not null) post.CommentCount = Math.Max(0, post.CommentCount - 1);
+            var removed = 1;
+            if (comment.ParentCommentId == null)
+            {
+                var replies = await _db.VenuePostComments.Where(c => c.ParentCommentId == comment.Id).ToListAsync(ct);
+                removed += replies.Count;
+                _db.VenuePostComments.RemoveRange(replies);
+            }
+            if (post is not null) post.CommentCount = Math.Max(0, post.CommentCount - removed);
             _db.VenuePostComments.Remove(comment);
         }
+        Audit(operatorId, "venue_post_comment.review", "VenuePostComment", id, approve ? "审核通过" : "驳回删除");
         await _db.SaveChangesAsync(ct);
+    }
+
+    private void Audit(long operatorId, string action, string entityType, long entityId, string detail)
+    {
+        _db.AdminAuditLogs.Add(new AdminAuditLog
+        {
+            AdminUserId = operatorId,
+            Action = action,
+            EntityType = entityType,
+            EntityId = entityId.ToString(),
+            Detail = detail,
+            CreatedAt = DateTime.UtcNow
+        });
     }
 
     private async Task<Dictionary<string, string>> CategoryLabelsAsync(CancellationToken ct)
@@ -316,7 +420,7 @@ public class VenuePostService
         UpdatedAt = p.UpdatedAt
     };
 
-    private static VenuePostCommentDto ToCommentDto(VenuePostComment c, long? viewerId) => new()
+    private static VenuePostCommentDto ToCommentDto(VenuePostComment c, long? viewerId, Dictionary<long, string>? nameMap = null) => new()
     {
         Id = c.Id,
         PostId = c.PostId,
@@ -325,7 +429,10 @@ public class VenuePostService
         OwnerAvatar = c.User?.AvatarUrl,
         IsOwner = viewerId.HasValue && viewerId.Value == c.UserId,
         Status = c.Status.ToString(),
-        CreatedAt = c.CreatedAt
+        CreatedAt = c.CreatedAt,
+        ParentCommentId = c.ParentCommentId,
+        ReplyToUserId = c.ReplyToUserId,
+        ReplyToName = c.ReplyToUserId.HasValue && nameMap is not null && nameMap.TryGetValue(c.ReplyToUserId.Value, out var n) ? n : null
     };
 
     private async Task EnsureContentSafeAsync(long userId, IEnumerable<string?> texts, CancellationToken ct)

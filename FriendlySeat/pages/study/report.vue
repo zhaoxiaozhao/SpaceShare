@@ -342,7 +342,7 @@
 
 <style scoped>
 	.report-header {
-		margin: 20rpx;
+		margin: 16rpx;
 	}
 	.period-tabs {
 		display: flex;
@@ -353,9 +353,9 @@
 	.period-tab {
 		flex: 1;
 		text-align: center;
-		padding: 14rpx 0;
+		padding: 11rpx 0;
 		border-radius: 34rpx;
-		font-size: 28rpx;
+		font-size: 26rpx;
 		color: #8A8A86;
 	}
 	.period-tab.active {
@@ -370,15 +370,15 @@
 		display: flex;
 		flex-direction: column;
 		align-items: center;
-		padding: 50rpx 30rpx;
-		gap: 6rpx;
+		padding: 40rpx 30rpx;
+		gap: 5rpx;
 	}
 	.hero-num {
 		font-size: 72rpx;
 		font-weight: 700;
 	}
 	.hero-label {
-		font-size: 26rpx;
+		font-size: 24rpx;
 		opacity: 0.9;
 	}
 	.hero-period {
@@ -387,18 +387,18 @@
 	}
 	.stats-grid {
 		display: flex;
-		margin: 20rpx;
-		gap: 20rpx;
+		margin: 16rpx;
+		gap: 16rpx;
 	}
 	.stat-cell {
 		flex: 1;
 		background: #FFFFFF;
 		border-radius: 20rpx;
-		padding: 24rpx 0;
+		padding: 19rpx 0;
 		display: flex;
 		flex-direction: column;
 		align-items: center;
-		gap: 6rpx;
+		gap: 5rpx;
 		box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.04);
 	}
 	.stat-num {
@@ -413,7 +413,7 @@
 	.bar-chart {
 		display: flex;
 		align-items: flex-end;
-		gap: 8rpx;
+		gap: 6rpx;
 		height: 180rpx;
 		margin-top: 20rpx;
 	}
@@ -440,25 +440,25 @@
 		display: flex;
 		justify-content: space-between;
 		align-items: center;
-		padding: 16rpx 0;
+		padding: 13rpx 0;
 		border-bottom: 1rpx solid #F0EFEA;
 	}
 	.type-row:last-child {
 		border-bottom: none;
 	}
 	.type-name {
-		font-size: 28rpx;
+		font-size: 26rpx;
 	}
 	.type-min {
-		font-size: 26rpx;
+		font-size: 24rpx;
 		color: var(--primary);
 		font-weight: 600;
 	}
 	.share-bar {
-		margin: 20rpx 20rpx 0;
+		margin: 16rpx 20rpx 0;
 	}
 	.share-btn {
-		font-size: 28rpx;
+		font-size: 26rpx;
 	}
 	.modal-mask {
 		position: fixed;
@@ -472,14 +472,14 @@
 	.preview-modal {
 		background: #FFFFFF;
 		border-radius: 24rpx;
-		padding: 30rpx;
+		padding: 24rpx;
 		width: 560rpx;
 		display: flex;
 		flex-direction: column;
 		align-items: center;
 	}
 	.modal-title {
-		font-size: 32rpx;
+		font-size: 30rpx;
 		font-weight: 600;
 		display: block;
 		margin-bottom: 20rpx;

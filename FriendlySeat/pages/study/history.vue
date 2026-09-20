@@ -67,10 +67,10 @@
 
 <style scoped>
 	.group {
-		padding: 24rpx 28rpx;
+		padding: 19rpx 28rpx;
 	}
 	.group-date {
-		font-size: 26rpx;
+		font-size: 24rpx;
 		font-weight: 600;
 		color: var(--primary);
 		display: block;
@@ -80,14 +80,14 @@
 		display: flex;
 		justify-content: space-between;
 		align-items: center;
-		padding: 14rpx 0;
+		padding: 11rpx 0;
 		border-bottom: 1rpx solid #F0EFEA;
 	}
 	.session-row:last-child {
 		border-bottom: none;
 	}
 	.session-type {
-		font-size: 28rpx;
+		font-size: 26rpx;
 		font-weight: 600;
 	}
 	.session-time {
@@ -96,7 +96,7 @@
 		margin-left: 16rpx;
 	}
 	.session-duration {
-		font-size: 26rpx;
+		font-size: 24rpx;
 		color: var(--primary);
 		font-weight: 600;
 	}
