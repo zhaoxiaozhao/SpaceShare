@@ -12,9 +12,9 @@
 		<!-- 友邻画像 -->
 		<view class="card">
 			<text class="section-label">友邻画像</text>
-			<block v-if="profile.personaPublic && profile.persona">
+			<view v-if="profile.personaPublic && profile.persona">
 				<view class="pa-head">
-					<text class="pa-type" :style="{ color: profile.persona.color || 'var(--primary)' }">{{profile.persona.typeName}}</text>
+					<text class="pa-type">{{profile.persona.typeName}}</text>
 					<text class="pa-tag">已公开</text>
 				</view>
 				<text class="pa-scene" v-if="profile.persona.scene">{{profile.persona.scene}}</text>
@@ -22,7 +22,7 @@
 					<text class="tag" v-for="t in profile.persona.tags" :key="t">{{t}}</text>
 				</view>
 				<text class="pa-line" v-if="profile.persona.poetLine">「{{profile.persona.poetLine}}」</text>
-			</block>
+			</view>
 			<text v-else class="muted">TA 未公开友邻画像</text>
 		</view>
 
@@ -46,7 +46,8 @@
 			<button class="btn-outline" @click="report">举报该用户</button>
 		</view>
 	</view>
-	<view v-else-if="loaded" class="empty">用户不存在</view>
+	<view v-else-if="error" class="empty" @click="onRetry">{{error}}<text v-if="canRetry">，点击重试</text></view>
+	<view v-else-if="loaded" class="empty">用户不存在或已注销</view>
 	<view v-else class="empty">加载中…</view>
 </template>
 
@@ -59,6 +60,8 @@
 			return {
 				id: 0,
 				profile: null,
+				error: '',
+				canRetry: false,
 				loaded: false
 			}
 		},
@@ -81,15 +84,33 @@
 					this.loaded = true
 					return
 				}
+				this.error = ''
+				this.canRetry = false
 				try {
-					this.profile = await api.getUserProfile(this.id)
-					if (this.profile && this.profile.nickname) {
-						uni.setNavigationBarTitle({ title: this.profile.nickname })
+					const d = await api.getUserProfile(this.id)
+					if (!d) {
+						this.profile = null
+						this.loaded = true
+						return
+					}
+					this.profile = d
+					if (d.nickname) {
+						uni.setNavigationBarTitle({ title: d.nickname })
 					}
 				} catch (e) {
 					this.profile = null
+					if (e && e.code === 404) {
+						this.error = '用户不存在或已注销'
+						this.canRetry = false
+					} else {
+						this.error = (e && e.message) || '加载失败'
+						this.canRetry = true
+					}
 				}
 				this.loaded = true
+			},
+			onRetry() {
+				if (this.canRetry) this.load()
 			},
 			metaText(p) {
 				const parts = []
@@ -121,7 +142,7 @@
 	.section-label { display: block; font-size: 26rpx; font-weight: 600; margin-bottom: 14rpx; }
 	.muted { display: block; font-size: 24rpx; color: #B0B0AB; padding: 8rpx 0; }
 	.pa-head { display: flex; align-items: center; gap: 12rpx; }
-	.pa-type { font-size: 30rpx; font-weight: 700; }
+	.pa-type { font-size: 30rpx; font-weight: 700; color: var(--primary); }
 	.pa-tag { font-size: 20rpx; color: var(--primary); background: var(--primary-bg); border-radius: 8rpx; padding: 4rpx 12rpx; }
 	.pa-scene { display: block; font-size: 24rpx; color: #55554F; margin-top: 10rpx; line-height: 1.4; }
 	.tags { display: flex; flex-wrap: wrap; gap: 12rpx; margin-top: 14rpx; }
