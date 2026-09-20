@@ -16,6 +16,9 @@ public class VenuePost
     public string Title { get; set; } = string.Empty;
     public string Content { get; set; } = string.Empty;
 
+    /// <summary>封面图（微信云存储 fileID，可选）</summary>
+    public string? CoverImage { get; set; }
+
     public CommentStatus Status { get; set; } = CommentStatus.Visible;
 
     /// <summary>管理端置顶</summary>

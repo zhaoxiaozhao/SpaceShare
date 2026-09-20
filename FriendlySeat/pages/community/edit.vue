@@ -15,6 +15,16 @@
 			<textarea class="textarea" v-model="content" :maxlength="1000" placeholder="友善发言，请勿留联系方式或发布交易信息（最多 1000 字）" />
 			<text class="count">{{content.length}}/1000</text>
 
+			<text class="label">封面图（可选）</text>
+			<view class="cover-wrap">
+				<image v-if="coverImage" class="cover-img" :src="coverImage" mode="aspectFill" @click="chooseCover" />
+				<view v-else class="cover-add" @click="chooseCover">
+					<text class="cover-plus">＋</text>
+					<text class="cover-tip">添加封面</text>
+				</view>
+				<text v-if="coverImage" class="cover-remove" @click="removeCover">删除</text>
+			</view>
+
 			<view class="venue-row" v-if="venueName">
 				<text class="venue-label">发布到</text>
 				<text class="venue-name">{{venueName}}</text>
@@ -31,6 +41,7 @@
 <script>
 	import { api } from '../../utils/request.js'
 	import { getAppOptions } from '../../utils/options.js'
+	import { uploadImage, getTempFileUrl } from '../../utils/profile.js'
 
 	export default {
 		data() {
@@ -40,6 +51,7 @@
 				category: 'chat',
 				title: '',
 				content: '',
+				coverImage: '',
 				submitting: false
 			}
 		},
@@ -57,6 +69,28 @@
 			this.venueName = options.venueName ? decodeURIComponent(options.venueName) : ''
 		},
 		methods: {
+			chooseCover() {
+				uni.chooseImage({
+					count: 1,
+					sizeType: ['compressed'],
+					sourceType: ['album', 'camera'],
+					success: async (res) => {
+						const filePath = res.tempFilePaths && res.tempFilePaths[0]
+						if (!filePath) return
+						uni.showLoading({ title: '上传中', mask: true })
+						try {
+							this.coverImage = await uploadImage(filePath, 'posts')
+						} catch (e) {
+							uni.showToast({ title: '上传失败，请重试', icon: 'none' })
+						} finally {
+							uni.hideLoading()
+						}
+					}
+				})
+			},
+			removeCover() {
+				this.coverImage = ''
+			},
 			async submit() {
 				if (this.submitting) return
 				if (!this.venueId) {
@@ -76,7 +110,18 @@
 				this.submitting = true
 				uni.showLoading({ title: '发布中', mask: true })
 				try {
-					const post = await api.createVenuePost({ venueId: this.venueId, category: this.category, title, content })
+					let coverImageUrl = null
+					if (this.coverImage) {
+						try { coverImageUrl = await getTempFileUrl(this.coverImage) } catch (e) {}
+					}
+					const post = await api.createVenuePost({
+						venueId: this.venueId,
+						category: this.category,
+						title,
+						content,
+						coverImage: this.coverImage || null,
+						coverImageUrl
+					})
 					uni.hideLoading()
 					uni.showToast({ title: '已发布', icon: 'success' })
 					setTimeout(() => {
@@ -102,6 +147,12 @@
 	.input { background: #F7F5EF; border-radius: 12rpx; padding: 14rpx 22rpx; font-size: 26rpx; }
 	.textarea { width: 100%; box-sizing: border-box; height: 320rpx; background: #F7F5EF; border-radius: 12rpx; padding: 14rpx 22rpx; font-size: 26rpx; }
 	.count { display: block; text-align: right; font-size: 22rpx; color: #B0B0AB; margin-top: 8rpx; }
+	.cover-wrap { display: flex; align-items: center; gap: 16rpx; margin-top: 4rpx; }
+	.cover-img { width: 200rpx; height: 140rpx; border-radius: 12rpx; background: #F1EFE9; }
+	.cover-add { width: 200rpx; height: 140rpx; border-radius: 12rpx; border: 2rpx dashed #D8D4C8; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4rpx; }
+	.cover-plus { font-size: 40rpx; color: #C4C2BB; line-height: 1; }
+	.cover-tip { font-size: 22rpx; color: #B0B0AB; }
+	.cover-remove { font-size: 24rpx; color: #B85450; }
 	.venue-row { display: flex; align-items: center; gap: 10rpx; margin-top: 20rpx; }
 	.venue-label { font-size: 24rpx; color: #8A8A86; }
 	.venue-name { font-size: 26rpx; color: var(--primary); font-weight: 600; }

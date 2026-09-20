@@ -9,6 +9,8 @@ public class VenuePostDto
     public string CategoryLabel { get; set; } = string.Empty;
     public string Title { get; set; } = string.Empty;
     public string Content { get; set; } = string.Empty;
+    /// <summary>封面图（微信云存储 fileID）</summary>
+    public string? CoverImage { get; set; }
     public string OwnerName { get; set; } = string.Empty;
     public string? OwnerAvatar { get; set; }
     public bool IsOwner { get; set; }
@@ -55,6 +57,12 @@ public class CreateVenuePostRequest
     public string Category { get; set; } = "chat";
     public string Title { get; set; } = string.Empty;
     public string Content { get; set; } = string.Empty;
+
+    /// <summary>封面图（微信云存储 fileID）</summary>
+    public string? CoverImage { get; set; }
+
+    /// <summary>封面图的临时可访问 https 地址，仅用于微信 imgSecCheck 校验</summary>
+    public string? CoverImageUrl { get; set; }
 }
 
 public class CreateVenuePostCommentRequest

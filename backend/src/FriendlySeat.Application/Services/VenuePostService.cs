@@ -126,6 +126,14 @@ public class VenuePostService
 
         await EnsureContentSafeAsync(userId, new[] { title, content }, ct);
 
+        // 封面图内容安全（imgSecCheck，需临时可访问地址）
+        if (!string.IsNullOrWhiteSpace(request.CoverImageUrl))
+        {
+            var r = await _wechat.ImgSecCheckUrlAsync(request.CoverImageUrl!, ct);
+            if (r.Status == ContentCheckStatus.Risky)
+                throw AppException.BadRequest("image_risky", "图片未通过安全检测，请更换后重试");
+        }
+
         var post = new VenuePost
         {
             VenueId = venue.Id,
@@ -133,6 +141,7 @@ public class VenuePostService
             Category = category,
             Title = title,
             Content = content,
+            CoverImage = string.IsNullOrWhiteSpace(request.CoverImage) ? null : request.CoverImage!.Trim(),
             Status = CommentStatus.Visible,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
@@ -408,6 +417,7 @@ public class VenuePostService
         CategoryLabel = labels.TryGetValue(p.Category, out var label) ? label : p.Category,
         Title = p.Title,
         Content = p.Content,
+        CoverImage = p.CoverImage,
         OwnerName = p.User?.Nickname ?? "友邻",
         OwnerAvatar = p.User?.AvatarUrl,
         IsOwner = viewerId.HasValue && viewerId.Value == p.UserId,

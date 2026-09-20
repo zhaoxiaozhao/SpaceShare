@@ -20,6 +20,12 @@
       <el-table-column prop="categoryLabel" label="板块" width="100" />
       <el-table-column prop="title" label="标题" min-width="180" show-overflow-tooltip />
       <el-table-column prop="content" label="内容" min-width="220" show-overflow-tooltip />
+      <el-table-column label="封面" width="80">
+        <template #default="{ row }">
+          <el-tag v-if="row.coverImage" size="small" type="info">有图</el-tag>
+          <span v-else class="muted">—</span>
+        </template>
+      </el-table-column>
       <el-table-column label="作者" width="130">
         <template #default="{ row }">{{ row.ownerName || ('#' + row.userId) }}</template>
       </el-table-column>

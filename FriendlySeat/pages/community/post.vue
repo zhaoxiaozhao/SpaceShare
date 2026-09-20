@@ -14,6 +14,7 @@
 				<text class="p-time">{{timeText(post.createdAt)}}</text>
 			</view>
 			<text class="p-content">{{post.content}}</text>
+			<image v-if="post.coverImage" class="p-cover" :src="post.coverImage" mode="widthFix" @click="previewCover" />
 
 			<view class="p-actions">
 				<text class="act" :class="{ on: post.liked }" @click="like">赞 {{post.likeCount}}</text>
@@ -156,6 +157,11 @@
 				if (!this.requireLogin()) return
 				uni.navigateTo({ url: `/pages/report/report?targetType=VenuePost&targetId=${this.id}` })
 			},
+			previewCover() {
+				if (this.post && this.post.coverImage) {
+					uni.previewImage({ urls: [this.post.coverImage] })
+				}
+			},
 			async sendComment() {
 				if (this.sending) return
 				if (!this.requireLogin()) return
@@ -225,6 +231,7 @@
 	.p-name { font-size: 24rpx; color: #55554F; }
 	.p-time { font-size: 22rpx; color: #B0B0AB; margin-left: auto; }
 	.p-content { display: block; font-size: 28rpx; color: #33332E; line-height: 1.4; margin-top: 20rpx; white-space: pre-wrap; }
+	.p-cover { width: 100%; border-radius: 12rpx; margin-top: 18rpx; background: #F1EFE9; }
 	.p-actions { display: flex; gap: 32rpx; margin-top: 26rpx; padding-top: 20rpx; border-top: 1rpx solid #F0EFEA; }
 	.act { font-size: 24rpx; color: #8A8A86; }
 	.act.on { color: var(--primary); font-weight: 600; }

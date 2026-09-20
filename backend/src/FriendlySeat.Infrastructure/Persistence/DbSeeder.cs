@@ -409,6 +409,7 @@ CREATE TABLE `VenuePosts` (
   `Category` longtext NOT NULL,
   `Title` longtext NOT NULL,
   `Content` longtext NOT NULL,
+  `CoverImage` longtext NULL,
   `Status` int NOT NULL,
   `IsPinned` tinyint(1) NOT NULL DEFAULT 0,
   `LikeCount` int NOT NULL,
@@ -452,6 +453,13 @@ CREATE TABLE `VenuePostLikes` (
   CONSTRAINT `FK_VenuePostLikes_VenuePosts_PostId` FOREIGN KEY (`PostId`) REFERENCES `VenuePosts` (`Id`) ON DELETE CASCADE,
   CONSTRAINT `FK_VenuePostLikes_Users_UserId` FOREIGN KEY (`UserId`) REFERENCES `Users` (`Id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
+        }
+
+        // VenuePosts.CoverImage 列（帖子封面图）：已有表补列
+        if (await tableExists("VenuePosts") && !await ColumnExistsAsync(db, "VenuePosts", "CoverImage"))
+        {
+            logger.LogInformation("MySQL 补充 VenuePosts.CoverImage 列（帖子封面图）");
+            await db.Database.ExecuteSqlRawAsync("ALTER TABLE `VenuePosts` ADD COLUMN `CoverImage` longtext NULL;");
         }
 
         // VenuePostComments 楼中楼列（ParentCommentId / ReplyToUserId）：已有表补列

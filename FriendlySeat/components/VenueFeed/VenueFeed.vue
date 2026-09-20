@@ -17,8 +17,13 @@
 					<text class="p-pin" v-if="p.isPinned">置顶</text>
 					<text class="p-time">{{timeText(p.createdAt)}}</text>
 				</view>
-				<text class="p-title">{{p.title}}</text>
-				<text class="p-excerpt">{{p.content}}</text>
+				<view class="p-main">
+					<view class="p-main-body">
+						<text class="p-title">{{p.title}}</text>
+						<text class="p-excerpt">{{p.content}}</text>
+					</view>
+					<image v-if="p.coverImage" class="p-thumb" :src="p.coverImage" mode="aspectFill" />
+				</view>
 				<view class="p-foot">
 					<Avatar :url="p.ownerAvatar" :name="p.ownerName" :size="44" />
 					<text class="p-owner">{{p.ownerName}}</text>
@@ -127,7 +132,10 @@
 	.p-cat { font-size: 20rpx; color: var(--primary); background: var(--primary-bg); border-radius: 8rpx; padding: 4rpx 14rpx; }
 	.p-pin { font-size: 20rpx; color: #B85450; background: #FBEDEC; border-radius: 8rpx; padding: 4rpx 14rpx; }
 	.p-time { font-size: 20rpx; color: #B0B0AB; margin-left: auto; }
-	.p-title { display: block; font-size: 28rpx; font-weight: 600; margin-top: 14rpx; }
+	.p-main { display: flex; align-items: flex-start; gap: 16rpx; margin-top: 14rpx; }
+	.p-main-body { flex: 1; min-width: 0; }
+	.p-thumb { width: 160rpx; height: 120rpx; border-radius: 12rpx; flex-shrink: 0; background: #F1EFE9; }
+	.p-title { display: block; font-size: 28rpx; font-weight: 600; }
 	.p-excerpt { display: block; font-size: 24rpx; color: #55554F; line-height: 1.4; margin-top: 8rpx; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
 	.p-foot { display: flex; align-items: center; gap: 10rpx; margin-top: 16rpx; }
 	.p-owner { font-size: 24rpx; color: #8A8A86; }
