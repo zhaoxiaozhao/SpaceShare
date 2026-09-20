@@ -395,6 +395,60 @@ CREATE TABLE `PersonaProfiles` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
         }
 
+        // 场馆交流板（VenuePosts / VenuePostComments / VenuePostLikes，已有库补建表）
+        if (!await tableExists("VenuePosts"))
+        {
+            logger.LogInformation("MySQL 补建场馆交流板表（VenuePosts/VenuePostComments/VenuePostLikes）");
+            await db.Database.ExecuteSqlRawAsync(@"
+CREATE TABLE `VenuePosts` (
+  `Id` bigint NOT NULL AUTO_INCREMENT,
+  `VenueId` bigint NOT NULL,
+  `UserId` bigint NOT NULL,
+  `Category` longtext NOT NULL,
+  `Title` longtext NOT NULL,
+  `Content` longtext NOT NULL,
+  `Status` int NOT NULL,
+  `IsPinned` tinyint(1) NOT NULL DEFAULT 0,
+  `LikeCount` int NOT NULL,
+  `CommentCount` int NOT NULL,
+  `CreatedAt` datetime(6) NOT NULL,
+  `UpdatedAt` datetime(6) NOT NULL,
+  PRIMARY KEY (`Id`),
+  KEY `IX_VenuePosts_VenueId_Status_IsPinned` (`VenueId`, `Status`, `IsPinned`),
+  KEY `IX_VenuePosts_UserId` (`UserId`),
+  CONSTRAINT `FK_VenuePosts_Venues_VenueId` FOREIGN KEY (`VenueId`) REFERENCES `Venues` (`Id`) ON DELETE CASCADE,
+  CONSTRAINT `FK_VenuePosts_Users_UserId` FOREIGN KEY (`UserId`) REFERENCES `Users` (`Id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
+
+            await db.Database.ExecuteSqlRawAsync(@"
+CREATE TABLE `VenuePostComments` (
+  `Id` bigint NOT NULL AUTO_INCREMENT,
+  `PostId` bigint NOT NULL,
+  `UserId` bigint NOT NULL,
+  `Content` longtext NOT NULL,
+  `Status` int NOT NULL,
+  `CreatedAt` datetime(6) NOT NULL,
+  PRIMARY KEY (`Id`),
+  KEY `IX_VenuePostComments_PostId_Status` (`PostId`, `Status`),
+  KEY `IX_VenuePostComments_UserId` (`UserId`),
+  CONSTRAINT `FK_VenuePostComments_VenuePosts_PostId` FOREIGN KEY (`PostId`) REFERENCES `VenuePosts` (`Id`) ON DELETE CASCADE,
+  CONSTRAINT `FK_VenuePostComments_Users_UserId` FOREIGN KEY (`UserId`) REFERENCES `Users` (`Id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
+
+            await db.Database.ExecuteSqlRawAsync(@"
+CREATE TABLE `VenuePostLikes` (
+  `Id` bigint NOT NULL AUTO_INCREMENT,
+  `PostId` bigint NOT NULL,
+  `UserId` bigint NOT NULL,
+  `CreatedAt` datetime(6) NOT NULL,
+  PRIMARY KEY (`Id`),
+  UNIQUE KEY `IX_VenuePostLikes_PostId_UserId` (`PostId`, `UserId`),
+  KEY `IX_VenuePostLikes_UserId` (`UserId`),
+  CONSTRAINT `FK_VenuePostLikes_VenuePosts_PostId` FOREIGN KEY (`PostId`) REFERENCES `VenuePosts` (`Id`) ON DELETE CASCADE,
+  CONSTRAINT `FK_VenuePostLikes_Users_UserId` FOREIGN KEY (`UserId`) REFERENCES `Users` (`Id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
+        }
+
         // PersonaProfiles.Focus / Motive 列（画像扩展维度）：已有表补列
         if (await tableExists("PersonaProfiles") && !await ColumnExistsAsync(db, "PersonaProfiles", "Focus"))
         {

@@ -118,7 +118,9 @@ public enum ReportTargetType
     Activity,
     BookListShare,
     SeatNote,
-    ActivityComment
+    ActivityComment,
+    VenuePost,
+    VenuePostComment
 }
 
 public enum ReportStatus
@@ -185,7 +187,8 @@ public enum ConfigCategory
     NotificationTemplates,
     ActivityCategories,
     SwapReasons,
-    SeatTags
+    SeatTags,
+    VenuePostCategories
 }
 
 public enum StudyType

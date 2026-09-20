@@ -90,6 +90,30 @@ public class ReportService
                     throw AppException.BadRequest("cannot_report_own", "不能举报自己的留言");
                 targetUserId = comment.UserId;
             }
+            else if (targetType == ReportTargetType.VenuePost)
+            {
+                var post = await _db.VenuePosts
+                    .Where(p => p.Id == request.TargetId.Value)
+                    .Select(p => new { p.UserId })
+                    .FirstOrDefaultAsync(ct);
+                if (post is null)
+                    throw AppException.NotFound("帖子不存在");
+                if (post.UserId == reporterId)
+                    throw AppException.BadRequest("cannot_report_own", "不能举报自己的帖子");
+                targetUserId = post.UserId;
+            }
+            else if (targetType == ReportTargetType.VenuePostComment)
+            {
+                var comment = await _db.VenuePostComments
+                    .Where(c => c.Id == request.TargetId.Value)
+                    .Select(c => new { c.UserId })
+                    .FirstOrDefaultAsync(ct);
+                if (comment is null)
+                    throw AppException.NotFound("评论不存在");
+                if (comment.UserId == reporterId)
+                    throw AppException.BadRequest("cannot_report_own", "不能举报自己的评论");
+                targetUserId = comment.UserId;
+            }
         }
 
         var report = new Report
@@ -163,6 +187,33 @@ public class ReportService
                 await _notifications.SendAsync(comment.UserId, NotificationType.System,
                     "留言被举报，已暂时隐藏",
                     "你在活动下的留言被举报，已暂时隐藏并进入审核。", null, ct);
+            }
+        }
+
+        // 场馆交流帖 / 评论被举报：立即隐藏，进入后台审核
+        if (targetType == ReportTargetType.VenuePost && request.TargetId.HasValue)
+        {
+            var post = await _db.VenuePosts.FirstOrDefaultAsync(p => p.Id == request.TargetId.Value, ct);
+            if (post is not null && post.Status == CommentStatus.Visible)
+            {
+                post.Status = CommentStatus.Hidden;
+                post.UpdatedAt = DateTime.UtcNow;
+                await _db.SaveChangesAsync(ct);
+                await _notifications.SendAsync(post.UserId, NotificationType.System,
+                    "帖子被举报，已暂时隐藏",
+                    "你在场馆交流板发布的帖子被举报，已暂时隐藏并进入审核。", null, ct);
+            }
+        }
+        if (targetType == ReportTargetType.VenuePostComment && request.TargetId.HasValue)
+        {
+            var comment = await _db.VenuePostComments.FirstOrDefaultAsync(c => c.Id == request.TargetId.Value, ct);
+            if (comment is not null && comment.Status == CommentStatus.Visible)
+            {
+                comment.Status = CommentStatus.Hidden;
+                await _db.SaveChangesAsync(ct);
+                await _notifications.SendAsync(comment.UserId, NotificationType.System,
+                    "评论被举报，已暂时隐藏",
+                    "你在场馆交流板的评论被举报，已暂时隐藏并进入审核。", null, ct);
             }
         }
 

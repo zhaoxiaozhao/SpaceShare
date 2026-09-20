@@ -130,6 +130,7 @@ public static class DependencyInjection
         services.AddScoped<SeatNoteService>();
         services.AddScoped<ActivityCommentService>();
         services.AddScoped<PersonaService>();
+        services.AddScoped<VenuePostService>();
 
         // 管理端服务（整合进单体 API）
         services.AddScoped<AdminManageService>();

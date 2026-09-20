@@ -53,6 +53,9 @@ public class FriendlySeatDbContext : DbContext, IAppDbContext
     public DbSet<SeatNote> SeatNotes => Set<SeatNote>();
     public DbSet<ActivityComment> ActivityComments => Set<ActivityComment>();
     public DbSet<PersonaProfile> PersonaProfiles => Set<PersonaProfile>();
+    public DbSet<VenuePost> VenuePosts => Set<VenuePost>();
+    public DbSet<VenuePostComment> VenuePostComments => Set<VenuePostComment>();
+    public DbSet<VenuePostLike> VenuePostLikes => Set<VenuePostLike>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -284,6 +287,51 @@ public class FriendlySeatDbContext : DbContext, IAppDbContext
             .HasOne(p => p.User)
             .WithMany()
             .HasForeignKey(p => p.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<VenuePost>()
+            .HasIndex(p => new { p.VenueId, p.Status, p.IsPinned });
+
+        modelBuilder.Entity<VenuePost>()
+            .HasOne(p => p.Venue)
+            .WithMany()
+            .HasForeignKey(p => p.VenueId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<VenuePost>()
+            .HasOne(p => p.User)
+            .WithMany()
+            .HasForeignKey(p => p.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<VenuePostComment>()
+            .HasIndex(c => new { c.PostId, c.Status });
+
+        modelBuilder.Entity<VenuePostComment>()
+            .HasOne(c => c.Post)
+            .WithMany(p => p.Comments)
+            .HasForeignKey(c => c.PostId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<VenuePostComment>()
+            .HasOne(c => c.User)
+            .WithMany()
+            .HasForeignKey(c => c.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<VenuePostLike>()
+            .HasIndex(l => new { l.PostId, l.UserId }).IsUnique();
+
+        modelBuilder.Entity<VenuePostLike>()
+            .HasOne(l => l.Post)
+            .WithMany(p => p.Likes)
+            .HasForeignKey(l => l.PostId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<VenuePostLike>()
+            .HasOne(l => l.User)
+            .WithMany()
+            .HasForeignKey(l => l.UserId)
             .OnDelete(DeleteBehavior.Cascade);
     }
 }

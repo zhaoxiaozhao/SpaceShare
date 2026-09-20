@@ -26,6 +26,10 @@ public class ConfigOptionsService
     [{"code":"window","label":"靠窗"},{"code":"socket","label":"有插座"},{"code":"quiet","label":"安静"},{"code":"light","label":"光线好"}]
     """;
 
+    public const string DefaultVenuePostCategories = """
+    [{"code":"help","label":"求助"},{"code":"study","label":"组队自习"},{"code":"books","label":"书籍推荐"},{"code":"advice","label":"场馆建议"},{"code":"lost","label":"失物招领"},{"code":"chat","label":"闲聊"}]
+    """;
+
     private readonly ConfigService _config;
 
     public ConfigOptionsService(ConfigService config)
@@ -42,13 +46,17 @@ public class ConfigOptionsService
     public Task<List<ConfigOptionDto>> GetSeatTagsAsync(CancellationToken ct = default)
         => GetListAsync(ConfigCategory.SeatTags, DefaultSeatTags, ct);
 
+    public Task<List<ConfigOptionDto>> GetVenuePostCategoriesAsync(CancellationToken ct = default)
+        => GetListAsync(ConfigCategory.VenuePostCategories, DefaultVenuePostCategories, ct);
+
     public async Task<ConfigOptionsDto> GetAllAsync(CancellationToken ct = default)
     {
         return new ConfigOptionsDto
         {
             ActivityCategories = await GetActivityCategoriesAsync(ct),
             SwapReasons = await GetSwapReasonsAsync(ct),
-            SeatTags = await GetSeatTagsAsync(ct)
+            SeatTags = await GetSeatTagsAsync(ct),
+            VenuePostCategories = await GetVenuePostCategoriesAsync(ct)
         };
     }
 
