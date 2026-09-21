@@ -27,6 +27,9 @@ public class VenuePost
     public int LikeCount { get; set; }
     public int CommentCount { get; set; }
 
+    /// <summary>浏览量（进入详情页累加，作者本人不计）</summary>
+    public int ViewCount { get; set; }
+
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 

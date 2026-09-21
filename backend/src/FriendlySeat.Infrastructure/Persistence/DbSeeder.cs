@@ -414,6 +414,7 @@ CREATE TABLE `VenuePosts` (
   `IsPinned` tinyint(1) NOT NULL DEFAULT 0,
   `LikeCount` int NOT NULL,
   `CommentCount` int NOT NULL,
+  `ViewCount` int NOT NULL DEFAULT 0,
   `CreatedAt` datetime(6) NOT NULL,
   `UpdatedAt` datetime(6) NOT NULL,
   PRIMARY KEY (`Id`),
@@ -431,6 +432,8 @@ CREATE TABLE `VenuePostComments` (
   `Content` longtext NOT NULL,
   `Status` int NOT NULL,
   `CreatedAt` datetime(6) NOT NULL,
+  `ImageUrl` longtext NULL,
+  `LikeCount` int NOT NULL DEFAULT 0,
   `ParentCommentId` bigint NULL,
   `ReplyToUserId` bigint NULL,
   PRIMARY KEY (`Id`),
@@ -455,6 +458,19 @@ CREATE TABLE `VenuePostLikes` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
         }
 
+            await db.Database.ExecuteSqlRawAsync(@"
+CREATE TABLE `VenuePostCommentLikes` (
+  `Id` bigint NOT NULL AUTO_INCREMENT,
+  `CommentId` bigint NOT NULL,
+  `UserId` bigint NOT NULL,
+  `CreatedAt` datetime(6) NOT NULL,
+  PRIMARY KEY (`Id`),
+  UNIQUE KEY `IX_VenuePostCommentLikes_CommentId_UserId` (`CommentId`, `UserId`),
+  KEY `IX_VenuePostCommentLikes_UserId` (`UserId`),
+  CONSTRAINT `FK_VenuePostCommentLikes_VenuePostComments_CommentId` FOREIGN KEY (`CommentId`) REFERENCES `VenuePostComments` (`Id`) ON DELETE CASCADE,
+  CONSTRAINT `FK_VenuePostCommentLikes_Users_UserId` FOREIGN KEY (`UserId`) REFERENCES `Users` (`Id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
+
         // VenuePosts.CoverImage 列（帖子封面图）：已有表补列
         if (await tableExists("VenuePosts") && !await ColumnExistsAsync(db, "VenuePosts", "CoverImage"))
         {
@@ -469,6 +485,39 @@ CREATE TABLE `VenuePostLikes` (
             await db.Database.ExecuteSqlRawAsync("ALTER TABLE `VenuePostComments` ADD COLUMN `ParentCommentId` bigint NULL;");
             await db.Database.ExecuteSqlRawAsync("ALTER TABLE `VenuePostComments` ADD COLUMN `ReplyToUserId` bigint NULL;");
             await db.Database.ExecuteSqlRawAsync("ALTER TABLE `VenuePostComments` ADD KEY `IX_VenuePostComments_ParentCommentId` (`ParentCommentId`);");
+        }
+
+        // VenuePosts.ViewCount 列（浏览量）：已有表补列
+        if (await tableExists("VenuePosts") && !await ColumnExistsAsync(db, "VenuePosts", "ViewCount"))
+        {
+            logger.LogInformation("MySQL 补充 VenuePosts.ViewCount 列（浏览量）");
+            await db.Database.ExecuteSqlRawAsync("ALTER TABLE `VenuePosts` ADD COLUMN `ViewCount` int NOT NULL DEFAULT 0;");
+        }
+
+        // VenuePostComments.ImageUrl / LikeCount 列（评论配图与点赞）：已有表补列
+        if (await tableExists("VenuePostComments") && !await ColumnExistsAsync(db, "VenuePostComments", "ImageUrl"))
+        {
+            logger.LogInformation("MySQL 补充 VenuePostComments.ImageUrl/LikeCount 列（评论配图与点赞）");
+            await db.Database.ExecuteSqlRawAsync("ALTER TABLE `VenuePostComments` ADD COLUMN `ImageUrl` longtext NULL;");
+            await db.Database.ExecuteSqlRawAsync("ALTER TABLE `VenuePostComments` ADD COLUMN `LikeCount` int NOT NULL DEFAULT 0;");
+        }
+
+        // VenuePostCommentLikes 表（评论点赞）：已有库补建表
+        if (!await tableExists("VenuePostCommentLikes"))
+        {
+            logger.LogInformation("MySQL 补建 VenuePostCommentLikes 表（评论点赞）");
+            await db.Database.ExecuteSqlRawAsync(@"
+CREATE TABLE `VenuePostCommentLikes` (
+  `Id` bigint NOT NULL AUTO_INCREMENT,
+  `CommentId` bigint NOT NULL,
+  `UserId` bigint NOT NULL,
+  `CreatedAt` datetime(6) NOT NULL,
+  PRIMARY KEY (`Id`),
+  UNIQUE KEY `IX_VenuePostCommentLikes_CommentId_UserId` (`CommentId`, `UserId`),
+  KEY `IX_VenuePostCommentLikes_UserId` (`UserId`),
+  CONSTRAINT `FK_VenuePostCommentLikes_VenuePostComments_CommentId` FOREIGN KEY (`CommentId`) REFERENCES `VenuePostComments` (`Id`) ON DELETE CASCADE,
+  CONSTRAINT `FK_VenuePostCommentLikes_Users_UserId` FOREIGN KEY (`UserId`) REFERENCES `Users` (`Id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
         }
 
         // PersonaProfiles.Focus / Motive 列（画像扩展维度）：已有表补列

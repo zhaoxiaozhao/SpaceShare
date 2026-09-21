@@ -10,7 +10,10 @@
         <el-option label="正常展示" value="Visible" />
         <el-option label="已隐藏（待审核）" value="Hidden" />
       </el-select>
-      <span class="tip">被举报的内容会自动隐藏，通过后恢复展示，驳回则删除</span>
+      <el-input v-model="keyword" placeholder="搜索标题/内容" clearable style="width: 220px" @keyup.enter="load" @clear="load" />
+      <el-input v-model="venueId" placeholder="场馆ID" clearable style="width: 120px" @keyup.enter="load" @clear="load" />
+      <el-button @click="load">查询</el-button>
+      <span class="tip">被举报的内容会自动隐藏，通过后恢复展示，驳回则删除；「下架」保留数据可恢复</span>
     </div>
 
     <!-- 帖子 -->
@@ -27,7 +30,7 @@
         </template>
       </el-table-column>
       <el-table-column label="作者" width="130">
-        <template #default="{ row }">{{ row.ownerName || ('#' + row.userId) }}</template>
+        <template #default="{ row }">{{ row.ownerName || ('#' + (row.ownerId || row.userId)) }}</template>
       </el-table-column>
       <el-table-column label="数据" width="130">
         <template #default="{ row }">赞 {{ row.likeCount }} · 评 {{ row.commentCount }}</template>
@@ -41,12 +44,13 @@
       <el-table-column label="时间" width="170">
         <template #default="{ row }">{{ formatTime(row.createdAt) }}</template>
       </el-table-column>
-      <el-table-column label="操作" width="230" fixed="right">
+      <el-table-column label="操作" width="320" fixed="right">
         <template #default="{ row }">
           <template v-if="row.status === 'Hidden'">
             <el-button size="small" type="success" @click="review(row, true)">通过</el-button>
             <el-button size="small" type="danger" @click="review(row, false)">驳回</el-button>
           </template>
+          <el-button v-else size="small" type="warning" @click="hide(row, true)">下架</el-button>
           <el-button size="small" @click="pin(row, !row.isPinned)">{{ row.isPinned ? '取消置顶' : '置顶' }}</el-button>
         </template>
       </el-table-column>
@@ -66,7 +70,7 @@
       </el-table-column>
       <el-table-column prop="content" label="评论" min-width="300" show-overflow-tooltip />
       <el-table-column label="作者" width="140">
-        <template #default="{ row }">{{ row.ownerName || ('#' + row.userId) }}</template>
+        <template #default="{ row }">{{ row.ownerName || ('#' + (row.ownerId || row.userId)) }}</template>
       </el-table-column>
       <el-table-column label="状态" width="110">
         <template #default="{ row }">
@@ -96,6 +100,8 @@ import { venuePostApi } from '../api'
 
 const tab = ref('post')
 const status = ref('')
+const keyword = ref('')
+const venueId = ref('')
 const posts = ref([])
 const comments = ref([])
 
@@ -104,7 +110,7 @@ onMounted(load)
 async function load() {
   try {
     if (tab.value === 'post') {
-      posts.value = await venuePostApi.list(status.value)
+      posts.value = await venuePostApi.list(status.value, keyword.value, venueId.value)
     } else {
       comments.value = await venuePostApi.comments(status.value)
     }
@@ -134,6 +140,15 @@ async function pin(row, pinned) {
   try {
     await venuePostApi.pin(row.id, pinned)
     ElMessage.success(pinned ? '已置顶' : '已取消置顶')
+    load()
+  } catch (e) {}
+}
+
+async function hide(row, hidden) {
+  try {
+    await ElMessageBox.confirm('下架后帖子将对用户隐藏（数据保留，可恢复），确定吗？', '下架', { type: 'warning' })
+    await venuePostApi.hide(row.id, hidden)
+    ElMessage.success('已下架')
     load()
   } catch (e) {}
 }

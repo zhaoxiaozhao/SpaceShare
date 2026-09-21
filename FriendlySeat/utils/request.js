@@ -221,11 +221,14 @@ export const api = {
 	setPersonaVisibility: (isPublic) => request('/persona/visibility', { method: 'POST', data: { isPublic } }),
 
 	// ===== 场馆交流板 =====
-	getVenuePosts: (venueId, category, sort) => request(`/venue-posts?venueId=${venueId}&category=${category || ''}&sort=${sort || 'new'}`, { auth: false }),
-	getVenuePost: (id) => request(`/venue-posts/${id}`, { auth: false }),
+	getVenuePosts: (venueId, category, sort, beforeId) => request(`/venue-posts?venueId=${venueId}&category=${category || ''}&sort=${sort || 'new'}&take=20${beforeId ? `&beforeId=${beforeId}` : ''}`, { auth: false }),
+	getVenuePost: (id, countView) => request(`/venue-posts/${id}${countView === false ? '?countView=false' : ''}`, { auth: false }),
+	getMyVenuePosts: () => request('/venue-posts/mine'),
 	createVenuePost: (data) => request('/venue-posts', { method: 'POST', data }),
+	updateVenuePost: (id, data) => request(`/venue-posts/${id}`, { method: 'PUT', data }),
 	likeVenuePost: (id) => request(`/venue-posts/${id}/like`, { method: 'POST' }),
-	commentVenuePost: (id, content, parentCommentId) => request(`/venue-posts/${id}/comments`, { method: 'POST', data: { content, parentCommentId: parentCommentId || null } }),
+	likeVenuePostComment: (id) => request(`/venue-posts/comments/${id}/like`, { method: 'POST' }),
+	commentVenuePost: (id, content, parentCommentId, imageUrl, imageUrlTemp) => request(`/venue-posts/${id}/comments`, { method: 'POST', data: { content, parentCommentId: parentCommentId || null, imageUrl: imageUrl || null, imageUrlTemp: imageUrlTemp || null } }),
 	deleteVenuePost: (id) => request(`/venue-posts/${id}`, { method: 'DELETE' }),
 	deleteVenuePostComment: (id) => request(`/venue-posts/comments/${id}`, { method: 'DELETE' })
 }

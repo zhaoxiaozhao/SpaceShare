@@ -17,14 +17,23 @@ public class AdminVenuePostController : AdminControllerBase
     }
 
     [HttpGet("venue-posts")]
-    public async Task<ActionResult<List<VenuePostDto>>> List([FromQuery] string? status, CancellationToken ct)
-        => Ok(await _posts.AdminListAsync(status, ct));
+    public async Task<ActionResult<List<VenuePostDto>>> List(
+        [FromQuery] string? status, [FromQuery] string? keyword, [FromQuery] long? venueId, CancellationToken ct)
+        => Ok(await _posts.AdminListAsync(status, keyword, venueId, ct));
 
     /// <summary>审核：通过=恢复展示；驳回=删除</summary>
     [HttpPost("venue-posts/{id:long}/review")]
     public async Task<IActionResult> Review(long id, AdminVenuePostReviewRequest request, CancellationToken ct)
     {
         await _posts.AdminReviewAsync(id, request.Approve, _currentAdmin.AdminId!.Value, ct);
+        return Ok();
+    }
+
+    /// <summary>下架（保留数据，可恢复）/ 恢复展示</summary>
+    [HttpPost("venue-posts/{id:long}/hide")]
+    public async Task<IActionResult> Hide(long id, AdminVenuePostHideRequest request, CancellationToken ct)
+    {
+        await _posts.AdminHideAsync(id, request.Hidden, _currentAdmin.AdminId!.Value, ct);
         return Ok();
     }
 

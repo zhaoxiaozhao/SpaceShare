@@ -173,7 +173,10 @@ public enum NotificationType
     ActivityReview,
     ActivityStarting,
     SwapRequested,
-    SwapConfirmed
+    SwapConfirmed,
+    VenuePostLiked,
+    VenuePostCommented,
+    VenuePostReplied
 }
 
 public enum ConfigCategory

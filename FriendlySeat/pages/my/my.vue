@@ -34,6 +34,10 @@
 				<text>🧭 友邻画像</text>
 				<text class="arrow">›</text>
 			</view>
+			<view class="menu-item" @click="goMyPosts">
+				<text>📌 我的帖子</text>
+				<text class="arrow">›</text>
+			</view>
 			<view class="menu-item" @click="goNotifications">
 				<text>🔔 消息通知</text>
 				<view class="menu-right">
@@ -175,6 +179,13 @@
 				} catch (e) {
 					uni.navigateTo({ url: '/pages/persona/quiz' })
 				}
+			},
+			goMyPosts() {
+				if (!uni.getStorageSync('token')) {
+					uni.navigateTo({ url: '/pages/login/login' })
+					return
+				}
+				uni.navigateTo({ url: '/pages/community/mine' })
 			},
 			goNotifications() {
 				uni.switchTab({ url: '/pages/notifications/notifications' })

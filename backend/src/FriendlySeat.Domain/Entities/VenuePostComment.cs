@@ -14,6 +14,12 @@ public class VenuePostComment
     public CommentStatus Status { get; set; } = CommentStatus.Visible;
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
+    /// <summary>评论配图（微信云存储 fileID，可选，最多 1 张）</summary>
+    public string? ImageUrl { get; set; }
+
+    /// <summary>点赞数</summary>
+    public int LikeCount { get; set; }
+
     /// <summary>所属一级评论 Id（一级评论为 null；回复时指向一级评论）</summary>
     public long? ParentCommentId { get; set; }
 

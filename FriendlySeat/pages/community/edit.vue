@@ -32,7 +32,7 @@
 		</view>
 
 		<view class="actions">
-			<button class="btn-primary" :loading="submitting" @click="submit">发布</button>
+			<button class="btn-primary" :loading="submitting" @click="submit">{{isEdit ? '保存' : '发布'}}</button>
 			<text class="hint">发布后内容将对其他人可见；被举报会先隐藏并由人工审核。</text>
 		</view>
 	</view>
@@ -46,6 +46,7 @@
 	export default {
 		data() {
 			return {
+				postId: 0,
 				venueId: 0,
 				venueName: '',
 				category: 'chat',
@@ -58,6 +59,9 @@
 		computed: {
 			cats() {
 				return getAppOptions().venuePostCategories
+			},
+			isEdit() {
+				return !!this.postId
 			}
 		},
 		onLoad(options) {
@@ -65,10 +69,50 @@
 				uni.redirectTo({ url: '/pages/login/login' })
 				return
 			}
+			this.postId = options.id ? Number(options.id) : 0
 			this.venueId = options.venueId ? Number(options.venueId) : 0
 			this.venueName = options.venueName ? decodeURIComponent(options.venueName) : ''
+			if (this.isEdit) {
+				uni.setNavigationBarTitle({ title: '编辑帖子' })
+				this.loadPost()
+			} else {
+				this.restoreDraft()
+			}
+		},
+		watch: {
+			title() { this.saveDraft() },
+			content() { this.saveDraft() },
+			coverImage() { this.saveDraft() },
+			category() { this.saveDraft() }
 		},
 		methods: {
+			async loadPost() {
+				uni.showLoading({ title: '加载中', mask: true })
+				try {
+					const d = await api.getVenuePost(this.postId)
+					const p = d && d.post
+					if (!p) {
+						uni.showToast({ title: '帖子不存在', icon: 'none' })
+						setTimeout(() => uni.navigateBack(), 600)
+						return
+					}
+					if (!p.isOwner) {
+						uni.showToast({ title: '只能编辑自己的帖子', icon: 'none' })
+						setTimeout(() => uni.navigateBack(), 600)
+						return
+					}
+					this.category = p.category || 'chat'
+					this.title = p.title || ''
+					this.content = p.content || ''
+					this.coverImage = p.coverImage || ''
+					this.venueId = p.venueId || this.venueId
+					this.venueName = p.venueName || this.venueName
+				} catch (e) {
+					uni.showToast({ title: (e && e.message) || '加载失败', icon: 'none' })
+				} finally {
+					uni.hideLoading()
+				}
+			},
 			chooseCover() {
 				uni.chooseImage({
 					count: 1,
@@ -91,9 +135,43 @@
 			removeCover() {
 				this.coverImage = ''
 			},
+			saveDraft() {
+				if (this.isEdit) return
+				if (!this.title && !this.content && !this.coverImage) return
+				try {
+					uni.setStorageSync('venuePostDraft', {
+						category: this.category,
+						title: this.title,
+						content: this.content,
+						coverImage: this.coverImage
+					})
+				} catch (e) {}
+			},
+			clearDraft() {
+				try { uni.removeStorageSync('venuePostDraft') } catch (e) {}
+			},
+			restoreDraft() {
+				let d = null
+				try { d = uni.getStorageSync('venuePostDraft') } catch (e) {}
+				if (!d || (!d.title && !d.content)) return
+				uni.showModal({
+					title: '恢复草稿',
+					content: '检测到上次未发布的内容，是否恢复？',
+					success: (res) => {
+						if (res.confirm) {
+							this.category = d.category || this.category
+							this.title = d.title || ''
+							this.content = d.content || ''
+							this.coverImage = d.coverImage || ''
+						} else {
+							this.clearDraft()
+						}
+					}
+				})
+			},
 			async submit() {
 				if (this.submitting) return
-				if (!this.venueId) {
+				if (!this.venueId && !this.isEdit) {
 					uni.showToast({ title: '缺少场馆信息', icon: 'none' })
 					return
 				}
@@ -108,29 +186,37 @@
 					return
 				}
 				this.submitting = true
-				uni.showLoading({ title: '发布中', mask: true })
+				uni.showLoading({ title: this.isEdit ? '保存中' : '发布中', mask: true })
 				try {
 					let coverImageUrl = null
 					if (this.coverImage) {
 						try { coverImageUrl = await getTempFileUrl(this.coverImage) } catch (e) {}
 					}
-					const post = await api.createVenuePost({
-						venueId: this.venueId,
+					const payload = {
 						category: this.category,
 						title,
 						content,
 						coverImage: this.coverImage || null,
 						coverImageUrl
-					})
+					}
+					let postId = this.postId
+					if (this.isEdit) {
+						const post = await api.updateVenuePost(this.postId, payload)
+						postId = post.id
+					} else {
+						const post = await api.createVenuePost(Object.assign({ venueId: this.venueId }, payload))
+						postId = post.id
+					}
+					if (!this.isEdit) this.clearDraft()
 					uni.hideLoading()
-					uni.showToast({ title: '已发布', icon: 'success' })
+					uni.showToast({ title: this.isEdit ? '已保存' : '已发布', icon: 'success' })
 					setTimeout(() => {
-						uni.redirectTo({ url: `/pages/community/post?id=${post.id}` })
+						uni.redirectTo({ url: `/pages/community/post?id=${postId}` })
 					}, 500)
 				} catch (e) {
 					uni.hideLoading()
 					this.submitting = false
-					uni.showToast({ title: e.message || '发布失败', icon: 'none' })
+					uni.showToast({ title: e.message || (this.isEdit ? '保存失败' : '发布失败'), icon: 'none' })
 				}
 			}
 		}

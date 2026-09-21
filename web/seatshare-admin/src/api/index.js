@@ -88,8 +88,9 @@ export const activityCommentApi = {
 }
 
 export const venuePostApi = {
-  list: (status) => request.get(`/venue-posts?status=${status || ''}`),
+  list: (status, keyword, venueId) => request.get(`/venue-posts?status=${status || ''}&keyword=${encodeURIComponent(keyword || '')}&venueId=${venueId || ''}`),
   review: (id, approve) => request.post(`/venue-posts/${id}/review`, { approve }),
+  hide: (id, hidden) => request.post(`/venue-posts/${id}/hide`, { hidden }),
   pin: (id, pinned) => request.post(`/venue-posts/${id}/pin`, { pinned }),
   comments: (status) => request.get(`/venue-post-comments?status=${status || ''}`),
   commentReview: (id, approve) => request.post(`/venue-post-comments/${id}/review`, { approve })

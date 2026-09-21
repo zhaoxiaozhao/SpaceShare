@@ -30,7 +30,10 @@ public class NotificationService : INotificationService
         [NotificationType.ActivityReview] = "activity_review",
         [NotificationType.ActivityStarting] = "activity_starting",
         [NotificationType.SwapRequested] = "swap_request",
-        [NotificationType.SwapConfirmed] = "swap_confirmed"
+        [NotificationType.SwapConfirmed] = "swap_confirmed",
+        [NotificationType.VenuePostLiked] = "venue_post",
+        [NotificationType.VenuePostCommented] = "venue_post",
+        [NotificationType.VenuePostReplied] = "venue_post"
     };
 
     public NotificationService(IAppDbContext db, ILogger<NotificationService> logger, IWechatService wechat, ConfigService config)
@@ -93,6 +96,8 @@ public class NotificationService : INotificationService
             NotificationType.ActivityStarting => "pages/activity/activity",
             NotificationType.SwapRequested => "pages/reservations/reservations",
             NotificationType.SwapConfirmed => "pages/reservations/reservations",
+            NotificationType.VenuePostLiked or NotificationType.VenuePostCommented
+                or NotificationType.VenuePostReplied => "pages/community/mine",
             _ => "pages/index/index"
         };
 

@@ -60,6 +60,7 @@ public class UserService
                 Type = n.Type.ToString(),
                 Title = n.Title,
                 Content = n.Content,
+                Data = n.Data,
                 IsRead = n.IsRead,
                 CreatedAt = n.CreatedAt
             })

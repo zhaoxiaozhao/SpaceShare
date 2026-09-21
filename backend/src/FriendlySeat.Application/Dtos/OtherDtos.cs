@@ -81,6 +81,7 @@ public class NotificationDto
     public string Type { get; set; } = string.Empty;
     public string Title { get; set; } = string.Empty;
     public string? Content { get; set; }
+    public string? Data { get; set; }
     public bool IsRead { get; set; }
     public DateTime CreatedAt { get; set; }
 }

@@ -31,10 +31,17 @@
 						<text class="p-owner">{{p.ownerName}}</text>
 					</view>
 					<view class="p-stats">
-						<text class="p-stat" :class="{ on: p.liked }" @click.stop="like(p)">赞 {{p.likeCount}}</text>
-						<text class="p-stat">评 {{p.commentCount}}</text>
+						<text class="p-stat">浏览 {{p.viewCount || 0}}</text>
+						<text class="p-stat" :class="{ on: p.liked }" @click.stop="like(p)">赞 {{p.likeCount || 0}}</text>
+						<text class="p-stat">评 {{p.commentCount || 0}}</text>
+						<text class="p-stat danger" v-if="!p.isOwner" @click.stop="report(p)">举报</text>
 					</view>
 				</view>
+			</view>
+
+			<view class="feed-more" v-if="hasMore || loadingMore">
+				<text v-if="loadingMore" class="more-text muted">加载中…</text>
+				<text v-else class="more-text" @click="loadMore">加载更多</text>
 			</view>
 		</view>
 		<view v-else-if="loaded" class="empty">还没有帖子，来发第一条吧</view>
@@ -47,6 +54,8 @@
 	import { parseDate } from '../../utils/format.js'
 	import { getAppOptions } from '../../utils/options.js'
 
+	const PAGE_SIZE = 20
+
 	export default {
 		name: 'VenueFeed',
 		props: {
@@ -57,7 +66,10 @@
 				category: '',
 				sort: 'new',
 				posts: [],
-				loaded: false
+				loaded: false,
+				loadedOnce: false,
+				loadingMore: false,
+				hasMore: false
 			}
 		},
 		computed: {
@@ -78,11 +90,32 @@
 				if (!this.venueId) return
 				this.loaded = false
 				try {
-					this.posts = (await api.getVenuePosts(this.venueId, this.category, this.sort)) || []
+					const list = (await api.getVenuePosts(this.venueId, this.category, this.sort)) || []
+					this.posts = list
+					this.hasMore = list.length >= PAGE_SIZE
 				} catch (e) {
 					this.posts = []
+					this.hasMore = false
 				}
 				this.loaded = true
+				this.loadedOnce = true
+			},
+			async loadMore() {
+				if (this.loadingMore || !this.hasMore || !this.posts.length) return
+				this.loadingMore = true
+				const beforeId = this.posts[this.posts.length - 1].id
+				try {
+					const list = (await api.getVenuePosts(this.venueId, this.category, this.sort, beforeId)) || []
+					if (list.length) {
+						const seen = new Set(this.posts.map(p => p.id))
+						this.posts = this.posts.concat(list.filter(p => !seen.has(p.id)))
+					}
+					this.hasMore = list.length >= PAGE_SIZE
+				} catch (e) {
+					this.hasMore = false
+				} finally {
+					this.loadingMore = false
+				}
 			},
 			refresh() {
 				this.load()
@@ -103,6 +136,13 @@
 			openUser(id) {
 				if (!id) return
 				uni.navigateTo({ url: `/pages/user/profile?id=${id}` })
+			},
+			report(p) {
+				if (!uni.getStorageSync('token')) {
+					uni.navigateTo({ url: '/pages/login/login' })
+					return
+				}
+				uni.navigateTo({ url: `/pages/report/report?targetType=VenuePost&targetId=${p.id}` })
 			},
 			timeText(s) {
 				const d = parseDate(s)
@@ -151,5 +191,9 @@
 	.p-stats { margin-left: auto; display: flex; gap: 21rpx; }
 	.p-stat { font-size: 24rpx; color: #8A8A86; }
 	.p-stat.on { color: var(--primary); }
+	.p-stat.danger { color: #B85450; }
+	.feed-more { display: flex; justify-content: center; padding: 24rpx 0 40rpx; }
+	.more-text { font-size: 24rpx; color: var(--primary); }
+	.more-text.muted { color: #C4C2BB; }
 	.empty { display: flex; align-items: center; justify-content: center; padding: 64rpx 0; color: #B0B0AB; font-size: 24rpx; }
 </style>

@@ -19,6 +19,7 @@ public class VenuePostDto
     public bool Liked { get; set; }
     public int LikeCount { get; set; }
     public int CommentCount { get; set; }
+    public int ViewCount { get; set; }
     public string Status { get; set; } = "Visible";
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
@@ -42,6 +43,13 @@ public class VenuePostCommentDto
     /// <summary>被回复者 Id / 昵称（仅回复有值）</summary>
     public long? ReplyToUserId { get; set; }
     public string? ReplyToName { get; set; }
+
+    /// <summary>评论配图（微信云存储 fileID）</summary>
+    public string? ImageUrl { get; set; }
+
+    /// <summary>点赞数 / 当前访问者是否已赞</summary>
+    public int LikeCount { get; set; }
+    public bool Liked { get; set; }
 
     /// <summary>回复列表（仅一级评论填充）</summary>
     public List<VenuePostCommentDto> Replies { get; set; } = new();
@@ -67,12 +75,31 @@ public class CreateVenuePostRequest
     public string? CoverImageUrl { get; set; }
 }
 
+public class UpdateVenuePostRequest
+{
+    public string Category { get; set; } = "chat";
+    public string Title { get; set; } = string.Empty;
+    public string Content { get; set; } = string.Empty;
+
+    /// <summary>封面图（微信云存储 fileID）</summary>
+    public string? CoverImage { get; set; }
+
+    /// <summary>封面图临时 https 地址，仅用于 imgSecCheck</summary>
+    public string? CoverImageUrl { get; set; }
+}
+
 public class CreateVenuePostCommentRequest
 {
     public string Content { get; set; } = string.Empty;
 
     /// <summary>回复的目标评论 Id（为空表示发表一级评论）</summary>
     public long? ParentCommentId { get; set; }
+
+    /// <summary>评论配图（微信云存储 fileID，可选）</summary>
+    public string? ImageUrl { get; set; }
+
+    /// <summary>评论配图临时 https 地址，仅用于 imgSecCheck</summary>
+    public string? ImageUrlTemp { get; set; }
 }
 
 public class AdminVenuePostReviewRequest
@@ -84,4 +111,10 @@ public class AdminVenuePostReviewRequest
 public class AdminVenuePostPinRequest
 {
     public bool Pinned { get; set; }
+}
+
+public class AdminVenuePostHideRequest
+{
+    /// <summary>true=下架（保留数据）；false=恢复展示</summary>
+    public bool Hidden { get; set; }
 }

@@ -129,6 +129,13 @@
 			}
 		},
 		{
+			"path": "pages/community/mine",
+			"style": {
+				"navigationBarTitleText": "我的帖子",
+				"enablePullDownRefresh": true
+			}
+		},
+		{
 			"path": "pages/user/profile",
 			"style": {
 				"navigationBarTitleText": "友邻主页"
