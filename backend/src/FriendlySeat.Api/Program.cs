@@ -83,7 +83,15 @@ using (var scope = app.Services.CreateScope())
     var db = scope.ServiceProvider.GetRequiredService<FriendlySeatDbContext>();
     var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
     var dbOptions = builder.Configuration.GetSection("Database").Get<DatabaseOptions>() ?? new DatabaseOptions();
-    await DbSeeder.SeedAsync(db, logger, dbOptions.Provider);
+    try
+    {
+        await DbSeeder.SeedAsync(db, logger, dbOptions.Provider);
+    }
+    catch (Exception ex)
+    {
+        // 数据库初始化异常不应阻塞服务启动（避免重启-崩溃循环），具体问题看日志
+        logger.LogError(ex, "数据库初始化失败（已忽略，服务继续启动）");
+    }
 }
 
 if (app.Environment.IsDevelopment())

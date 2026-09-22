@@ -14,7 +14,15 @@ public static class DbSeeder
         {
             await db.Database.EnsureCreatedAsync();
             // MySQL 无迁移历史，EnsureCreated 不会为已有库补建新表，需手动补缺失表
-            await EnsureMySqlTablesAsync(db, logger);
+            // 注意：补表/补列失败不应导致服务无法启动（否则会陷入重启-崩溃循环）
+            try
+            {
+                await EnsureMySqlTablesAsync(db, logger);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "MySQL 补表/补列失败（已忽略，服务继续启动）；请根据日志中的 SQL 手动补建");
+            }
         }
         else
         {
@@ -456,8 +464,6 @@ CREATE TABLE `VenuePostLikes` (
   CONSTRAINT `FK_VenuePostLikes_VenuePosts_PostId` FOREIGN KEY (`PostId`) REFERENCES `VenuePosts` (`Id`) ON DELETE CASCADE,
   CONSTRAINT `FK_VenuePostLikes_Users_UserId` FOREIGN KEY (`UserId`) REFERENCES `Users` (`Id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
-        }
-
             await db.Database.ExecuteSqlRawAsync(@"
 CREATE TABLE `VenuePostCommentLikes` (
   `Id` bigint NOT NULL AUTO_INCREMENT,
@@ -470,6 +476,7 @@ CREATE TABLE `VenuePostCommentLikes` (
   CONSTRAINT `FK_VenuePostCommentLikes_VenuePostComments_CommentId` FOREIGN KEY (`CommentId`) REFERENCES `VenuePostComments` (`Id`) ON DELETE CASCADE,
   CONSTRAINT `FK_VenuePostCommentLikes_Users_UserId` FOREIGN KEY (`UserId`) REFERENCES `Users` (`Id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
+        }
 
         // VenuePosts.CoverImage 列（帖子封面图）：已有表补列
         if (await tableExists("VenuePosts") && !await ColumnExistsAsync(db, "VenuePosts", "CoverImage"))
