@@ -13,9 +13,9 @@
 					<text class="i-m">{{p.venueName || '—'}}<text v-if="p.categoryLabel"> · {{p.categoryLabel}}</text></text>
 				</view>
 				<view class="i-stats">
-					<text class="i-s">浏览 {{p.viewCount || 0}}</text>
-					<text class="i-s">赞 {{p.likeCount || 0}}</text>
-					<text class="i-s">评 {{p.commentCount || 0}}</text>
+					<view class="i-s"><image class="ico" src="/static/icons/eye-gray.png" mode="aspectFit" /><text>{{p.viewCount || 0}}</text></view>
+					<view class="i-s"><image class="ico" src="/static/icons/thumb-up-gray.png" mode="aspectFit" /><text>{{p.likeCount || 0}}</text></view>
+					<view class="i-s"><image class="ico" src="/static/icons/chat-gray.png" mode="aspectFit" /><text>{{p.commentCount || 0}}</text></view>
 					<text class="i-s i-time">{{timeText(p.createdAt)}}</text>
 				</view>
 				<view class="i-actions">
@@ -107,7 +107,8 @@
 	.i-meta { display: block; }
 	.i-m { font-size: 22rpx; color: #B0B0AB; }
 	.i-stats { display: flex; align-items: center; gap: 20rpx; }
-	.i-s { font-size: 20rpx; color: #B0B0AB; }
+	.i-s { display: flex; align-items: center; gap: 5rpx; font-size: 20rpx; color: #B0B0AB; }
+	.ico { width: 24rpx; height: 24rpx; }
 	.i-time { margin-left: auto; }
 	.i-actions { display: flex; gap: 32rpx; margin-top: 6rpx; padding-top: 14rpx; border-top: 1rpx solid #F0EFEA; }
 	.i-act { font-size: 24rpx; color: var(--primary); }

@@ -31,10 +31,22 @@
 						<text class="p-owner">{{p.ownerName}}</text>
 					</view>
 					<view class="p-stats">
-						<text class="p-stat">浏览 {{p.viewCount || 0}}</text>
-						<text class="p-stat" :class="{ on: p.liked }" @click.stop="like(p)">赞 {{p.likeCount || 0}}</text>
-						<text class="p-stat">评 {{p.commentCount || 0}}</text>
-						<text class="p-stat danger" v-if="!p.isOwner" @click.stop="report(p)">举报</text>
+						<view class="p-stat">
+							<image class="ico" src="/static/icons/eye-gray.png" mode="aspectFit" />
+							<text>{{p.viewCount || 0}}</text>
+						</view>
+						<view class="p-stat" :class="{ on: p.liked }" @click.stop="like(p)">
+							<image class="ico" :src="p.liked ? `/static/icons/thumb-up-filled-${season}.png` : '/static/icons/thumb-up-gray.png'" mode="aspectFit" />
+							<text>{{p.likeCount || 0}}</text>
+						</view>
+						<view class="p-stat">
+							<image class="ico" src="/static/icons/chat-gray.png" mode="aspectFit" />
+							<text>{{p.commentCount || 0}}</text>
+						</view>
+						<view class="p-stat danger" v-if="!p.isOwner" @click.stop="report(p)">
+							<image class="ico" src="/static/icons/flag.png" mode="aspectFit" />
+							<text>举报</text>
+						</view>
 					</view>
 				</view>
 			</view>
@@ -53,6 +65,7 @@
 	import { api } from '../../utils/request.js'
 	import { parseDate } from '../../utils/format.js'
 	import { getAppOptions } from '../../utils/options.js'
+	import { getSeasonKey } from '../../utils/theme.js'
 
 	const PAGE_SIZE = 20
 
@@ -66,6 +79,7 @@
 				category: '',
 				sort: 'new',
 				posts: [],
+				season: getSeasonKey(),
 				loaded: false,
 				loadedOnce: false,
 				loadingMore: false,
@@ -189,7 +203,8 @@
 	.p-user { display: flex; align-items: center; gap: 10rpx; min-width: 0; }
 	.p-owner { font-size: 24rpx; color: #8A8A86; }
 	.p-stats { margin-left: auto; display: flex; gap: 21rpx; }
-	.p-stat { font-size: 24rpx; color: #8A8A86; }
+	.p-stat { display: flex; align-items: center; gap: 5rpx; font-size: 24rpx; color: #8A8A86; }
+	.ico { width: 26rpx; height: 26rpx; }
 	.p-stat.on { color: var(--primary); }
 	.p-stat.danger { color: #B85450; }
 	.feed-more { display: flex; justify-content: center; padding: 24rpx 0 40rpx; }

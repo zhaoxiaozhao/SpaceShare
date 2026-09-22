@@ -17,13 +17,21 @@
 			<image v-if="post.coverImage" class="p-cover" :src="post.coverImage" mode="widthFix" @click="previewImage(post.coverImage)" />
 
 			<view class="p-meta-row">
-				<text class="p-meta">浏览 {{post.viewCount || 0}}</text>
-				<text class="p-meta">赞 {{post.likeCount || 0}}</text>
-				<text class="p-meta">评论 {{post.commentCount || 0}}</text>
+				<view class="p-meta">
+					<image class="ico" src="/static/icons/eye-gray.png" mode="aspectFit" />
+					<text>{{post.viewCount || 0}}</text>
+				</view>
+				<view class="p-meta">
+					<image class="ico" src="/static/icons/chat-gray.png" mode="aspectFit" />
+					<text>{{post.commentCount || 0}}</text>
+				</view>
 			</view>
 
 			<view class="p-actions">
-				<text class="act" :class="{ on: post.liked }" @click="like">赞 {{post.likeCount || 0}}</text>
+				<view class="act act-icon" :class="{ on: post.liked }" @click="like">
+					<image class="ico-sm" :src="post.liked ? `/static/icons/thumb-up-filled-${season}.png` : '/static/icons/thumb-up-gray.png'" mode="aspectFit" />
+					<text>赞 {{post.likeCount || 0}}</text>
+				</view>
 				<text class="act" v-if="post.isOwner" @click="editPost">编辑</text>
 				<button class="act act-btn" open-type="share">分享</button>
 				<text class="act" v-if="post.isOwner" @click="removePost">删除</text>
@@ -51,8 +59,14 @@
 							<image v-if="c.imageUrl" class="c-img" :src="c.imageUrl" mode="widthFix" @click.stop="previewImage(c.imageUrl)" />
 							<view class="c-foot">
 								<text class="c-time">{{timeText(c.createdAt)}}</text>
-								<text class="c-reply" @click.stop="startReply(c)">回复</text>
-								<text class="c-like" :class="{ on: c.liked }" @click.stop="likeComment(c)">赞 {{c.likeCount || 0}}</text>
+								<view class="c-reply" @click.stop="startReply(c)">
+									<image class="ico-sm" :src="`/static/icons/reply-${season}.png`" mode="aspectFit" />
+									<text>回复</text>
+								</view>
+								<view class="c-like" :class="{ on: c.liked }" @click.stop="likeComment(c)">
+									<image class="ico-sm" :src="c.liked ? `/static/icons/thumb-up-filled-${season}.png` : '/static/icons/thumb-up-gray.png'" mode="aspectFit" />
+									<text>{{c.likeCount || 0}}</text>
+								</view>
 							</view>
 						</view>
 						<image v-if="c.isOwner" class="c-icon" src="/static/icons/trash.png" mode="aspectFit" @click.stop="removeComment(c)" />
@@ -71,8 +85,14 @@
 								<image v-if="r.imageUrl" class="c-img" :src="r.imageUrl" mode="widthFix" @click.stop="previewImage(r.imageUrl)" />
 								<view class="c-foot">
 									<text class="c-time">{{timeText(r.createdAt)}}</text>
-									<text class="c-reply" @click.stop="startReply(r)">回复</text>
-									<text class="c-like" :class="{ on: r.liked }" @click.stop="likeComment(r)">赞 {{r.likeCount || 0}}</text>
+									<view class="c-reply" @click.stop="startReply(r)">
+										<image class="ico-sm" :src="`/static/icons/reply-${season}.png`" mode="aspectFit" />
+										<text>回复</text>
+									</view>
+									<view class="c-like" :class="{ on: r.liked }" @click.stop="likeComment(r)">
+										<image class="ico-sm" :src="r.liked ? `/static/icons/thumb-up-filled-${season}.png` : '/static/icons/thumb-up-gray.png'" mode="aspectFit" />
+										<text>{{r.likeCount || 0}}</text>
+									</view>
 								</view>
 							</view>
 							<image v-if="r.isOwner" class="c-icon" src="/static/icons/trash.png" mode="aspectFit" @click.stop="removeComment(r)" />
@@ -103,7 +123,10 @@
 			</view>
 			<view class="c-input-row">
 				<input class="c-input" v-model="commentInput" :maxlength="200" :placeholder="replyTo ? `回复 ${replyTo.name}…` : '友善发言（最多 200 字）'" confirm-type="send" :adjust-position="true" @confirm="sendComment" />
-				<text class="c-attach" @click="chooseCommentImage">图片</text>
+				<view class="c-attach" @click="chooseCommentImage">
+					<image class="ico-sm" :src="`/static/icons/add-photo-${season}.png`" mode="aspectFit" />
+					<text>图片</text>
+				</view>
 				<button class="c-send" :loading="sending" @click="sendComment">发送</button>
 			</view>
 		</view>
@@ -114,6 +137,7 @@
 	import { api } from '../../utils/request.js'
 	import { parseDate } from '../../utils/format.js'
 	import { uploadImage, getTempFileUrl } from '../../utils/profile.js'
+	import { getSeasonKey } from '../../utils/theme.js'
 
 	export default {
 		data() {
@@ -127,7 +151,8 @@
 				loaded: false,
 				replyTo: null,
 				expanded: {},
-				loadedOnce: false
+				loadedOnce: false,
+				season: getSeasonKey()
 			}
 		},
 		computed: {
@@ -327,9 +352,12 @@
 	.p-content { display: block; font-size: 28rpx; color: #33332E; line-height: 1.4; margin-top: 20rpx; white-space: pre-wrap; }
 	.p-cover { width: 100%; border-radius: 12rpx; margin-top: 18rpx; background: #F1EFE9; }
 	.p-meta-row { display: flex; gap: 24rpx; margin-top: 18rpx; }
-	.p-meta { font-size: 20rpx; color: #B0B0AB; }
+	.p-meta { display: flex; align-items: center; gap: 5rpx; font-size: 20rpx; color: #B0B0AB; }
+	.ico { width: 26rpx; height: 26rpx; }
+	.ico-sm { width: 24rpx; height: 24rpx; }
 	.p-actions { display: flex; align-items: center; gap: 32rpx; margin-top: 16rpx; padding-top: 18rpx; border-top: 1rpx solid #F0EFEA; }
-	.act { font-size: 24rpx; color: #8A8A86; }
+	.act { display: flex; align-items: center; gap: 5rpx; font-size: 24rpx; color: #8A8A86; }
+	.act-icon { font-size: 24rpx; }
 	.act.on { color: var(--primary); font-weight: 600; }
 	.act.danger { color: #B85450; }
 	.act-btn { margin: 0; padding: 0; line-height: 1.4; background: transparent; color: #8A8A86; font-size: 24rpx; }
@@ -348,8 +376,8 @@
 	.c-img { width: 320rpx; border-radius: 10rpx; margin-top: 8rpx; background: #F1EFE9; }
 	.c-time { font-size: 20rpx; color: #C4C2BB; }
 	.c-foot { display: flex; align-items: center; gap: 24rpx; margin-top: 6rpx; }
-	.c-reply { font-size: 20rpx; color: var(--primary); }
-	.c-like { font-size: 20rpx; color: #8A8A86; }
+	.c-reply { display: flex; align-items: center; gap: 4rpx; font-size: 20rpx; color: var(--primary); }
+	.c-like { display: flex; align-items: center; gap: 4rpx; font-size: 20rpx; color: #8A8A86; }
 	.c-like.on { color: var(--primary); }
 	.r-list { margin: 10rpx 0 0 55rpx; padding-left: 16rpx; border-left: 3rpx solid #F0EFEA; }
 	.r-item { display: flex; align-items: flex-start; gap: 11rpx; padding: 10rpx 0; }
@@ -369,7 +397,7 @@
 	.c-img-preview-x { position: absolute; top: -12rpx; right: -12rpx; width: 36rpx; height: 36rpx; line-height: 32rpx; text-align: center; border-radius: 50%; background: rgba(0,0,0,0.55); color: #FFFFFF; font-size: 24rpx; }
 	.c-input-row { display: flex; align-items: center; gap: 14rpx; }
 	.c-input { flex: 1; min-width: 0; background: #F7F5EF; border-radius: 36rpx; padding: 12rpx 24rpx; font-size: 26rpx; }
-	.c-attach { flex-shrink: 0; font-size: 24rpx; color: var(--primary); }
+	.c-attach { flex-shrink: 0; display: flex; align-items: center; gap: 4rpx; font-size: 24rpx; color: var(--primary); }
 	.c-send { flex-shrink: 0; margin: 0; padding: 0 32rpx; height: 68rpx; line-height: 68rpx; border-radius: 34rpx; background: var(--primary); color: #FFFFFF; font-size: 26rpx; }
 	.c-send::after { border: none; }
 	.empty { display: flex; align-items: center; justify-content: center; min-height: 60vh; color: #B0B0AB; font-size: 24rpx; }
