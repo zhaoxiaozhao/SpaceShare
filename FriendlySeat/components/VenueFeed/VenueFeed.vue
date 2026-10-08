@@ -14,8 +14,7 @@
 		<view v-if="posts.length">
 			<view class="card post" v-for="p in posts" :key="p.id" @click="open(p.id)">
 				<view class="p-top">
-					<text class="p-cat" v-if="!p.isAuto">{{p.categoryLabel}}</text>
-					<text class="p-auto" v-if="p.isAuto">动态</text>
+					<text class="p-cat">{{p.categoryLabel}}</text>
 					<text class="p-pin" v-if="p.isPinned">置顶</text>
 					<text class="p-time">{{timeText(p.createdAt)}}</text>
 				</view>
@@ -193,7 +192,6 @@
 	.post { display: flex; flex-direction: column; }
 	.p-top { display: flex; align-items: center; gap: 10rpx; }
 	.p-cat { font-size: 20rpx; color: var(--primary); background: var(--primary-bg); border-radius: 8rpx; padding: 4rpx 14rpx; }
-	.p-auto { font-size: 20rpx; color: #FFFFFF; background: var(--primary); border-radius: 8rpx; padding: 4rpx 14rpx; }
 	.p-pin { font-size: 20rpx; color: #B85450; background: #FBEDEC; border-radius: 8rpx; padding: 4rpx 14rpx; }
 	.p-time { font-size: 20rpx; color: #B0B0AB; margin-left: auto; }
 	.p-main { display: flex; align-items: flex-start; gap: 16rpx; margin-top: 14rpx; }
