@@ -145,7 +145,7 @@ public class AdminUserManagementService
     {
         var u = await _db.Users.FirstOrDefaultAsync(x => x.Id == id, ct)
             ?? throw AppException.NotFound("用户不存在");
-        u.CreditScore = Math.Clamp(u.CreditScore + change, 0, 100);
+        u.CreditScore = Math.Max(0, u.CreditScore + change);
         u.UpdatedAt = DateTime.UtcNow;
         _db.CreditTransactions.Add(new CreditTransaction
         {

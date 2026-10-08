@@ -8,12 +8,10 @@ namespace FriendlySeat.Application.Services;
 public class CreditService
 {
     private readonly IAppDbContext _db;
-    private readonly ConfigService _config;
 
-    public CreditService(IAppDbContext db, ConfigService config)
+    public CreditService(IAppDbContext db)
     {
         _db = db;
-        _config = config;
     }
 
     public async Task<CreditSummaryDto> GetSummaryAsync(long userId, CancellationToken ct = default)
@@ -45,10 +43,9 @@ public class CreditService
 
     public async Task<int> AdjustAsync(long userId, int change, string reason, string? referenceType = null, long? referenceId = null, CancellationToken ct = default)
     {
-        var rules = await _config.GetCreditRulesAsync(ct);
         var user = await _db.Users.FirstAsync(u => u.Id == userId, ct);
 
-        var newScore = Math.Clamp(user.CreditScore + change, 0, rules.MaxScore);
+        var newScore = Math.Max(0, user.CreditScore + change);
 
         _db.CreditTransactions.Add(new CreditTransaction
         {

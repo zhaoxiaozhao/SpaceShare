@@ -646,7 +646,7 @@ public class ReservationService
         }
 
         var user = await _db.Users.FirstAsync(u => u.Id == userId, ct);
-        var newScore = Math.Clamp(user.CreditScore + change, 0, rules.MaxScore);
+        var newScore = Math.Max(0, user.CreditScore + change);
 
         var fullReason = bonusReasons.Count > 0 ? $"{reason}（{string.Join("，", bonusReasons)}）" : reason;
         _db.CreditTransactions.Add(new CreditTransaction

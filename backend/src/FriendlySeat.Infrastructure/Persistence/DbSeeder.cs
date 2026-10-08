@@ -49,7 +49,6 @@ public static class DbSeeder
                 new SystemConfig { Category = ConfigCategory.CreditRules, ConfigKey = "malicious_hold_penalty", Value = "-10" },
                 new SystemConfig { Category = ConfigCategory.CreditRules, ConfigKey = "transaction_penalty", Value = "-20" },
                 new SystemConfig { Category = ConfigCategory.CreditRules, ConfigKey = "malicious_report_penalty", Value = "-10" },
-                new SystemConfig { Category = ConfigCategory.CreditRules, ConfigKey = "max_score", Value = "100" },
                 new SystemConfig { Category = ConfigCategory.RiskRules, ConfigKey = "rapid_reservation_threshold", Value = "5" },
                 new SystemConfig { Category = ConfigCategory.RiskRules, ConfigKey = "rapid_reservation_window_minutes", Value = "30" },
                 new SystemConfig { Category = ConfigCategory.RiskRules, ConfigKey = "no_show_threshold", Value = "2" },
