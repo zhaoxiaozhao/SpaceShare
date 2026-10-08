@@ -27,7 +27,7 @@ public class ConfigOptionsService
     """;
 
     public const string DefaultVenuePostCategories = """
-    [{"code":"help","label":"求助"},{"code":"study","label":"组队自习"},{"code":"books","label":"书籍推荐"},{"code":"advice","label":"场馆建议"},{"code":"lost","label":"失物招领"},{"code":"chat","label":"闲聊"}]
+    [{"code":"moment","label":"动态"},{"code":"help","label":"求助"},{"code":"study","label":"组队自习"},{"code":"books","label":"书籍推荐"},{"code":"advice","label":"场馆建议"},{"code":"lost","label":"失物招领"},{"code":"chat","label":"闲聊"}]
     """;
 
     private readonly ConfigService _config;

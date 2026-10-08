@@ -611,6 +611,7 @@ public class VenuePostService
         OwnerAvatar = p.User?.AvatarUrl,
         IsOwner = viewerId.HasValue && viewerId.Value == p.UserId,
         IsPinned = p.IsPinned,
+        IsAuto = p.IsAuto,
         Liked = liked,
         LikeCount = p.LikeCount,
         CommentCount = p.CommentCount,
@@ -648,7 +649,7 @@ public class VenuePostService
     private async Task EnsurePostRateLimitAsync(long userId, CancellationToken ct)
     {
         var cutoff = DateTime.UtcNow.AddSeconds(-PostCooldownSeconds);
-        var recent = await _db.VenuePosts.AnyAsync(p => p.UserId == userId && p.CreatedAt > cutoff, ct);
+        var recent = await _db.VenuePosts.AnyAsync(p => p.UserId == userId && !p.IsAuto && p.CreatedAt > cutoff, ct);
         if (recent)
             throw AppException.BadRequest("post_too_fast", $"发布太快了，请 {PostCooldownSeconds} 秒后再试");
     }

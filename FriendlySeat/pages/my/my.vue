@@ -39,11 +39,12 @@
 				<text class="arrow">›</text>
 			</view>
 			<view class="menu-item">
-				<text>🛎 我的动态</text>
+				<text>🛎 自动生成动态帖</text>
 				<view class="menu-right">
-					<text class="moments-desc">{{user.momentsPublic ? '展示' : '隐藏'}}</text>
+					<text class="moments-desc">{{user.momentsPublic ? '已开启' : '已关闭'}}</text>
 					<switch :checked="!!user.momentsPublic" style="transform: scale(0.72);" @change="onMomentsPublicChange" />
 				</view>
+			</view>
 			</view>
 			<view class="menu-item" @click="goNotifications">
 				<text>🔔 消息通知</text>
@@ -217,7 +218,7 @@
 				uni.setStorageSync('user', this.user)
 				try {
 					await api.setMomentsPublic(val)
-					uni.showToast({ title: val ? '动态已公开' : '动态已隐藏', icon: 'none' })
+					uni.showToast({ title: val ? '已开启自动动态帖' : '已关闭自动动态帖', icon: 'none' })
 				} catch (err) {
 					this.user.momentsPublic = prev
 					uni.setStorageSync('user', this.user)

@@ -19,6 +19,12 @@ public class UserProfileUpdateRequest
     public string? AvatarUrl { get; set; }
 }
 
+/// <summary>自动生成动态帖的公开开关</summary>
+public class MomentVisibilityRequest
+{
+    public bool IsPublic { get; set; }
+}
+
 public class PublicContributionDto
 {
     public int ShareCount { get; set; }

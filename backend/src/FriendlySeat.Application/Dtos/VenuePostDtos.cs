@@ -16,6 +16,8 @@ public class VenuePostDto
     public string? OwnerAvatar { get; set; }
     public bool IsOwner { get; set; }
     public bool IsPinned { get; set; }
+    /// <summary>是否由用户行为自动生成（分享/换座/便签/阅读/打卡）</summary>
+    public bool IsAuto { get; set; }
     public bool Liked { get; set; }
     public int LikeCount { get; set; }
     public int CommentCount { get; set; }

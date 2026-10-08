@@ -169,6 +169,7 @@ public static class DbSeeder
         await EnsureConfigRowAsync(db, ConfigCategory.SwapReasons, ConfigOptionsService.DefaultSwapReasons, "换座原因（JSON 数组）");
         await EnsureConfigRowAsync(db, ConfigCategory.SeatTags, ConfigOptionsService.DefaultSeatTags, "座位标签（JSON 数组）");
             await EnsureConfigRowAsync(db, ConfigCategory.VenuePostCategories, ConfigOptionsService.DefaultVenuePostCategories, "交流板板块（JSON 数组）");
+        await EnsureVenuePostMomentCategoryAsync(db);
 
         // 通知模板配置键：确保全部存在（供后台配置模板ID；历史库会自动补齐缺失项）
         var notificationTemplateKeys = new (string Key, string Desc)[]
@@ -419,6 +420,8 @@ CREATE TABLE `VenuePosts` (
   `CoverImage` longtext NULL,
   `Status` int NOT NULL,
   `IsPinned` tinyint(1) NOT NULL DEFAULT 0,
+  `IsAuto` tinyint NOT NULL DEFAULT 0,
+  `TargetKey` longtext NULL,
   `LikeCount` int NOT NULL,
   `CommentCount` int NOT NULL,
   `ViewCount` int NOT NULL DEFAULT 0,
@@ -427,6 +430,7 @@ CREATE TABLE `VenuePosts` (
   PRIMARY KEY (`Id`),
   KEY `IX_VenuePosts_VenueId_Status_IsPinned` (`VenueId`, `Status`, `IsPinned`),
   KEY `IX_VenuePosts_UserId` (`UserId`),
+  KEY `IX_VenuePosts_TargetKey` (`TargetKey`(191)),
   CONSTRAINT `FK_VenuePosts_Venues_VenueId` FOREIGN KEY (`VenueId`) REFERENCES `Venues` (`Id`) ON DELETE CASCADE,
   CONSTRAINT `FK_VenuePosts_Users_UserId` FOREIGN KEY (`UserId`) REFERENCES `Users` (`Id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
@@ -475,22 +479,6 @@ CREATE TABLE `VenuePostCommentLikes` (
   CONSTRAINT `FK_VenuePostCommentLikes_VenuePostComments_CommentId` FOREIGN KEY (`CommentId`) REFERENCES `VenuePostComments` (`Id`) ON DELETE CASCADE,
   CONSTRAINT `FK_VenuePostCommentLikes_Users_UserId` FOREIGN KEY (`UserId`) REFERENCES `Users` (`Id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
-            await db.Database.ExecuteSqlRawAsync(@"
-CREATE TABLE `UserMoments` (
-  `Id` bigint NOT NULL AUTO_INCREMENT,
-  `UserId` bigint NOT NULL,
-  `VenueId` bigint NULL,
-  `VenueName` longtext NULL,
-  `Type` longtext NOT NULL,
-  `Content` longtext NOT NULL,
-  `ImageUrl` longtext NULL,
-  `TargetKey` longtext NULL,
-  `CreatedAt` datetime(6) NOT NULL,
-  PRIMARY KEY (`Id`),
-  KEY `IX_UserMoments_UserId` (`UserId`),
-  KEY `IX_UserMoments_VenueId_CreatedAt` (`VenueId`, `CreatedAt`),
-  CONSTRAINT `FK_UserMoments_Users_UserId` FOREIGN KEY (`UserId`) REFERENCES `Users` (`Id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
         }
 
         // VenuePosts.CoverImage 列（帖子封面图）：已有表补列
@@ -514,6 +502,15 @@ CREATE TABLE `UserMoments` (
         {
             logger.LogInformation("MySQL 补充 VenuePosts.ViewCount 列（浏览量）");
             await db.Database.ExecuteSqlRawAsync("ALTER TABLE `VenuePosts` ADD COLUMN `ViewCount` int NOT NULL DEFAULT 0;");
+        }
+
+        // VenuePosts.IsAuto / TargetKey 列（行为自动生成的动态帖）
+        if (await tableExists("VenuePosts") && !await ColumnExistsAsync(db, "VenuePosts", "IsAuto"))
+        {
+            logger.LogInformation("MySQL 补充 VenuePosts.IsAuto/TargetKey 列（自动生成动态帖）");
+            await db.Database.ExecuteSqlRawAsync("ALTER TABLE `VenuePosts` ADD COLUMN `IsAuto` tinyint NOT NULL DEFAULT 0;");
+            await db.Database.ExecuteSqlRawAsync("ALTER TABLE `VenuePosts` ADD COLUMN `TargetKey` longtext NULL;");
+            await db.Database.ExecuteSqlRawAsync("ALTER TABLE `VenuePosts` ADD KEY `IX_VenuePosts_TargetKey` (`TargetKey`(191));");
         }
 
         // VenuePostComments.ImageUrl / LikeCount 列（评论配图与点赞）：已有表补列
@@ -542,32 +539,17 @@ CREATE TABLE `VenuePostCommentLikes` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
         }
 
-        // UserMoments 表（社区动态）：已有库补建表
-        if (!await tableExists("UserMoments"))
+        // 旧版独立动态表（UserMoments）已废弃：动态改为交流板自动帖，如存在则清理
+        if (await tableExists("UserMoments"))
         {
-            logger.LogInformation("MySQL 补建 UserMoments 表（社区动态）");
-            await db.Database.ExecuteSqlRawAsync(@"
-CREATE TABLE `UserMoments` (
-  `Id` bigint NOT NULL AUTO_INCREMENT,
-  `UserId` bigint NOT NULL,
-  `VenueId` bigint NULL,
-  `VenueName` longtext NULL,
-  `Type` longtext NOT NULL,
-  `Content` longtext NOT NULL,
-  `ImageUrl` longtext NULL,
-  `TargetKey` longtext NULL,
-  `CreatedAt` datetime(6) NOT NULL,
-  PRIMARY KEY (`Id`),
-  KEY `IX_UserMoments_UserId` (`UserId`),
-  KEY `IX_UserMoments_VenueId_CreatedAt` (`VenueId`, `CreatedAt`),
-  CONSTRAINT `FK_UserMoments_Users_UserId` FOREIGN KEY (`UserId`) REFERENCES `Users` (`Id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
+            logger.LogInformation("MySQL 清理已废弃的 UserMoments 表（动态改为交流板自动帖）");
+            await db.Database.ExecuteSqlRawAsync("DROP TABLE `UserMoments`;");
         }
 
-        // Users.MomentsPublic 列（动态公开开关）：已有表补列
+        // Users.MomentsPublic 列（自动生成动态帖公开开关）：已有表补列
         if (await tableExists("Users") && !await ColumnExistsAsync(db, "Users", "MomentsPublic"))
         {
-            logger.LogInformation("MySQL 补充 Users.MomentsPublic 列（动态公开开关）");
+            logger.LogInformation("MySQL 补充 Users.MomentsPublic 列（自动生成动态帖公开开关）");
             await db.Database.ExecuteSqlRawAsync("ALTER TABLE `Users` ADD COLUMN `MomentsPublic` tinyint NOT NULL DEFAULT 1;");
         }
 
@@ -769,6 +751,24 @@ CREATE TABLE `ActivitySignups` (
             Value = value,
             Description = description
         });
+        await db.SaveChangesAsync();
+    }
+
+    /// <summary>确保交流板板块包含「动态」分类（追加，不覆盖管理员已有配置）</summary>
+    private static async Task EnsureVenuePostMomentCategoryAsync(FriendlySeatDbContext db)
+    {
+        var row = await db.SystemConfigs
+            .FirstOrDefaultAsync(c => c.Category == ConfigCategory.VenuePostCategories && c.ConfigKey == "list");
+        if (row is null) return;
+
+        var value = (row.Value ?? string.Empty).Trim();
+        if (value.Contains("\"moment\"")) return;
+        if (!value.EndsWith("]") || !value.StartsWith("[")) return;
+
+        var head = value[..^1].TrimEnd();
+        var comma = head.EndsWith("[") ? string.Empty : ",";
+        row.Value = $"{head}{comma}{{\"code\":\"moment\",\"label\":\"动态\"}}]";
+        row.UpdatedAt = DateTime.UtcNow;
         await db.SaveChangesAsync();
     }
 }

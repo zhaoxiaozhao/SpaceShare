@@ -24,6 +24,12 @@ public class VenuePost
     /// <summary>管理端置顶</summary>
     public bool IsPinned { get; set; }
 
+    /// <summary>是否由用户行为自动生成（分享/换座/便签/阅读/打卡）</summary>
+    public bool IsAuto { get; set; }
+
+    /// <summary>自动生成的源对象引用（去重与级联删除用，如 share:1/swap:2/note:3/book:4/checkin:5）</summary>
+    public string? TargetKey { get; set; }
+
     public int LikeCount { get; set; }
     public int CommentCount { get; set; }
 

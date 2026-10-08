@@ -57,7 +57,6 @@ public class FriendlySeatDbContext : DbContext, IAppDbContext
     public DbSet<VenuePostComment> VenuePostComments => Set<VenuePostComment>();
     public DbSet<VenuePostLike> VenuePostLikes => Set<VenuePostLike>();
     public DbSet<VenuePostCommentLike> VenuePostCommentLikes => Set<VenuePostCommentLike>();
-    public DbSet<UserMoment> UserMoments => Set<UserMoment>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -357,16 +356,7 @@ public class FriendlySeatDbContext : DbContext, IAppDbContext
             .HasForeignKey(l => l.UserId)
             .OnDelete(DeleteBehavior.Cascade);
 
-        modelBuilder.Entity<UserMoment>()
-            .HasIndex(m => new { m.VenueId, m.CreatedAt });
-
-        modelBuilder.Entity<UserMoment>()
-            .HasIndex(m => m.UserId);
-
-        modelBuilder.Entity<UserMoment>()
-            .HasOne(m => m.User)
-            .WithMany()
-            .HasForeignKey(m => m.UserId)
-            .OnDelete(DeleteBehavior.Cascade);
+        modelBuilder.Entity<VenuePost>()
+            .HasIndex(p => new { p.TargetKey });
     }
 }
