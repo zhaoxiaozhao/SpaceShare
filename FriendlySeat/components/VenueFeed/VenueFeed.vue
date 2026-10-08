@@ -3,7 +3,7 @@
 		<scroll-view scroll-x class="feed-tabs" :show-scrollbar="false">
 			<text class="ft" :class="{ on: category === '' }" @click="switchCategory('')">全部</text>
 			<text class="ft" v-for="c in cats" :key="c.code" :class="{ on: category === c.code }" @click="switchCategory(c.code)">{{c.label}}</text>
-			<text class="ft" :class="{ on: isMoments }" @click="switchCategory(MOMENTS)">动态</text>
+			<text class="ft" :class="{ on: isMoments }" @click="switchCategory('__moments__')">动态</text>
 		</scroll-view>
 
 		<view class="feed-sort" v-if="!isMoments">
