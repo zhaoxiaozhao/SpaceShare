@@ -14,7 +14,7 @@
 		<view v-if="posts.length">
 			<view class="card post" v-for="p in posts" :key="p.id" @click="open(p.id)">
 				<view class="p-top">
-					<text class="p-cat">{{p.categoryLabel}}</text>
+					<text class="p-cat" v-if="!p.isAuto">{{p.categoryLabel}}</text>
 					<text class="p-auto" v-if="p.isAuto">动态</text>
 					<text class="p-pin" v-if="p.isPinned">置顶</text>
 					<text class="p-time">{{timeText(p.createdAt)}}</text>
