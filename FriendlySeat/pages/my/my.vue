@@ -39,7 +39,7 @@
 				<text class="arrow">›</text>
 			</view>
 			<view class="menu-item">
-				<text>🛎 公开我的动态</text>
+				<text>🛎 我的动态</text>
 				<view class="menu-right">
 					<text class="moments-desc">{{user.momentsPublic ? '展示' : '隐藏'}}</text>
 					<switch :checked="!!user.momentsPublic" style="transform: scale(0.72);" @change="onMomentsPublicChange" />
