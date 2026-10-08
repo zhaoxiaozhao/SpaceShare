@@ -11,6 +11,11 @@
 			</view>
 		</view>
 
+		<view class="live-bar" v-if="live.total > 0">
+			<view class="live-dot"></view>
+			<text class="live-text">现在 {{live.total}} 人正在学习</text>
+		</view>
+
 		<view class="quick-actions">
 			<view class="action-btn" @click="goFindSeat">
 				<view class="action-chip">
@@ -112,7 +117,8 @@
 				season: getSeasonKey(),
 				activities: [],
 				shareCount: 0,
-				swapCount: 0
+				swapCount: 0,
+				live: { total: 0, studying: 0, reading: 0 }
 			}
 		},
 		computed: {
@@ -148,6 +154,7 @@
 			async loadData() {
 				this.loadActivities()
 				this.loadDiscover()
+				this.loadLive()
 				try {
 					const location = await this.getAuthorizedLocation()
 					this.nearby = location
@@ -282,6 +289,11 @@
 				try {
 					const swaps = await api.getSwapFeed(100)
 					this.swapCount = (swaps || []).length
+				} catch (e) {}
+			},
+			async loadLive() {
+				try {
+					this.live = await api.getLiveStats()
 				} catch (e) {}
 			},
 			async loadActivities() {
@@ -594,6 +606,9 @@
 	.vb-label { font-size: 22rpx; color: #B0B0AB; }
 	.vb-name { font-size: 30rpx; font-weight: 700; color: #2B2B27; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 320rpx; }
 	.vb-switch { font-size: 24rpx; color: var(--primary); }
+	.live-bar { display: flex; align-items: center; gap: 10rpx; margin: 0 16rpx 4rpx; padding: 0 8rpx; }
+	.live-dot { width: 14rpx; height: 14rpx; border-radius: 50%; background: var(--primary); flex-shrink: 0; }
+	.live-text { font-size: 24rpx; color: #8A8A86; }
 	/* 分享 / 换座 发现入口 */
 	.discover-card { margin: 16rpx; padding: 4rpx 26rpx; background: #FFFFFF; border-radius: 20rpx; box-shadow: 0 4rpx 16rpx rgba(0,0,0,0.04); }
 	.discover-row { display: flex; align-items: center; justify-content: space-between; padding: 16rpx 0; border-bottom: 1rpx solid #F0EFEA; }

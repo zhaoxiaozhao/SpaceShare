@@ -109,6 +109,7 @@ public static class DependencyInjection
 
         services.AddScoped<ConfigService>();
         services.AddScoped<ConfigOptionsService>();
+        services.AddScoped<PublicStatsService>();
         services.AddScoped<AuthService>();
         services.AddScoped<UserService>();
         services.AddScoped<VenueService>();

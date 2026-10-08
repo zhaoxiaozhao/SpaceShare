@@ -232,6 +232,9 @@ export const api = {
 	deleteVenuePost: (id) => request(`/venue-posts/${id}`, { method: 'DELETE' }),
 	deleteVenuePostComment: (id) => request(`/venue-posts/comments/${id}`, { method: 'DELETE' }),
 
+	// ===== 公开统计 =====
+	getLiveStats: () => request('/stats/live', { auth: false }),
+
 	// ===== 动态公开开关（行为自动生成交流板帖） =====
 	setMomentsPublic: (isPublic) => request('/me/moments-public', { method: 'PUT', data: { isPublic } })
 }
