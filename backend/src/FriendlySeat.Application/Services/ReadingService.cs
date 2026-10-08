@@ -17,10 +17,12 @@ public class ReadingService
     public const int MaxSessionMinutes = 360;
 
     private readonly IAppDbContext _db;
+    private readonly MomentService _moments;
 
-    public ReadingService(IAppDbContext db)
+    public ReadingService(IAppDbContext db, MomentService moments)
     {
         _db = db;
+        _moments = moments;
     }
 
     // ============ 书籍 CRUD ============
@@ -180,6 +182,11 @@ public class ReadingService
         book.UpdatedAt = DateTime.UtcNow;
 
         await _db.SaveChangesAsync(ct);
+
+        // 社区动态：正在阅读
+        await _moments.PublishAsync(userId, session.VenueId, session.VenueName, "reading",
+            $"正在读《{book.Title}》", $"book:{bookId}", ct);
+
         return new ReadingSessionDto
         {
             Id = session.Id,

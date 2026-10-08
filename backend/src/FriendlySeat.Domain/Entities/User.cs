@@ -10,6 +10,8 @@ public class User
     public UserStatus Status { get; set; } = UserStatus.Active;
     public int CreditScore { get; set; } = 100;
     public int RiskScore { get; set; }
+    /// <summary>是否公开我的动态（自动生成的社区动态，默认开启，可在个人中心关闭）</summary>
+    public bool MomentsPublic { get; set; } = true;
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
     public DateTime? LastLoginAt { get; set; }

@@ -20,12 +20,14 @@ public class SwapService
     private readonly IAppDbContext _db;
     private readonly INotificationService _notifications;
     private readonly ConfigOptionsService _configOptions;
+    private readonly MomentService _moments;
 
-    public SwapService(IAppDbContext db, INotificationService notifications, ConfigOptionsService configOptions)
+    public SwapService(IAppDbContext db, INotificationService notifications, ConfigOptionsService configOptions, MomentService moments)
     {
         _db = db;
         _notifications = notifications;
         _configOptions = configOptions;
+        _moments = moments;
     }
 
     public async Task<SeatSwapDto> CreateAsync(long userId, SeatSwapCreateRequest request, CancellationToken ct = default)
@@ -78,6 +80,14 @@ public class SwapService
         };
         _db.SeatSwapRequests.Add(entity);
         await _db.SaveChangesAsync(ct);
+
+        // 社区动态：发起换座
+        var sc = await _moments.ResolveSeatAsync(seat.Id, ct);
+        if (sc is not null)
+        {
+            await _moments.PublishAsync(userId, sc.Value.VenueId, sc.Value.VenueName, "swap",
+                $"在「{sc.Value.ZoneName} {sc.Value.SeatCode}」发起换座，想换到其他区域", $"swap:{entity.Id}", ct);
+        }
 
         return await GetDtoAsync(entity.Id, userId, includeResponses: true, ct) ?? throw AppException.NotFound();
     }

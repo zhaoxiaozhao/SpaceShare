@@ -53,6 +53,7 @@ public interface IAppDbContext
     DbSet<VenuePostComment> VenuePostComments { get; }
     DbSet<VenuePostLike> VenuePostLikes { get; }
     DbSet<VenuePostCommentLike> VenuePostCommentLikes { get; }
+    DbSet<UserMoment> UserMoments { get; }
 
     DatabaseFacade Database { get; }
     Task<int> SaveChangesAsync(CancellationToken ct = default);

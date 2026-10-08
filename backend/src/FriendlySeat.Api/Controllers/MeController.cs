@@ -32,6 +32,13 @@ public class MeController : ControllerBase
         return Ok(await _users.UpdateProfileAsync(_currentUser.UserId!.Value, request, ct));
     }
 
+    /// <summary>设置「公开我的动态」开关</summary>
+    [HttpPut("moments-public")]
+    public async Task<ActionResult<UserDto>> SetMomentsPublic([FromBody] MomentVisibilityRequest request, CancellationToken ct)
+    {
+        return Ok(await _users.SetMomentsPublicAsync(_currentUser.UserId!.Value, request.IsPublic, ct));
+    }
+
     /// <summary>注销账号（匿名化个人信息并禁用账号）</summary>
     [HttpPost("delete-account")]
     public async Task<IActionResult> DeleteAccount(CancellationToken ct)

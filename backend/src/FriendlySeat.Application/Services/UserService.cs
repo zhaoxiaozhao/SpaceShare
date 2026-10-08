@@ -47,6 +47,16 @@ public class UserService
         return AuthService.ToDto(user);
     }
 
+    /// <summary>设置「公开我的动态」开关</summary>
+    public async Task<UserDto> SetMomentsPublicAsync(long userId, bool isPublic, CancellationToken ct = default)
+    {
+        var user = await _db.Users.FirstAsync(u => u.Id == userId, ct);
+        user.MomentsPublic = isPublic;
+        user.UpdatedAt = DateTime.UtcNow;
+        await _db.SaveChangesAsync(ct);
+        return AuthService.ToDto(user);
+    }
+
     public async Task<List<NotificationDto>> GetNotificationsAsync(long userId, bool? unread, CancellationToken ct = default)
     {
         var query = _db.Notifications.Where(n => n.UserId == userId);

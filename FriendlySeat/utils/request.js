@@ -230,7 +230,12 @@ export const api = {
 	likeVenuePostComment: (id) => request(`/venue-posts/comments/${id}/like`, { method: 'POST' }),
 	commentVenuePost: (id, content, parentCommentId, imageUrl, imageUrlTemp) => request(`/venue-posts/${id}/comments`, { method: 'POST', data: { content, parentCommentId: parentCommentId || null, imageUrl: imageUrl || null, imageUrlTemp: imageUrlTemp || null } }),
 	deleteVenuePost: (id) => request(`/venue-posts/${id}`, { method: 'DELETE' }),
-	deleteVenuePostComment: (id) => request(`/venue-posts/comments/${id}`, { method: 'DELETE' })
+	deleteVenuePostComment: (id) => request(`/venue-posts/comments/${id}`, { method: 'DELETE' }),
+
+	// ===== 社区动态（新鲜事） =====
+	getMoments: (venueId, take, beforeId) => request(`/moments?venueId=${venueId || ''}&take=${take || 20}${beforeId ? `&beforeId=${beforeId}` : ''}`, { auth: false }),
+	deleteMoment: (id) => request(`/moments/${id}`, { method: 'DELETE' }),
+	setMomentsPublic: (isPublic) => request('/me/moments-public', { method: 'PUT', data: { isPublic } })
 }
 
 function qs(params) {

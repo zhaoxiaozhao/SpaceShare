@@ -38,6 +38,13 @@
 				<text>📌 我的帖子</text>
 				<text class="arrow">›</text>
 			</view>
+			<view class="menu-item">
+				<text>🛎 公开我的动态</text>
+				<view class="menu-right">
+					<text class="moments-desc">{{user.momentsPublic ? '展示' : '隐藏'}}</text>
+					<switch :checked="!!user.momentsPublic" style="transform: scale(0.72);" @change="onMomentsPublicChange" />
+				</view>
+			</view>
 			<view class="menu-item" @click="goNotifications">
 				<text>🔔 消息通知</text>
 				<view class="menu-right">
@@ -202,6 +209,21 @@
 			openFeedback() {
 				uni.navigateTo({ url: '/pages/feedback/feedback' })
 			},
+			async onMomentsPublicChange(e) {
+				const val = !!e.detail.value
+				const prev = !!this.user.momentsPublic
+				if (val === prev) return
+				this.user.momentsPublic = val
+				uni.setStorageSync('user', this.user)
+				try {
+					await api.setMomentsPublic(val)
+					uni.showToast({ title: val ? '动态已公开' : '动态已隐藏', icon: 'none' })
+				} catch (err) {
+					this.user.momentsPublic = prev
+					uni.setStorageSync('user', this.user)
+					uni.showToast({ title: err.message || '操作失败', icon: 'none' })
+				}
+			},
 			deleteAccount() {
 				uni.showModal({
 					title: '注销账号',
@@ -342,6 +364,10 @@
 		display: flex;
 		align-items: center;
 		gap: 10rpx;
+	}
+	.moments-desc {
+		font-size: 22rpx;
+		color: #B0B0AB;
 	}
 	.badge {
 		min-width: 36rpx;

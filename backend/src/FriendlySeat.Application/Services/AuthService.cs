@@ -82,6 +82,7 @@ public class AuthService
         CreditLevel = ConfigService.CreditLevel(user.CreditScore),
         RiskScore = user.RiskScore,
         Status = user.Status.ToString(),
+        MomentsPublic = user.MomentsPublic,
         CreatedAt = user.CreatedAt
     };
 

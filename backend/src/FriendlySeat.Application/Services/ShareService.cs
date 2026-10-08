@@ -15,9 +15,10 @@ public class ShareService
     private readonly RiskService _risk;
     private readonly CreditService _credit;
     private readonly ReservationService _reservationService;
+    private readonly MomentService _moments;
     private readonly ILogger _logger;
 
-    public ShareService(IAppDbContext db, ConfigService config, INotificationService notifications, IRedisCache cache, RiskService risk, CreditService credit, ReservationService reservationService, ILogger<ShareService> logger)
+    public ShareService(IAppDbContext db, ConfigService config, INotificationService notifications, IRedisCache cache, RiskService risk, CreditService credit, ReservationService reservationService, MomentService moments, ILogger<ShareService> logger)
     {
         _db = db;
         _config = config;
@@ -26,6 +27,7 @@ public class ShareService
         _risk = risk;
         _credit = credit;
         _reservationService = reservationService;
+        _moments = moments;
         _logger = logger;
     }
 
@@ -90,6 +92,14 @@ public class ShareService
 
         _db.SeatShares.Add(share);
         await _db.SaveChangesAsync(ct);
+
+        // 社区动态：分享座位
+        var sc = await _moments.ResolveSeatAsync(request.SeatId, ct);
+        if (sc is not null)
+        {
+            await _moments.PublishAsync(userId, sc.Value.VenueId, sc.Value.VenueName, "seat_share",
+                $"把「{sc.Value.ZoneName} {sc.Value.SeatCode}」的座位分享出来，友邻可预约", $"share:{share.Id}", ct);
+        }
 
         // 友邻贡献：累计分享次数与分享时长
         var shareHours = Math.Round((request.EndAt - request.StartAt).TotalHours, 1);

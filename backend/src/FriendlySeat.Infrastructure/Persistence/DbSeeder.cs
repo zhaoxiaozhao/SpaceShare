@@ -476,6 +476,22 @@ CREATE TABLE `VenuePostCommentLikes` (
   CONSTRAINT `FK_VenuePostCommentLikes_VenuePostComments_CommentId` FOREIGN KEY (`CommentId`) REFERENCES `VenuePostComments` (`Id`) ON DELETE CASCADE,
   CONSTRAINT `FK_VenuePostCommentLikes_Users_UserId` FOREIGN KEY (`UserId`) REFERENCES `Users` (`Id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
+            await db.Database.ExecuteSqlRawAsync(@"
+CREATE TABLE `UserMoments` (
+  `Id` bigint NOT NULL AUTO_INCREMENT,
+  `UserId` bigint NOT NULL,
+  `VenueId` bigint NULL,
+  `VenueName` longtext NULL,
+  `Type` longtext NOT NULL,
+  `Content` longtext NOT NULL,
+  `ImageUrl` longtext NULL,
+  `TargetKey` longtext NULL,
+  `CreatedAt` datetime(6) NOT NULL,
+  PRIMARY KEY (`Id`),
+  KEY `IX_UserMoments_UserId` (`UserId`),
+  KEY `IX_UserMoments_VenueId_CreatedAt` (`VenueId`, `CreatedAt`),
+  CONSTRAINT `FK_UserMoments_Users_UserId` FOREIGN KEY (`UserId`) REFERENCES `Users` (`Id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
         }
 
         // VenuePosts.CoverImage 列（帖子封面图）：已有表补列
@@ -525,6 +541,35 @@ CREATE TABLE `VenuePostCommentLikes` (
   CONSTRAINT `FK_VenuePostCommentLikes_VenuePostComments_CommentId` FOREIGN KEY (`CommentId`) REFERENCES `VenuePostComments` (`Id`) ON DELETE CASCADE,
   CONSTRAINT `FK_VenuePostCommentLikes_Users_UserId` FOREIGN KEY (`UserId`) REFERENCES `Users` (`Id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
+        }
+
+        // UserMoments 表（社区动态）：已有库补建表
+        if (!await tableExists("UserMoments"))
+        {
+            logger.LogInformation("MySQL 补建 UserMoments 表（社区动态）");
+            await db.Database.ExecuteSqlRawAsync(@"
+CREATE TABLE `UserMoments` (
+  `Id` bigint NOT NULL AUTO_INCREMENT,
+  `UserId` bigint NOT NULL,
+  `VenueId` bigint NULL,
+  `VenueName` longtext NULL,
+  `Type` longtext NOT NULL,
+  `Content` longtext NOT NULL,
+  `ImageUrl` longtext NULL,
+  `TargetKey` longtext NULL,
+  `CreatedAt` datetime(6) NOT NULL,
+  PRIMARY KEY (`Id`),
+  KEY `IX_UserMoments_UserId` (`UserId`),
+  KEY `IX_UserMoments_VenueId_CreatedAt` (`VenueId`, `CreatedAt`),
+  CONSTRAINT `FK_UserMoments_Users_UserId` FOREIGN KEY (`UserId`) REFERENCES `Users` (`Id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
+        }
+
+        // Users.MomentsPublic 列（动态公开开关）：已有表补列
+        if (await tableExists("Users") && !await ColumnExistsAsync(db, "Users", "MomentsPublic"))
+        {
+            logger.LogInformation("MySQL 补充 Users.MomentsPublic 列（动态公开开关）");
+            await db.Database.ExecuteSqlRawAsync("ALTER TABLE `Users` ADD COLUMN `MomentsPublic` tinyint NOT NULL DEFAULT 1;");
         }
 
         // PersonaProfiles.Focus / Motive 列（画像扩展维度）：已有表补列

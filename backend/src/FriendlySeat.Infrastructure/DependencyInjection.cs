@@ -132,6 +132,7 @@ public static class DependencyInjection
         services.AddScoped<PersonaService>();
         services.AddScoped<VenuePostService>();
         services.AddScoped<UserProfileService>();
+        services.AddScoped<MomentService>();
 
         // 管理端服务（整合进单体 API）
         services.AddScoped<AdminManageService>();

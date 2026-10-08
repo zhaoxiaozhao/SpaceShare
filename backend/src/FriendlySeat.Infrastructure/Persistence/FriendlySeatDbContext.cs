@@ -57,6 +57,7 @@ public class FriendlySeatDbContext : DbContext, IAppDbContext
     public DbSet<VenuePostComment> VenuePostComments => Set<VenuePostComment>();
     public DbSet<VenuePostLike> VenuePostLikes => Set<VenuePostLike>();
     public DbSet<VenuePostCommentLike> VenuePostCommentLikes => Set<VenuePostCommentLike>();
+    public DbSet<UserMoment> UserMoments => Set<UserMoment>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -70,6 +71,9 @@ public class FriendlySeatDbContext : DbContext, IAppDbContext
 
         modelBuilder.Entity<User>()
             .Property(u => u.RiskScore).HasDefaultValue(0);
+
+        modelBuilder.Entity<User>()
+            .Property(u => u.MomentsPublic).HasDefaultValue(true);
 
         modelBuilder.Entity<City>()
             .HasIndex(c => new { c.CountryCode, c.Name }).IsUnique();
@@ -351,6 +355,18 @@ public class FriendlySeatDbContext : DbContext, IAppDbContext
             .HasOne(l => l.User)
             .WithMany()
             .HasForeignKey(l => l.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<UserMoment>()
+            .HasIndex(m => new { m.VenueId, m.CreatedAt });
+
+        modelBuilder.Entity<UserMoment>()
+            .HasIndex(m => m.UserId);
+
+        modelBuilder.Entity<UserMoment>()
+            .HasOne(m => m.User)
+            .WithMany()
+            .HasForeignKey(m => m.UserId)
             .OnDelete(DeleteBehavior.Cascade);
     }
 }

@@ -17,12 +17,14 @@ public class SeatNoteService
     private readonly IAppDbContext _db;
     private readonly SensitiveWordService _sensitive;
     private readonly IWechatService _wechat;
+    private readonly MomentService _moments;
 
-    public SeatNoteService(IAppDbContext db, SensitiveWordService sensitive, IWechatService wechat)
+    public SeatNoteService(IAppDbContext db, SensitiveWordService sensitive, IWechatService wechat, MomentService moments)
     {
         _db = db;
         _sensitive = sensitive;
         _wechat = wechat;
+        _moments = moments;
     }
 
     public async Task<List<SeatNoteDto>> GetBySeatAsync(long seatId, long? viewerId, int take = 20, CancellationToken ct = default)
@@ -68,6 +70,14 @@ public class SeatNoteService
             _db.SeatNotes.Add(note);
             await _db.SaveChangesAsync(ct);
             note = await _db.SeatNotes.Include(n => n.User).FirstAsync(n => n.Id == note.Id, ct);
+
+            // 社区动态：留便签
+            var sc = await _moments.ResolveSeatAsync(seat.Id, ct);
+            if (sc is not null)
+            {
+                await _moments.PublishAsync(userId, sc.Value.VenueId, sc.Value.VenueName, "seat_note",
+                    $"在「{sc.Value.ZoneName} {sc.Value.SeatCode}」留了便签：{content}", $"note:{note.Id}", ct);
+            }
         }
         else
         {
@@ -77,6 +87,14 @@ public class SeatNoteService
             note.Content = content;
             note.UpdatedAt = DateTime.UtcNow;
             await _db.SaveChangesAsync(ct);
+
+            // 便签内容更新后同步刷新动态文案
+            var sc = await _moments.ResolveSeatAsync(seat.Id, ct);
+            if (sc is not null)
+            {
+                await _moments.UpdateContentForTargetAsync("seat_note", $"note:{note.Id}",
+                    $"在「{sc.Value.ZoneName} {sc.Value.SeatCode}」留了便签：{content}", ct);
+            }
         }
 
         return ToDto(note, userId);
@@ -91,6 +109,9 @@ public class SeatNoteService
 
         _db.SeatNotes.Remove(note);
         await _db.SaveChangesAsync(ct);
+
+        // 删除便签时同步删除其社区动态
+        await _moments.DeleteByTargetAsync("seat_note", $"note:{noteId}", ct);
     }
 
     /// <summary>被举报：自动隐藏并进入审核</summary>
@@ -101,6 +122,9 @@ public class SeatNoteService
         note.Status = SeatNoteStatus.Hidden;
         note.UpdatedAt = DateTime.UtcNow;
         await _db.SaveChangesAsync(ct);
+
+        // 便签被隐藏后同步删除其社区动态
+        await _moments.DeleteByTargetAsync("seat_note", $"note:{noteId}", ct);
     }
 
     // ============ 管理端 ============
@@ -151,6 +175,10 @@ public class SeatNoteService
             CreatedAt = DateTime.UtcNow
         });
         await _db.SaveChangesAsync(ct);
+
+        // 驳回删除便签时同步删除其社区动态
+        if (!approve)
+            await _moments.DeleteByTargetAsync("seat_note", $"note:{id}", ct);
     }
 
     private static SeatNoteDto ToDto(SeatNote n, long? viewerId) => new()

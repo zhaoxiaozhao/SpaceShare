@@ -16,6 +16,7 @@ public class ReservationService
     private readonly IRedisCache _cache;
     private readonly RiskService _risk;
     private readonly CreditService _credit;
+    private readonly MomentService _moments;
     private readonly ILogger _logger;
 
     public ReservationService(
@@ -26,6 +27,7 @@ public class ReservationService
         IRedisCache cache,
         RiskService risk,
         CreditService credit,
+        MomentService moments,
         ILogger<ReservationService> logger)
     {
         _db = db;
@@ -35,6 +37,7 @@ public class ReservationService
         _cache = cache;
         _risk = risk;
         _credit = credit;
+        _moments = moments;
         _logger = logger;
     }
 
@@ -280,6 +283,14 @@ public class ReservationService
 
         await _db.SaveChangesAsync(ct);
         await InvalidateVenueCacheAsync(reservation.SeatId, ct);
+
+        // 社区动态：到馆打卡
+        var sc = await _moments.ResolveSeatAsync(reservation.SeatId, ct);
+        if (sc is not null)
+        {
+            await _moments.PublishAsync(userId, sc.Value.VenueId, sc.Value.VenueName, "check_in",
+                "到馆打卡，开始自习", $"checkin:{reservation.Id}", ct);
+        }
 
         // 信用加分
         await AwardCreditAsync(userId, "arrival", "到座确认", reservation.Id, ct);
