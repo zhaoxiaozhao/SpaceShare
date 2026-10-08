@@ -221,8 +221,8 @@ export const api = {
 	setPersonaVisibility: (isPublic) => request('/persona/visibility', { method: 'POST', data: { isPublic } }),
 
 	// ===== 场馆交流板 =====
-	getVenuePosts: (venueId, category, sort, beforeId) => request(`/venue-posts?venueId=${venueId}&category=${category || ''}&sort=${sort || 'new'}&take=20${beforeId ? `&beforeId=${beforeId}` : ''}`, { auth: false }),
-	getVenuePost: (id, countView) => request(`/venue-posts/${id}${countView === false ? '?countView=false' : ''}`, { auth: false }),
+	getVenuePosts: (venueId, category, sort, beforeId) => request(`/venue-posts?venueId=${venueId}&category=${category || ''}&sort=${sort || 'new'}&take=20${beforeId ? `&beforeId=${beforeId}` : ''}`),
+	getVenuePost: (id, countView) => request(`/venue-posts/${id}${countView === false ? '?countView=false' : ''}`),
 	getMyVenuePosts: () => request('/venue-posts/mine'),
 	createVenuePost: (data) => request('/venue-posts', { method: 'POST', data }),
 	updateVenuePost: (id, data) => request(`/venue-posts/${id}`, { method: 'PUT', data }),
