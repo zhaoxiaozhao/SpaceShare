@@ -45,7 +45,6 @@
 					<switch :checked="!!user.momentsPublic" style="transform: scale(0.72);" @change="onMomentsPublicChange" />
 				</view>
 			</view>
-			</view>
 			<view class="menu-item" @click="goNotifications">
 				<text>🔔 消息通知</text>
 				<view class="menu-right">
