@@ -92,6 +92,14 @@ public class ReadingService
         var notes = await _db.ReadingNotes.Where(n => n.BookId == bookId).ToListAsync(ct);
         _db.ReadingSessions.RemoveRange(sessions);
         _db.ReadingNotes.RemoveRange(notes);
+
+        // 级联删除该书相关的自动帖（正在阅读 + 各笔记/摘抄）
+        var keys = notes.Select(n => $"readnote:{n.Id}").Append($"book:{bookId}").ToList();
+        var autoPosts = await _db.VenuePosts
+            .Where(p => p.IsAuto && p.TargetKey != null && keys.Contains(p.TargetKey))
+            .ToListAsync(ct);
+        if (autoPosts.Count > 0) _db.VenuePosts.RemoveRange(autoPosts);
+
         _db.ReadingBooks.Remove(book);
         await _db.SaveChangesAsync(ct);
     }
@@ -282,8 +290,8 @@ public class ReadingService
     // ============ 摘抄/笔记 ============
     public async Task<ReadingNoteDto> AddNoteAsync(long userId, long bookId, CreateReadingNoteRequest request, CancellationToken ct = default)
     {
-        var book = await _db.ReadingBooks.AnyAsync(b => b.Id == bookId && b.UserId == userId, ct);
-        if (!book) throw AppException.NotFound("书籍不存在");
+        var book = await _db.ReadingBooks.FirstOrDefaultAsync(b => b.Id == bookId && b.UserId == userId, ct)
+            ?? throw AppException.NotFound("书籍不存在");
         if (string.IsNullOrWhiteSpace(request.Content))
             throw AppException.BadRequest("content_required", "内容不能为空");
 
@@ -299,6 +307,17 @@ public class ReadingService
         };
         _db.ReadingNotes.Add(note);
         await _db.SaveChangesAsync(ct);
+
+        // 动态帖（默认关闭）：需用户主动开启「公开我的读书笔记/摘抄」
+        var user = await _db.Users.FirstOrDefaultAsync(u => u.Id == userId, ct);
+        if (user?.ReadNotePublic == true)
+        {
+            var isHighlight = type == ReadingNoteType.Highlight;
+            await _moments.PublishAsync(userId, book.VenueId, book.VenueName,
+                isHighlight ? "read_highlight" : "read_note",
+                $"《{book.Title}》：{note.Content}", $"readnote:{note.Id}", ct);
+        }
+
         return ToNoteDto(note);
     }
 
@@ -308,6 +327,7 @@ public class ReadingService
             ?? throw AppException.NotFound("笔记不存在");
         _db.ReadingNotes.Remove(note);
         await _db.SaveChangesAsync(ct);
+        await _moments.DeleteByTargetAsync("read_note", $"readnote:{noteId}", ct);
     }
 
     public async Task<List<ReadingNoteDto>> GetNotesAsync(long userId, long bookId, string? type, CancellationToken ct = default)

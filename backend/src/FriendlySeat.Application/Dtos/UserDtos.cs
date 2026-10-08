@@ -10,6 +10,7 @@ public class UserDto
     public int RiskScore { get; set; }
     public string Status { get; set; } = string.Empty;
     public bool MomentsPublic { get; set; } = true;
+    public bool ReadNotePublic { get; set; }
     public DateTime CreatedAt { get; set; }
 }
 

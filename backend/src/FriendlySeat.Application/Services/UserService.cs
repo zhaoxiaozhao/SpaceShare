@@ -57,6 +57,16 @@ public class UserService
         return AuthService.ToDto(user);
     }
 
+    /// <summary>设置「公开我的读书笔记/摘抄」开关（默认关闭）</summary>
+    public async Task<UserDto> SetReadNotePublicAsync(long userId, bool isPublic, CancellationToken ct = default)
+    {
+        var user = await _db.Users.FirstAsync(u => u.Id == userId, ct);
+        user.ReadNotePublic = isPublic;
+        user.UpdatedAt = DateTime.UtcNow;
+        await _db.SaveChangesAsync(ct);
+        return AuthService.ToDto(user);
+    }
+
     public async Task<List<NotificationDto>> GetNotificationsAsync(long userId, bool? unread, CancellationToken ct = default)
     {
         var query = _db.Notifications.Where(n => n.UserId == userId);

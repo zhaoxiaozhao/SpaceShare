@@ -41,6 +41,8 @@ public class MomentService
         "seat_note" => "留下了便签",
         "reading" => "正在阅读",
         "check_in" => "到馆打卡",
+        "read_note" => "读书笔记",
+        "read_highlight" => "书中摘抄",
         _ => "动态"
     };
 

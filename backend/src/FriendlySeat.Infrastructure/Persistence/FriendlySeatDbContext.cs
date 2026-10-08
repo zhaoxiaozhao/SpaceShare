@@ -74,6 +74,9 @@ public class FriendlySeatDbContext : DbContext, IAppDbContext
         modelBuilder.Entity<User>()
             .Property(u => u.MomentsPublic).HasDefaultValue(true);
 
+        modelBuilder.Entity<User>()
+            .Property(u => u.ReadNotePublic).HasDefaultValue(false);
+
         modelBuilder.Entity<City>()
             .HasIndex(c => new { c.CountryCode, c.Name }).IsUnique();
 

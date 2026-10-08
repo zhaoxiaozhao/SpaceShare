@@ -39,6 +39,13 @@ public class MeController : ControllerBase
         return Ok(await _users.SetMomentsPublicAsync(_currentUser.UserId!.Value, request.IsPublic, ct));
     }
 
+    /// <summary>设置「公开我的读书笔记/摘抄」开关（默认关闭）</summary>
+    [HttpPut("read-note-public")]
+    public async Task<ActionResult<UserDto>> SetReadNotePublic([FromBody] MomentVisibilityRequest request, CancellationToken ct)
+    {
+        return Ok(await _users.SetReadNotePublicAsync(_currentUser.UserId!.Value, request.IsPublic, ct));
+    }
+
     /// <summary>注销账号（匿名化个人信息并禁用账号）</summary>
     [HttpPost("delete-account")]
     public async Task<IActionResult> DeleteAccount(CancellationToken ct)

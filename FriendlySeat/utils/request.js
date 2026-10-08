@@ -236,7 +236,8 @@ export const api = {
 	getLiveStats: () => request('/stats/live', { auth: false }),
 
 	// ===== 动态公开开关（行为自动生成交流板帖） =====
-	setMomentsPublic: (isPublic) => request('/me/moments-public', { method: 'PUT', data: { isPublic } })
+	setMomentsPublic: (isPublic) => request('/me/moments-public', { method: 'PUT', data: { isPublic } }),
+	setReadNotePublic: (isPublic) => request('/me/read-note-public', { method: 'PUT', data: { isPublic } })
 }
 
 function qs(params) {

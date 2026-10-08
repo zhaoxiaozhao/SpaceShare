@@ -553,6 +553,13 @@ CREATE TABLE `VenuePostCommentLikes` (
             await db.Database.ExecuteSqlRawAsync("ALTER TABLE `Users` ADD COLUMN `MomentsPublic` tinyint NOT NULL DEFAULT 1;");
         }
 
+        // Users.ReadNotePublic 列（读书笔记/摘抄公开开关，默认关闭）：已有表补列
+        if (await tableExists("Users") && !await ColumnExistsAsync(db, "Users", "ReadNotePublic"))
+        {
+            logger.LogInformation("MySQL 补充 Users.ReadNotePublic 列（读书笔记/摘抄公开开关）");
+            await db.Database.ExecuteSqlRawAsync("ALTER TABLE `Users` ADD COLUMN `ReadNotePublic` tinyint NOT NULL DEFAULT 0;");
+        }
+
         // PersonaProfiles.Focus / Motive 列（画像扩展维度）：已有表补列
         if (await tableExists("PersonaProfiles") && !await ColumnExistsAsync(db, "PersonaProfiles", "Focus"))
         {

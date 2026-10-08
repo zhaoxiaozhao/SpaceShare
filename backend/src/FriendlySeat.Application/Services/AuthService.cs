@@ -83,6 +83,7 @@ public class AuthService
         RiskScore = user.RiskScore,
         Status = user.Status.ToString(),
         MomentsPublic = user.MomentsPublic,
+        ReadNotePublic = user.ReadNotePublic,
         CreatedAt = user.CreatedAt
     };
 

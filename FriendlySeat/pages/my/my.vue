@@ -45,6 +45,13 @@
 					<switch :checked="!!user.momentsPublic" style="transform: scale(0.72);" @change="onMomentsPublicChange" />
 				</view>
 			</view>
+			<view class="menu-item">
+				<text>📝 公开我的读书笔记</text>
+				<view class="menu-right">
+					<text class="moments-desc">{{user.readNotePublic ? '已开启' : '已关闭'}}</text>
+					<switch :checked="!!user.readNotePublic" style="transform: scale(0.72);" @change="onReadNotePublicChange" />
+				</view>
+			</view>
 			<view class="menu-item" @click="goNotifications">
 				<text>🔔 消息通知</text>
 				<view class="menu-right">
@@ -220,6 +227,21 @@
 					uni.showToast({ title: val ? '已开启自动动态帖' : '已关闭自动动态帖', icon: 'none' })
 				} catch (err) {
 					this.user.momentsPublic = prev
+					uni.setStorageSync('user', this.user)
+					uni.showToast({ title: err.message || '操作失败', icon: 'none' })
+				}
+			},
+			async onReadNotePublicChange(e) {
+				const val = !!e.detail.value
+				const prev = !!this.user.readNotePublic
+				if (val === prev) return
+				this.user.readNotePublic = val
+				uni.setStorageSync('user', this.user)
+				try {
+					await api.setReadNotePublic(val)
+					uni.showToast({ title: val ? '已开启公开读书笔记' : '已关闭公开读书笔记', icon: 'none' })
+				} catch (err) {
+					this.user.readNotePublic = prev
 					uni.setStorageSync('user', this.user)
 					uni.showToast({ title: err.message || '操作失败', icon: 'none' })
 				}
