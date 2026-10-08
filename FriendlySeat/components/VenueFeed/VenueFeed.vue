@@ -153,7 +153,7 @@
 				this.loaded = false
 				try {
 					if (this.isMoments) {
-						const list = (await api.getMoments(this.venueId, PAGE_SIZE)) || []
+						const list = (await api.getMoments(0, PAGE_SIZE)) || []
 						this.moments = list
 						this.hasMore = list.length >= PAGE_SIZE
 					} else {
@@ -177,7 +177,7 @@
 				const beforeId = list[list.length - 1].id
 				try {
 					if (this.isMoments) {
-						const more = (await api.getMoments(this.venueId, PAGE_SIZE, beforeId)) || []
+						const more = (await api.getMoments(0, PAGE_SIZE, beforeId)) || []
 						if (more.length) {
 							const seen = new Set(this.moments.map(m => m.id))
 							this.moments = this.moments.concat(more.filter(m => !seen.has(m.id)))

@@ -43,7 +43,7 @@ public class MomentService
             .AsQueryable();
 
         if (venueId.HasValue && venueId.Value > 0)
-            query = query.Where(m => m.VenueId == venueId.Value);
+            query = query.Where(m => m.VenueId == null || m.VenueId == venueId.Value);
 
         if (beforeId.HasValue && beforeId.Value > 0)
             query = query.Where(m => m.Id < beforeId.Value);
