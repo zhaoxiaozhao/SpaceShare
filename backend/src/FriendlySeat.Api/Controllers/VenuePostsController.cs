@@ -36,7 +36,7 @@ public class VenuePostsController : ControllerBase
     /// <summary>帖子详情 + 评论（匿名可看）</summary>
     [HttpGet("{id:long}")]
     [AllowAnonymous]
-    public async Task<ActionResult<VenuePostDetailDto>> Detail(long id, [FromQuery] bool countView, CancellationToken ct)
+    public async Task<ActionResult<VenuePostDetailDto>> Detail(long id, [FromQuery] bool countView = true, CancellationToken ct = default)
     {
         var dto = await _posts.GetDetailAsync(id, _currentUser.UserId, countView, ct);
         if (dto is null) return NotFound();

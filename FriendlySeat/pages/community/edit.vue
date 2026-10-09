@@ -89,7 +89,7 @@
 			async loadPost() {
 				uni.showLoading({ title: '加载中', mask: true })
 				try {
-					const d = await api.getVenuePost(this.postId)
+					const d = await api.getVenuePost(this.postId, false)
 					const p = d && d.post
 					if (!p) {
 						uni.showToast({ title: '帖子不存在', icon: 'none' })
